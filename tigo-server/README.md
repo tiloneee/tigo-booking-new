@@ -1,3 +1,84 @@
+# Tigo Booking API
+
+A comprehensive booking platform similar to Agoda or Booking.com, covering hotels, restaurants, and transportation services.
+
+## Setup Instructions
+
+### Prerequisites
+
+- Node.js (v14+)
+- PostgreSQL
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd tigo-booking-new
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Configure environment variables:
+   - Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   - Update the values in `.env` with your actual configuration:
+     - Database credentials
+     - JWT secrets
+     - SMTP settings for email notifications
+
+4. Database setup:
+   - Create a PostgreSQL database named `tigo_booking_db`
+   - Run migrations:
+   ```bash
+   npm run migration:run
+   ```
+   - Seed the database with initial roles and permissions:
+   ```bash
+   npm run seed
+   ```
+
+5. Start the application:
+```bash
+npm run start:dev
+```
+
+## User Authentication
+
+The API uses JWT tokens for authentication:
+
+- Register: `POST /auth/register`
+- Login: `POST /auth/login` 
+- Activate account: `GET /auth/activate?token={activation_token}`
+- Refresh token: `POST /auth/refresh`
+- Logout: `POST /auth/logout` (Requires authentication)
+
+## Role-Based Access Control
+
+The system implements role-based access control with the following roles:
+
+- `Admin`: Full system access
+- `Customer`: Can book hotels, restaurants, and transportation
+- `HotelOwner`: Can manage hotel properties
+- `RestaurantOwner`: Can manage restaurant properties
+- `TransportOwner`: Can manage transportation services
+
+## User Management
+
+- Create user: `POST /users` (Admin only)
+- Get all users: `GET /users` (Admin only)
+- Get user by ID: `GET /users/:id` (Admin only)
+- Update user: `PATCH /users/:id` (Admin only)
+- Delete user: `DELETE /users/:id` (Admin only)
+- Get own profile: `GET /users/profile` (Authenticated user)
+- Assign role: `POST /users/:id/roles` (Admin only)
+
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
