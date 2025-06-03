@@ -10,7 +10,7 @@ import { AuthController } from './controllers/auth.controller';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
-import { JwtStrategy } from './strategies/jwt.strategy';
+import { JwtStrategy } from '../../common/strategies/jwt.strategy';
 import { EmailService } from '../../common/services/email.service';
 
 @Module({

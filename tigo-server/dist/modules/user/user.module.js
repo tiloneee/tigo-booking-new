@@ -19,7 +19,7 @@ const auth_controller_1 = require("./controllers/auth.controller");
 const user_entity_1 = require("./entities/user.entity");
 const role_entity_1 = require("./entities/role.entity");
 const permission_entity_1 = require("./entities/permission.entity");
-const jwt_strategy_1 = require("./strategies/jwt.strategy");
+const jwt_strategy_1 = require("../../common/strategies/jwt.strategy");
 const email_service_1 = require("../../common/services/email.service");
 let UserModule = class UserModule {
 };
