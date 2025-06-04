@@ -1,19 +1,54 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+// Entities
+import { Hotel } from './entities/hotel.entity';
+import { HotelAmenity } from './entities/hotel-amenity.entity';
+import { Room } from './entities/room.entity';
+import { RoomAvailability } from './entities/room-availability.entity';
+import { HotelBooking } from './entities/hotel-booking.entity';
+import { HotelReview } from './entities/hotel-review.entity';
+
+// Services
+import { HotelService } from './services/hotel.service';
+import { RoomService } from './services/room.service';
+import { GeocodingService } from './services/geocoding.service';
+
+// Controllers
+import { HotelController } from './controllers/hotel.controller';
+import { RoomController, HotelRoomController } from './controllers/room.controller';
+
+// Guards
+import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
+
 @Module({
   imports: [
-    // TypeORM entities will be added here as we create them
-    TypeOrmModule.forFeature([]),
+    TypeOrmModule.forFeature([
+      Hotel,
+      HotelAmenity,
+      Room,
+      RoomAvailability,
+      HotelBooking,
+      HotelReview,
+    ]),
   ],
   controllers: [
-    // Controllers will be added here as we create them
+    HotelController,
+    RoomController,
+    HotelRoomController,
   ],
   providers: [
-    // Services will be added here as we create them
+    HotelService,
+    RoomService,
+    GeocodingService,
+    HotelOwnershipGuard,
   ],
   exports: [
-    // Exported services will be added here as needed
+    HotelService,
+    RoomService,
+    GeocodingService,
+    // Export repositories for use in other modules
+    TypeOrmModule,
   ],
 })
 export class HotelModule {} 
