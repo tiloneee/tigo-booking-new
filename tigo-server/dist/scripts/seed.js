@@ -11,12 +11,26 @@ async function bootstrap() {
     const permissionRepository = app.get((0, typeorm_1.getRepositoryToken)(permission_entity_1.Permission));
     const permissions = [
         { name: 'manage_users', description: 'Can manage user accounts' },
-        { name: 'manage_bookings', description: 'Can manage bookings' },
-        { name: 'manage_properties', description: 'Can manage properties' },
-        { name: 'manage_own_properties', description: 'Can manage own properties' },
-        { name: 'view_own_bookings', description: 'Can view own bookings' },
-        { name: 'create_booking', description: 'Can create bookings' },
-        { name: 'leave_reviews', description: 'Can leave reviews' },
+        { name: 'system_admin', description: 'Full system administration access' },
+        { name: 'create_hotel', description: 'Create new hotel listings' },
+        { name: 'view_own_hotels', description: 'View own hotel listings' },
+        { name: 'view_all_hotels', description: 'View all hotel listings (admin)' },
+        { name: 'update_hotel', description: 'Update hotel information' },
+        { name: 'delete_hotel', description: 'Delete hotel listings' },
+        { name: 'manage_rooms', description: 'Full room management (add, update, delete)' },
+        { name: 'manage_room_pricing', description: 'Manage room pricing and availability' },
+        { name: 'create_hotel_booking', description: 'Create hotel bookings' },
+        { name: 'view_own_bookings', description: 'View own booking history' },
+        { name: 'view_hotel_bookings', description: 'View bookings for owned hotels' },
+        { name: 'view_all_bookings', description: 'View all platform bookings (admin)' },
+        { name: 'manage_booking_status', description: 'Update booking status and payments' },
+        { name: 'cancel_booking', description: 'Cancel bookings' },
+        { name: 'search_hotels', description: 'Search and browse hotels' },
+        { name: 'view_hotel_details', description: 'View public hotel information' },
+        { name: 'submit_review', description: 'Submit reviews and ratings' },
+        { name: 'view_reviews', description: 'View reviews and ratings' },
+        { name: 'moderate_reviews', description: 'Moderate and manage reviews (admin)' },
+        { name: 'manage_amenities', description: 'Manage global amenities catalog' },
     ];
     console.log('Creating permissions...');
     for (const permData of permissions) {
@@ -65,9 +79,13 @@ async function bootstrap() {
     if (customerRole) {
         const customerPermissions = await permissionRepository.find({
             where: [
-                { name: 'create_booking' },
+                { name: 'create_hotel_booking' },
                 { name: 'view_own_bookings' },
-                { name: 'leave_reviews' }
+                { name: 'cancel_booking' },
+                { name: 'search_hotels' },
+                { name: 'view_hotel_details' },
+                { name: 'submit_review' },
+                { name: 'view_reviews' }
             ]
         });
         customerRole.permissions = customerPermissions;
@@ -81,8 +99,15 @@ async function bootstrap() {
     if (hotelOwnerRole) {
         const hotelOwnerPermissions = await permissionRepository.find({
             where: [
-                { name: 'manage_own_properties' },
-                { name: 'view_own_bookings' }
+                { name: 'create_hotel' },
+                { name: 'view_own_hotels' },
+                { name: 'update_hotel' },
+                { name: 'delete_hotel' },
+                { name: 'manage_rooms' },
+                { name: 'manage_room_pricing' },
+                { name: 'view_hotel_bookings' },
+                { name: 'manage_booking_status' },
+                { name: 'view_reviews' }
             ]
         });
         hotelOwnerRole.permissions = hotelOwnerPermissions;
@@ -96,7 +121,6 @@ async function bootstrap() {
     if (restaurantOwnerRole) {
         const restaurantOwnerPermissions = await permissionRepository.find({
             where: [
-                { name: 'manage_own_properties' },
                 { name: 'view_own_bookings' }
             ]
         });
@@ -111,7 +135,6 @@ async function bootstrap() {
     if (transportOwnerRole) {
         const transportOwnerPermissions = await permissionRepository.find({
             where: [
-                { name: 'manage_own_properties' },
                 { name: 'view_own_bookings' }
             ]
         });
