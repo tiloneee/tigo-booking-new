@@ -29,6 +29,7 @@ export class HotelBooking {
   @Column({ 
     type: 'enum', 
     enum: ['Pending', 'Confirmed', 'Cancelled', 'Completed'], 
+    enumName: 'hotel_booking_status_enum',
     default: 'Pending' 
   })
   status: string;

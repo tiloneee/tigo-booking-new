@@ -50,6 +50,7 @@ __decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
         enum: ['Pending', 'Confirmed', 'Cancelled', 'Completed'],
+        enumName: 'hotel_booking_status_enum',
         default: 'Pending'
     }),
     __metadata("design:type", String)
