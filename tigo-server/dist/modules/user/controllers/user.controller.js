@@ -41,7 +41,8 @@ let UserController = class UserController {
         return this.userService.update(id, updateUserDto);
     }
     remove(id) {
-        return this.userService.remove(id);
+        this.userService.remove(id);
+        return { message: 'User deleted successfully' };
     }
     assignRole(id, role) {
         return this.userService.assignRole(id, role);

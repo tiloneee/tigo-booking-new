@@ -30,21 +30,25 @@ export class UserService {
     const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
     const activationToken = uuidv4();
 
-    // Default role is Customer, unless specified otherwise
-    const customerRole = await this.roleRepository.findOne({
-      where: { name: 'Customer' }
+    // Use specified role or default to Customer
+    const roleName = createUserDto.role || 'Customer';
+    const role = await this.roleRepository.findOne({
+      where: { name: roleName }
     });
 
-    if (!customerRole) {
-      throw new Error('Default role not found');
+    if (!role) {
+      throw new Error(`Role '${roleName}' not found`);
     }
 
+    // Remove role from createUserDto before spreading to avoid conflicts
+    const { role: _, ...userDataWithoutRole } = createUserDto;
+
     const user = this.userRepository.create({
-      ...createUserDto,
+      ...userDataWithoutRole,
       password_hash: hashedPassword,
       activation_token: activationToken,
-      is_active: false,
-      roles: [customerRole]
+      is_active: true,
+      roles: [role]
     });
 
     return this.userRepository.save(user);

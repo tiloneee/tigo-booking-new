@@ -9,6 +9,8 @@ export declare class UserController {
     getProfile(req: any): Promise<import("../entities/user.entity").User>;
     findOne(id: string): Promise<import("../entities/user.entity").User>;
     update(id: string, updateUserDto: UpdateUserDto): Promise<import("../entities/user.entity").User>;
-    remove(id: string): Promise<void>;
+    remove(id: string): {
+        message: string;
+    };
     assignRole(id: string, role: string): Promise<import("../entities/user.entity").User>;
 }
