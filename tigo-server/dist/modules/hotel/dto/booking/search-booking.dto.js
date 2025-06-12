@@ -83,13 +83,23 @@ __decorate([
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsIn)(['Pending', 'Confirmed', 'Cancelled', 'Completed', 'CheckedIn', 'CheckedOut', 'NoShow'], { each: true }),
+    (0, class_validator_1.IsIn)([
+        'Pending',
+        'Confirmed',
+        'Cancelled',
+        'Completed',
+        'CheckedIn',
+        'CheckedOut',
+        'NoShow',
+    ], { each: true }),
     __metadata("design:type", Array)
 ], SearchBookingDto.prototype, "status", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.IsIn)(['Pending', 'Paid', 'Refunded', 'PartialRefund', 'Failed'], { each: true }),
+    (0, class_validator_1.IsIn)(['Pending', 'Paid', 'Refunded', 'PartialRefund', 'Failed'], {
+        each: true,
+    }),
     __metadata("design:type", Array)
 ], SearchBookingDto.prototype, "payment_status", void 0);
 __decorate([
@@ -123,7 +133,13 @@ __decorate([
 ], SearchBookingDto.prototype, "guest_phone", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsIn)(['created_at', 'check_in_date', 'check_out_date', 'total_price', 'status']),
+    (0, class_validator_1.IsIn)([
+        'created_at',
+        'check_in_date',
+        'check_out_date',
+        'total_price',
+        'status',
+    ]),
     __metadata("design:type", String)
 ], SearchBookingDto.prototype, "sort_by", void 0);
 __decorate([

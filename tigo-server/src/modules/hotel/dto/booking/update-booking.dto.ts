@@ -3,10 +3,18 @@ import { CreateBookingDto } from './create-booking.dto';
 import { IsOptional, IsIn, IsString, Length } from 'class-validator';
 
 export class UpdateBookingDto extends PartialType(
-  OmitType(CreateBookingDto, ['hotel_id', 'room_id'] as const)
+  OmitType(CreateBookingDto, ['hotel_id', 'room_id'] as const),
 ) {
   @IsOptional()
-  @IsIn(['Pending', 'Confirmed', 'Cancelled', 'Completed', 'CheckedIn', 'CheckedOut', 'NoShow'])
+  @IsIn([
+    'Pending',
+    'Confirmed',
+    'Cancelled',
+    'Completed',
+    'CheckedIn',
+    'CheckedOut',
+    'NoShow',
+  ])
   status?: string;
 
   @IsOptional()
@@ -26,4 +34,4 @@ export class UpdateBookingDto extends PartialType(
   // Internal fields for service use
   confirmed_at?: Date;
   cancelled_at?: Date;
-} 
+}

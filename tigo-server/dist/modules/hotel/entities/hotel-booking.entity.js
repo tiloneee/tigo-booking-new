@@ -89,8 +89,16 @@ __decorate([
 __decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
-        enum: ['Pending', 'Confirmed', 'Cancelled', 'Completed', 'CheckedIn', 'CheckedOut', 'NoShow'],
-        default: 'Pending'
+        enum: [
+            'Pending',
+            'Confirmed',
+            'Cancelled',
+            'Completed',
+            'CheckedIn',
+            'CheckedOut',
+            'NoShow',
+        ],
+        default: 'Pending',
     }),
     __metadata("design:type", String)
 ], HotelBooking.prototype, "status", void 0);
@@ -98,7 +106,7 @@ __decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
         enum: ['Pending', 'Paid', 'Refunded', 'PartialRefund', 'Failed'],
-        default: 'Pending'
+        default: 'Pending',
     }),
     __metadata("design:type", String)
 ], HotelBooking.prototype, "payment_status", void 0);
@@ -119,7 +127,7 @@ __decorate([
     __metadata("design:type", Date)
 ], HotelBooking.prototype, "confirmed_at", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => hotel_entity_1.Hotel, hotel => hotel.bookings),
+    (0, typeorm_1.ManyToOne)(() => hotel_entity_1.Hotel, (hotel) => hotel.bookings),
     (0, typeorm_1.JoinColumn)({ name: 'hotel_id' }),
     __metadata("design:type", hotel_entity_1.Hotel)
 ], HotelBooking.prototype, "hotel", void 0);
@@ -128,7 +136,7 @@ __decorate([
     __metadata("design:type", String)
 ], HotelBooking.prototype, "hotel_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => room_entity_1.Room, room => room.bookings),
+    (0, typeorm_1.ManyToOne)(() => room_entity_1.Room, (room) => room.bookings),
     (0, typeorm_1.JoinColumn)({ name: 'room_id' }),
     __metadata("design:type", room_entity_1.Room)
 ], HotelBooking.prototype, "room", void 0);

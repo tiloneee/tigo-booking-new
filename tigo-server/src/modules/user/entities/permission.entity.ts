@@ -12,6 +12,6 @@ export class Permission {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @ManyToMany(() => Role, role => role.permissions)
+  @ManyToMany(() => Role, (role) => role.permissions)
   roles: Role[];
-} 
+}

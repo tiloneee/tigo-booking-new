@@ -1,10 +1,10 @@
-import { 
-  Injectable, 
-  NotFoundException, 
-  ConflictException, 
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
   ForbiddenException,
   BadRequestException,
-  Logger 
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource } from 'typeorm';
@@ -22,7 +22,7 @@ export class ReviewService {
   constructor(
     @InjectRepository(HotelReview)
     private reviewRepository: Repository<HotelReview>,
-    
+
     @InjectRepository(Hotel)
     private hotelRepository: Repository<Hotel>,
 
@@ -35,8 +35,11 @@ export class ReviewService {
     private dataSource: DataSource,
   ) {}
 
-  async create(createReviewDto: CreateReviewDto, userId: string): Promise<HotelReview> {
-    return this.dataSource.transaction(async manager => {
+  async create(
+    createReviewDto: CreateReviewDto,
+    userId: string,
+  ): Promise<HotelReview> {
+    return this.dataSource.transaction(async (manager) => {
       // Check if hotel exists
       const hotel = await manager.findOne(Hotel, {
         where: { id: createReviewDto.hotel_id, is_active: true },
@@ -63,11 +66,11 @@ export class ReviewService {
       if (createReviewDto.booking_id) {
         // Verify the booking belongs to the user and hotel
         const booking = await manager.findOne(HotelBooking, {
-          where: { 
-            id: createReviewDto.booking_id, 
-            user_id: userId, 
+          where: {
+            id: createReviewDto.booking_id,
+            user_id: userId,
             hotel_id: createReviewDto.hotel_id,
-            status: 'Completed' // Only allow reviews for completed stays
+            status: 'Completed', // Only allow reviews for completed stays
           },
         });
 
@@ -75,17 +78,19 @@ export class ReviewService {
           isVerifiedStay = true;
           stayDate = new Date(booking.check_out_date);
         } else {
-          throw new BadRequestException('Invalid booking for review verification');
+          throw new BadRequestException(
+            'Invalid booking for review verification',
+          );
         }
       } else {
         // Check if user has any completed booking for this hotel
         const completedBooking = await manager.findOne(HotelBooking, {
-          where: { 
-            user_id: userId, 
+          where: {
+            user_id: userId,
             hotel_id: createReviewDto.hotel_id,
-            status: 'Completed'
+            status: 'Completed',
           },
-          order: { check_out_date: 'DESC' }
+          order: { check_out_date: 'DESC' },
         });
 
         if (completedBooking) {
@@ -118,7 +123,9 @@ export class ReviewService {
       // Update hotel average rating
       await this.updateHotelRating(createReviewDto.hotel_id, manager);
 
-      this.logger.log(`Review created: ${savedReview.id} for hotel ${createReviewDto.hotel_id}`);
+      this.logger.log(
+        `Review created: ${savedReview.id} for hotel ${createReviewDto.hotel_id}`,
+      );
 
       const reviewWithRelations = await manager.findOne(HotelReview, {
         where: { id: savedReview.id },
@@ -133,9 +140,12 @@ export class ReviewService {
     });
   }
 
-  async findByHotel(hotelId: string, isApprovedOnly: boolean = true): Promise<HotelReview[]> {
+  async findByHotel(
+    hotelId: string,
+    isApprovedOnly: boolean = true,
+  ): Promise<HotelReview[]> {
     const whereCondition: any = { hotel_id: hotelId };
-    
+
     if (isApprovedOnly) {
       whereCondition.is_approved = true;
     }
@@ -149,8 +159,8 @@ export class ReviewService {
           id: true,
           first_name: true,
           last_name: true,
-        }
-      }
+        },
+      },
     });
   }
 
@@ -175,7 +185,11 @@ export class ReviewService {
     return review;
   }
 
-  async update(id: string, updateReviewDto: UpdateReviewDto, userId: string): Promise<HotelReview> {
+  async update(
+    id: string,
+    updateReviewDto: UpdateReviewDto,
+    userId: string,
+  ): Promise<HotelReview> {
     const review = await this.findOne(id);
 
     // Check if user owns this review
@@ -183,7 +197,7 @@ export class ReviewService {
       throw new ForbiddenException('You can only update your own reviews');
     }
 
-    return this.dataSource.transaction(async manager => {
+    return this.dataSource.transaction(async (manager) => {
       await manager.update(HotelReview, id, updateReviewDto);
 
       // Update hotel average rating if rating changed
@@ -215,9 +229,9 @@ export class ReviewService {
       throw new ForbiddenException('You can only delete your own reviews');
     }
 
-    await this.dataSource.transaction(async manager => {
+    await this.dataSource.transaction(async (manager) => {
       await manager.delete(HotelReview, id);
-      
+
       // Update hotel average rating
       await this.updateHotelRating(review.hotel_id, manager);
     });
@@ -225,7 +239,11 @@ export class ReviewService {
     this.logger.log(`Review deleted: ${id}`);
   }
 
-  async moderateReview(id: string, isApproved: boolean, moderationNotes?: string): Promise<HotelReview> {
+  async moderateReview(
+    id: string,
+    isApproved: boolean,
+    moderationNotes?: string,
+  ): Promise<HotelReview> {
     const review = await this.findOne(id);
 
     await this.reviewRepository.update(id, {
@@ -237,7 +255,11 @@ export class ReviewService {
     return this.findOne(id);
   }
 
-  async voteHelpful(reviewId: string, userId: string, isHelpful: boolean): Promise<HotelReview> {
+  async voteHelpful(
+    reviewId: string,
+    userId: string,
+    isHelpful: boolean,
+  ): Promise<HotelReview> {
     // This is a simplified implementation - in production you'd want to track individual votes
     const review = await this.findOne(reviewId);
 
@@ -261,7 +283,7 @@ export class ReviewService {
     });
 
     const totalReviews = reviews.length;
-    
+
     if (totalReviews === 0) {
       return {
         totalReviews: 0,
@@ -271,12 +293,13 @@ export class ReviewService {
       };
     }
 
-    const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
-    
+    const averageRating =
+      reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
+
     const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     let verifiedStaysCount = 0;
 
-    reviews.forEach(review => {
+    reviews.forEach((review) => {
       ratingDistribution[review.rating]++;
       if (review.is_verified_stay) {
         verifiedStaysCount++;
@@ -293,7 +316,10 @@ export class ReviewService {
     };
   }
 
-  private async updateHotelRating(hotelId: string, manager?: any): Promise<void> {
+  private async updateHotelRating(
+    hotelId: string,
+    manager?: any,
+  ): Promise<void> {
     const transactionManager = manager || this.dataSource.manager;
 
     const result = await transactionManager
@@ -313,4 +339,4 @@ export class ReviewService {
       total_reviews: totalReviews,
     });
   }
-} 
+}

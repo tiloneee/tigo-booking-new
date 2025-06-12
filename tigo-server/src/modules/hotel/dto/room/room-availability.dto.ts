@@ -1,11 +1,11 @@
-import { 
-  IsString, 
-  IsNumber, 
-  IsDateString, 
+import {
+  IsString,
+  IsNumber,
+  IsDateString,
   IsIn,
   Min,
   IsUUID,
-  IsOptional 
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -63,6 +63,7 @@ export class UpdateRoomAvailabilityDto {
 
 export class BulkRoomAvailabilityDto {
   @IsUUID()
+  @IsOptional()
   room_id: string;
 
   @IsDateString()
@@ -90,4 +91,4 @@ export class BulkRoomAvailabilityDto {
   @Min(0)
   @Type(() => Number)
   total_units?: number;
-} 
+}

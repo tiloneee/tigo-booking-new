@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
@@ -13,14 +17,14 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    
+
     @InjectRepository(Role)
     private roleRepository: Repository<Role>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     const existingUser = await this.userRepository.findOne({
-      where: { email: createUserDto.email }
+      where: { email: createUserDto.email },
     });
 
     if (existingUser) {
@@ -33,7 +37,7 @@ export class UserService {
     // Use specified role or default to Customer
     const roleName = createUserDto.role || 'Customer';
     const role = await this.roleRepository.findOne({
-      where: { name: roleName }
+      where: { name: roleName },
     });
 
     if (!role) {
@@ -48,7 +52,7 @@ export class UserService {
       password_hash: hashedPassword,
       activation_token: activationToken,
       is_active: true,
-      roles: [role]
+      roles: [role],
     });
 
     return this.userRepository.save(user);
@@ -94,7 +98,7 @@ export class UserService {
 
   async activateAccount(token: string): Promise<User> {
     const user = await this.userRepository.findOne({
-      where: { activation_token: token }
+      where: { activation_token: token },
     });
 
     if (!user) {
@@ -107,7 +111,10 @@ export class UserService {
     return this.userRepository.save(user);
   }
 
-  async updateRefreshToken(userId: string, refreshToken: string | null): Promise<void> {
+  async updateRefreshToken(
+    userId: string,
+    refreshToken: string | null,
+  ): Promise<void> {
     if (refreshToken) {
       const hashedRefreshToken = await bcrypt.hash(refreshToken, 12);
       await this.userRepository.update(userId, {
@@ -123,17 +130,19 @@ export class UserService {
 
   async assignRole(userId: string, roleName: string): Promise<User> {
     const user = await this.findOne(userId);
-    const role = await this.roleRepository.findOne({ where: { name: roleName } });
+    const role = await this.roleRepository.findOne({
+      where: { name: roleName },
+    });
 
     if (!role) {
       throw new NotFoundException(`Role ${roleName} not found`);
     }
 
     // Check if the user already has this role
-    const hasRole = user.roles.some(r => r.id === role.id);
+    const hasRole = user.roles.some((r) => r.id === role.id);
     if (!hasRole) {
       user.roles.push(role);
-      user.refresh_token = "";
+      user.refresh_token = '';
       await this.userRepository.save(user);
     }
 

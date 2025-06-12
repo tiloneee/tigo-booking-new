@@ -64,7 +64,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], Room.prototype, "is_active", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => hotel_entity_1.Hotel, hotel => hotel.rooms, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.ManyToOne)(() => hotel_entity_1.Hotel, (hotel) => hotel.rooms, { onDelete: 'CASCADE' }),
     (0, typeorm_1.JoinColumn)({ name: 'hotel_id' }),
     __metadata("design:type", hotel_entity_1.Hotel)
 ], Room.prototype, "hotel", void 0);
@@ -73,11 +73,13 @@ __decorate([
     __metadata("design:type", String)
 ], Room.prototype, "hotel_id", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => room_availability_entity_1.RoomAvailability, availability => availability.room, { cascade: true }),
+    (0, typeorm_1.OneToMany)(() => room_availability_entity_1.RoomAvailability, (availability) => availability.room, {
+        cascade: true,
+    }),
     __metadata("design:type", Array)
 ], Room.prototype, "availability", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => hotel_booking_entity_1.HotelBooking, booking => booking.room),
+    (0, typeorm_1.OneToMany)(() => hotel_booking_entity_1.HotelBooking, (booking) => booking.room),
     __metadata("design:type", Array)
 ], Room.prototype, "bookings", void 0);
 __decorate([

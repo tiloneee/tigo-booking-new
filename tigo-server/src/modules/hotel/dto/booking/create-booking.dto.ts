@@ -1,13 +1,13 @@
-import { 
-  IsString, 
-  IsNumber, 
-  IsDateString, 
-  IsOptional, 
+import {
+  IsString,
+  IsNumber,
+  IsDateString,
+  IsOptional,
   IsUUID,
   IsNotEmpty,
   Min,
   Length,
-  IsIn
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -65,4 +65,4 @@ export class CreateBookingDto {
   @IsOptional()
   @IsIn(['Pending', 'Confirmed', 'Cancelled', 'Completed'])
   status?: string;
-} 
+}

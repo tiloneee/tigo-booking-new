@@ -20,10 +20,19 @@ import { ReviewService } from './services/review.service';
 
 // Controllers
 import { HotelController } from './controllers/hotel.controller';
-import { RoomController, HotelRoomController } from './controllers/room.controller';
-import { BookingController, HotelBookingController } from './controllers/booking.controller';
+import {
+  RoomController,
+  HotelRoomController,
+} from './controllers/room.controller';
+import {
+  BookingController,
+  HotelBookingController,
+} from './controllers/booking.controller';
 import { AmenityController } from './controllers/amenity.controller';
-import { ReviewController, HotelReviewController } from './controllers/review.controller';
+import {
+  ReviewController,
+  HotelReviewController,
+} from './controllers/review.controller';
 
 // Guards
 import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
@@ -70,4 +79,4 @@ import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
     TypeOrmModule,
   ],
 })
-export class HotelModule {} 
+export class HotelModule {}

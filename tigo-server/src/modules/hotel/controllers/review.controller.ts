@@ -1,14 +1,14 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Param, 
-  Delete, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
   Query,
-  UseGuards, 
-  Request 
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
@@ -48,9 +48,9 @@ export class ReviewController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('Customer', 'Admin')
   update(
-    @Param('id') id: string, 
-    @Body() updateReviewDto: UpdateReviewDto, 
-    @Request() req
+    @Param('id') id: string,
+    @Body() updateReviewDto: UpdateReviewDto,
+    @Request() req,
   ) {
     return this.reviewService.update(id, updateReviewDto, req.user.userId);
   }
@@ -70,7 +70,7 @@ export class ReviewController {
   voteHelpful(
     @Param('id') id: string,
     @Body('is_helpful') isHelpful: boolean,
-    @Request() req
+    @Request() req,
   ) {
     return this.reviewService.voteHelpful(id, req.user.userId, isHelpful);
   }
@@ -82,7 +82,7 @@ export class ReviewController {
   moderateReview(
     @Param('id') id: string,
     @Body('is_approved') isApproved: boolean,
-    @Body('moderation_notes') moderationNotes?: string
+    @Body('moderation_notes') moderationNotes?: string,
   ) {
     return this.reviewService.moderateReview(id, isApproved, moderationNotes);
   }
@@ -96,7 +96,7 @@ export class HotelReviewController {
   @Get()
   getHotelReviews(
     @Param('hotelId') hotelId: string,
-    @Query('include_pending') includePending?: string
+    @Query('include_pending') includePending?: string,
   ) {
     const isApprovedOnly = includePending !== 'true';
     return this.reviewService.findByHotel(hotelId, isApprovedOnly);
@@ -109,7 +109,7 @@ export class HotelReviewController {
   createHotelReview(
     @Param('hotelId') hotelId: string,
     @Body() createReviewDto: CreateReviewDto,
-    @Request() req
+    @Request() req,
   ) {
     createReviewDto.hotel_id = hotelId;
     return this.reviewService.create(createReviewDto, req.user.userId);
@@ -120,4 +120,4 @@ export class HotelReviewController {
   getReviewStatistics(@Param('hotelId') hotelId: string) {
     return this.reviewService.getReviewStatistics(hotelId);
   }
-} 
+}

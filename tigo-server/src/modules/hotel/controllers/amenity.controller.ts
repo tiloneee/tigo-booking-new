@@ -1,13 +1,13 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Param, 
-  Delete, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
   Query,
-  UseGuards 
+  UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
@@ -72,8 +72,12 @@ export class AmenityController {
   @Get('admin/all')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('Admin')
-  findAllForAdmin(@Query('category') category?: string, @Query('is_active') isActive?: string) {
-    const isActiveBoolean = isActive === 'true' ? true : isActive === 'false' ? false : undefined;
+  findAllForAdmin(
+    @Query('category') category?: string,
+    @Query('is_active') isActive?: string,
+  ) {
+    const isActiveBoolean =
+      isActive === 'true' ? true : isActive === 'false' ? false : undefined;
     return this.amenityService.findAll(category, isActiveBoolean);
   }
 
@@ -108,4 +112,4 @@ export class AmenityController {
   remove(@Param('id') id: string) {
     return this.amenityService.delete(id);
   }
-} 
+}

@@ -1,14 +1,14 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Param, 
-  Delete, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
   Query,
-  UseGuards, 
-  Request 
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
@@ -43,11 +43,15 @@ export class BookingController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('Customer', 'Admin')
   cancelBooking(
-    @Param('id') id: string, 
+    @Param('id') id: string,
     @Body('cancellation_reason') cancellationReason: string,
-    @Request() req
+    @Request() req,
   ) {
-    return this.bookingService.cancelBooking(id, req.user.userId, cancellationReason);
+    return this.bookingService.cancelBooking(
+      id,
+      req.user.userId,
+      cancellationReason,
+    );
   }
 
   // Update booking status (Owner/Admin)
@@ -57,9 +61,14 @@ export class BookingController {
   updateBookingStatus(
     @Param('id') id: string,
     @Body() updateBookingDto: UpdateBookingDto,
-    @Request() req
+    @Request() req,
   ) {
-    return this.bookingService.updateStatus(id, updateBookingDto, req.user.userId, req.user.roles);
+    return this.bookingService.updateStatus(
+      id,
+      updateBookingDto,
+      req.user.userId,
+      req.user.roles,
+    );
   }
 
   // Search bookings with filters (Owner/Admin)
@@ -103,4 +112,4 @@ export class HotelBookingController {
   getHotelBookings(@Param('hotelId') hotelId: string, @Request() req) {
     return this.bookingService.findByHotelOwner(req.user.userId, hotelId);
   }
-} 
+}

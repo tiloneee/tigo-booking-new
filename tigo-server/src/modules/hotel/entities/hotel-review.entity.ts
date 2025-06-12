@@ -1,12 +1,12 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
   JoinColumn,
-  Unique
+  Unique,
 } from 'typeorm';
 import { Hotel } from './hotel.entity';
 import { HotelBooking } from './hotel-booking.entity';
@@ -63,7 +63,7 @@ export class HotelReview {
   total_votes: number;
 
   // Relationships
-  @ManyToOne(() => Hotel, hotel => hotel.reviews)
+  @ManyToOne(() => Hotel, (hotel) => hotel.reviews)
   @JoinColumn({ name: 'hotel_id' })
   hotel: Hotel;
 
@@ -89,4 +89,4 @@ export class HotelReview {
 
   @UpdateDateColumn()
   updated_at: Date;
-} 
+}

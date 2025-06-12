@@ -19,8 +19,8 @@ let GeocodingService = GeocodingService_1 = class GeocodingService {
             this.logger.log(`Geocoding address: ${fullAddress}`);
             const response = await fetch(url, {
                 headers: {
-                    'User-Agent': 'Tigo-Booking-Hotel-System/1.0'
-                }
+                    'User-Agent': 'Tigo-Booking-Hotel-System/1.0',
+                },
             });
             if (!response.ok) {
                 throw new Error(`Geocoding API returned status ${response.status}`);
@@ -29,7 +29,7 @@ let GeocodingService = GeocodingService_1 = class GeocodingService {
             if (data && data.length > 0) {
                 const result = {
                     latitude: parseFloat(data[0].lat),
-                    longitude: parseFloat(data[0].lon)
+                    longitude: parseFloat(data[0].lon),
                 };
                 this.logger.log(`Successfully geocoded to: ${result.latitude}, ${result.longitude}`);
                 return result;
@@ -47,8 +47,10 @@ let GeocodingService = GeocodingService_1 = class GeocodingService {
         const dLat = this.toRadians(lat2 - lat1);
         const dLon = this.toRadians(lon2 - lon1);
         const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-            Math.cos(this.toRadians(lat1)) * Math.cos(this.toRadians(lat2)) *
-                Math.sin(dLon / 2) * Math.sin(dLon / 2);
+            Math.cos(this.toRadians(lat1)) *
+                Math.cos(this.toRadians(lat2)) *
+                Math.sin(dLon / 2) *
+                Math.sin(dLon / 2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return R * c;
     }

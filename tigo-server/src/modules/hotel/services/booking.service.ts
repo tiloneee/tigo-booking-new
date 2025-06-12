@@ -1,10 +1,10 @@
-import { 
-  Injectable, 
-  NotFoundException, 
-  ConflictException, 
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
   ForbiddenException,
   BadRequestException,
-  Logger 
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, DataSource, Between, In } from 'typeorm';
@@ -21,10 +21,31 @@ import { SearchBookingDto } from '../dto/booking/search-booking.dto';
 export class BookingService {
   private readonly logger = new Logger(BookingService.name);
 
+  // Define sensitive fields that should be removed from user objects
+  private readonly SENSITIVE_USER_FIELDS = [
+    'password_hash',
+    'refresh_token',
+    'activation_token',
+    'roles',
+    'is_active',
+    'created_at',
+    'updated_at',
+  ] as const;
+
+  private readonly SENSITIVE_OWNER_FIELDS = [
+    'password_hash',
+    'refresh_token',
+    'activation_token',
+    'roles',
+    'is_active',
+    'created_at',
+    'updated_at'
+  ] as const;
+
   constructor(
     @InjectRepository(HotelBooking)
     private bookingRepository: Repository<HotelBooking>,
-    
+
     @InjectRepository(Hotel)
     private hotelRepository: Repository<Hotel>,
 
@@ -40,8 +61,34 @@ export class BookingService {
     private dataSource: DataSource,
   ) {}
 
-  async create(createBookingDto: CreateBookingDto, userId: string): Promise<HotelBooking> {
-    return this.dataSource.transaction(async manager => {
+  /**
+   * Helper function to sanitize user objects by removing sensitive fields
+   */
+  private sanitizeUserObject(user: any, fieldsToRemove: readonly string[]): void {
+    if (!user) return;
+    
+    fieldsToRemove.forEach(field => {
+      delete user[field];
+    });
+  }
+
+  /**
+   * Helper function to sanitize booking owner data
+   */
+  private sanitizeBookingOwnerData(booking: HotelBooking): void {
+    this.sanitizeUserObject(booking.user, this.SENSITIVE_USER_FIELDS);
+    this.sanitizeUserObject(booking.hotel?.owner, this.SENSITIVE_OWNER_FIELDS);
+  }
+
+  private sanitizeBookingsOwnerData(bookings: HotelBooking[]): void {
+    bookings.forEach((booking) => this.sanitizeBookingOwnerData(booking));
+  }
+
+  async create(
+    createBookingDto: CreateBookingDto,
+    userId: string,
+  ): Promise<HotelBooking> {
+    return this.dataSource.transaction(async (manager) => {
       // Validate dates
       const checkIn = new Date(createBookingDto.check_in_date);
       const checkOut = new Date(createBookingDto.check_out_date);
@@ -49,7 +96,9 @@ export class BookingService {
       today.setHours(0, 0, 0, 0);
 
       if (checkIn >= checkOut) {
-        throw new BadRequestException('Check-out date must be after check-in date');
+        throw new BadRequestException(
+          'Check-out date must be after check-in date',
+        );
       }
 
       if (checkIn < today) {
@@ -58,15 +107,17 @@ export class BookingService {
 
       // Verify room exists and belongs to the specified hotel
       const room = await manager.findOne(Room, {
-        where: { 
-          id: createBookingDto.room_id, 
-          hotel_id: createBookingDto.hotel_id 
+        where: {
+          id: createBookingDto.room_id,
+          hotel_id: createBookingDto.hotel_id,
         },
         relations: ['hotel'],
       });
 
       if (!room) {
-        throw new NotFoundException('Room not found or does not belong to the specified hotel');
+        throw new NotFoundException(
+          'Room not found or does not belong to the specified hotel',
+        );
       }
 
       if (!room.hotel.is_active) {
@@ -75,12 +126,18 @@ export class BookingService {
 
       // Validate guest capacity
       if (createBookingDto.number_of_guests > room.max_occupancy) {
-        throw new BadRequestException(`Room can accommodate maximum ${room.max_occupancy} guests`);
+        throw new BadRequestException(
+          `Room can accommodate maximum ${room.max_occupancy} guests`,
+        );
       }
 
       // Generate date range for booking
       const dates: string[] = [];
-      for (let d = new Date(checkIn); d < checkOut; d.setDate(d.getDate() + 1)) {
+      for (
+        let d = new Date(checkIn);
+        d < checkOut;
+        d.setDate(d.getDate() + 1)
+      ) {
         dates.push(d.toISOString().split('T')[0]);
       }
 
@@ -98,20 +155,30 @@ export class BookingService {
 
       // Verify all dates are available
       if (availability.length !== dates.length) {
-        const availableDates = availability.map(a => a.date);
-        const unavailableDates = dates.filter(date => !availableDates.includes(date));
-        throw new ConflictException(`Room is not available for dates: ${unavailableDates.join(', ')}`);
+        const availableDates = availability.map((a) => a.date);
+        const unavailableDates = dates.filter(
+          (date) => !availableDates.includes(date),
+        );
+        throw new ConflictException(
+          `Room is not available for dates: ${unavailableDates.join(', ')}`,
+        );
       }
 
       // Check if sufficient units are available
-      const insufficientDates = availability.filter(a => a.available_units < unitsRequested);
+      const insufficientDates = availability.filter(
+        (a) => a.available_units < unitsRequested,
+      );
       if (insufficientDates.length > 0) {
-        throw new ConflictException(`Insufficient units available for dates: ${insufficientDates.map(a => a.date).join(', ')}`);
+        throw new ConflictException(
+          `Insufficient units available for dates: ${insufficientDates.map((a) => a.date).join(', ')}`,
+        );
       }
 
       // Calculate total price
       const totalPrice = availability.reduce((sum, record) => {
-        return sum + (parseFloat(record.price_per_night.toString()) * unitsRequested);
+        return (
+          sum + parseFloat(record.price_per_night.toString()) * unitsRequested
+        );
       }, 0);
 
       // Create booking
@@ -142,7 +209,9 @@ export class BookingService {
         });
       }
 
-      this.logger.log(`Booking created successfully: ${savedBooking.id} for room ${createBookingDto.room_id}`);
+      this.logger.log(
+        `Booking created successfully: ${savedBooking.id} for room ${createBookingDto.room_id}`,
+      );
 
       const bookingWithRelations = await manager.findOne(HotelBooking, {
         where: { id: savedBooking.id },
@@ -153,20 +222,28 @@ export class BookingService {
         throw new NotFoundException('Failed to retrieve created booking');
       }
 
+      this.sanitizeBookingOwnerData(bookingWithRelations);
+
       return bookingWithRelations;
     });
   }
 
   async findByUser(userId: string): Promise<HotelBooking[]> {
-    return this.bookingRepository.find({
+    const bookings = await this.bookingRepository.find({
       where: { user_id: userId },
       relations: ['hotel', 'room'],
       order: { created_at: 'DESC' },
     });
+    this.sanitizeBookingsOwnerData(bookings);
+    return bookings;
   }
 
-  async findByHotelOwner(ownerId: string, hotelId?: string): Promise<HotelBooking[]> {
-    const queryBuilder = this.bookingRepository.createQueryBuilder('booking')
+  async findByHotelOwner(
+    ownerId: string,
+    hotelId?: string,
+  ): Promise<HotelBooking[]> {
+    const queryBuilder = this.bookingRepository
+      .createQueryBuilder('booking')
       .leftJoinAndSelect('booking.hotel', 'hotel')
       .leftJoinAndSelect('booking.room', 'room')
       .leftJoinAndSelect('booking.user', 'user')
@@ -176,16 +253,18 @@ export class BookingService {
       queryBuilder.andWhere('booking.hotel_id = :hotelId', { hotelId });
     }
 
-    return queryBuilder
-      .orderBy('booking.created_at', 'DESC')
-      .getMany();
+    const bookings = await queryBuilder.orderBy('booking.created_at', 'DESC').getMany();
+    this.sanitizeBookingsOwnerData(bookings);
+    return bookings;
   }
 
   async findAll(): Promise<HotelBooking[]> {
-    return this.bookingRepository.find({
+    const bookings = await this.bookingRepository.find({
       relations: ['hotel', 'room', 'user'],
       order: { created_at: 'DESC' },
     });
+    this.sanitizeBookingsOwnerData(bookings);
+    return bookings;
   }
 
   async findOne(id: string): Promise<HotelBooking> {
@@ -198,10 +277,17 @@ export class BookingService {
       throw new NotFoundException('Booking not found');
     }
 
+    this.sanitizeBookingOwnerData(booking);
+
     return booking;
   }
 
-  async updateStatus(id: string, updateBookingDto: UpdateBookingDto, userId: string, userRoles: string[]): Promise<HotelBooking> {
+  async updateStatus(
+    id: string,
+    updateBookingDto: UpdateBookingDto,
+    userId: string,
+    userRoles: string[],
+  ): Promise<HotelBooking> {
     const booking = await this.findOne(id);
 
     // Check permissions
@@ -210,7 +296,9 @@ export class BookingService {
     const isAdmin = userRoles.includes('Admin');
 
     if (!isOwner && !isHotelOwner && !isAdmin) {
-      throw new ForbiddenException('You do not have permission to update this booking');
+      throw new ForbiddenException(
+        'You do not have permission to update this booking',
+      );
     }
 
     // Handle status-specific logic
@@ -220,12 +308,14 @@ export class BookingService {
       switch (updateBookingDto.status) {
         case 'Confirmed':
           updateBookingDto.confirmed_at = now;
+          updateBookingDto.admin_notes = `Room ${booking.room.room_number} assigned to Mr/Mrs ${booking.guest_name}`;
           break;
         case 'Cancelled':
           if (booking.status === 'Cancelled') {
             throw new BadRequestException('Booking is already cancelled');
           }
           updateBookingDto.cancelled_at = now;
+          updateBookingDto.confirmed_at = undefined;
           // Restore availability when booking is cancelled
           await this.restoreAvailability(booking);
           break;
@@ -233,13 +323,19 @@ export class BookingService {
     }
 
     await this.bookingRepository.update(id, updateBookingDto);
-    return this.findOne(id);
+    const updatedBooking = await this.findOne(id);
+    this.sanitizeBookingOwnerData(updatedBooking);
+    return updatedBooking;
   }
 
-  async cancelBooking(id: string, userId: string, cancellationReason?: string): Promise<HotelBooking> {
+  async cancelBooking(
+    id: string,
+    userId: string,
+    cancellationReason?: string,
+  ): Promise<HotelBooking> {
     const booking = await this.findOne(id);
 
-    if (booking.user_id !== userId) {
+    if (booking.user_id !== userId && booking) {
       throw new ForbiddenException('You can only cancel your own bookings');
     }
 
@@ -254,13 +350,16 @@ export class BookingService {
     // Check cancellation policy (can be made configurable)
     const checkInDate = new Date(booking.check_in_date);
     const now = new Date();
-    const hoursDifference = (checkInDate.getTime() - now.getTime()) / (1000 * 3600);
+    const hoursDifference =
+      (checkInDate.getTime() - now.getTime()) / (1000 * 3600);
 
     if (hoursDifference < 24) {
-      throw new BadRequestException('Cannot cancel booking less than 24 hours before check-in');
+      throw new BadRequestException(
+        'Cannot cancel booking less than 24 hours before check-in',
+      );
     }
 
-    return this.dataSource.transaction(async manager => {
+    return this.dataSource.transaction(async (manager) => {
       await manager.update(HotelBooking, id, {
         status: 'Cancelled',
         cancellation_reason: cancellationReason,
@@ -279,59 +378,86 @@ export class BookingService {
         throw new NotFoundException('Failed to retrieve cancelled booking');
       }
 
+      this.sanitizeBookingOwnerData(cancelledBooking);
+
       return cancelledBooking;
     });
   }
 
-  async search(searchDto: SearchBookingDto): Promise<{ bookings: HotelBooking[]; total: number; page: number; limit: number }> {
-    const queryBuilder = this.bookingRepository.createQueryBuilder('booking')
+  async search(searchDto: SearchBookingDto): Promise<{
+    bookings: HotelBooking[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const queryBuilder = this.bookingRepository
+      .createQueryBuilder('booking')
       .leftJoinAndSelect('booking.hotel', 'hotel')
       .leftJoinAndSelect('booking.room', 'room')
       .leftJoinAndSelect('booking.user', 'user');
 
     // Apply filters
     if (searchDto.hotel_id) {
-      queryBuilder.andWhere('booking.hotel_id = :hotelId', { hotelId: searchDto.hotel_id });
+      queryBuilder.andWhere('booking.hotel_id = :hotelId', {
+        hotelId: searchDto.hotel_id,
+      });
     }
 
     if (searchDto.room_id) {
-      queryBuilder.andWhere('booking.room_id = :roomId', { roomId: searchDto.room_id });
+      queryBuilder.andWhere('booking.room_id = :roomId', {
+        roomId: searchDto.room_id,
+      });
     }
 
     if (searchDto.user_id) {
-      queryBuilder.andWhere('booking.user_id = :userId', { userId: searchDto.user_id });
+      queryBuilder.andWhere('booking.user_id = :userId', {
+        userId: searchDto.user_id,
+      });
     }
 
     if (searchDto.status && searchDto.status.length > 0) {
-      queryBuilder.andWhere('booking.status IN (:...statuses)', { statuses: searchDto.status });
+      queryBuilder.andWhere('booking.status IN (:...statuses)', {
+        statuses: searchDto.status,
+      });
     }
 
     if (searchDto.payment_status && searchDto.payment_status.length > 0) {
-      queryBuilder.andWhere('booking.payment_status IN (:...paymentStatuses)', { 
-        paymentStatuses: searchDto.payment_status 
+      queryBuilder.andWhere('booking.payment_status IN (:...paymentStatuses)', {
+        paymentStatuses: searchDto.payment_status,
       });
     }
 
     if (searchDto.check_in_from) {
-      queryBuilder.andWhere('booking.check_in_date >= :checkInFrom', { checkInFrom: searchDto.check_in_from });
-    }
-
-    if (searchDto.check_in_to) {
-      queryBuilder.andWhere('booking.check_in_date <= :checkInTo', { checkInTo: searchDto.check_in_to });
-    }
-
-    if (searchDto.guest_name) {
-      queryBuilder.andWhere('LOWER(booking.guest_name) LIKE LOWER(:guestName)', { 
-        guestName: `%${searchDto.guest_name}%` 
+      queryBuilder.andWhere('booking.check_in_date >= :checkInFrom', {
+        checkInFrom: searchDto.check_in_from,
       });
     }
 
+    if (searchDto.check_in_to) {
+      queryBuilder.andWhere('booking.check_in_date <= :checkInTo', {
+        checkInTo: searchDto.check_in_to,
+      });
+    }
+
+    if (searchDto.guest_name) {
+      queryBuilder.andWhere(
+        'LOWER(booking.guest_name) LIKE LOWER(:guestName)',
+        {
+          guestName: `%${searchDto.guest_name}%`,
+        },
+      );
+    }
+
     if (searchDto.min_price) {
-      queryBuilder.andWhere('booking.total_price >= :minPrice', { minPrice: searchDto.min_price });
+      queryBuilder.andWhere('booking.total_price >= :minPrice', {
+        minPrice: searchDto.min_price,
+      });
     }
 
     if (searchDto.max_price) {
-      queryBuilder.andWhere('booking.total_price <= :maxPrice', { maxPrice: searchDto.max_price });
+      queryBuilder.andWhere('booking.total_price <= :maxPrice', {
+        maxPrice: searchDto.max_price,
+      });
     }
 
     // Sorting
@@ -348,6 +474,8 @@ export class BookingService {
 
     const [bookings, total] = await queryBuilder.getManyAndCount();
 
+    this.sanitizeBookingsOwnerData(bookings);
+
     return {
       bookings,
       total,
@@ -356,7 +484,10 @@ export class BookingService {
     };
   }
 
-  private async restoreAvailability(booking: HotelBooking, manager?: any): Promise<void> {
+  private async restoreAvailability(
+    booking: HotelBooking,
+    manager?: any,
+  ): Promise<void> {
     const transactionManager = manager || this.dataSource.manager;
 
     // Generate date range for booking
@@ -376,11 +507,12 @@ export class BookingService {
 
       if (availability) {
         await transactionManager.update(RoomAvailability, availability.id, {
-          available_units: availability.available_units + booking.units_requested,
+          available_units:
+            availability.available_units + booking.units_requested,
         });
       }
     }
 
     this.logger.log(`Availability restored for booking: ${booking.id}`);
   }
-} 
+}

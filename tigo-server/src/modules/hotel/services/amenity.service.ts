@@ -1,9 +1,9 @@
-import { 
-  Injectable, 
-  NotFoundException, 
+import {
+  Injectable,
+  NotFoundException,
   ConflictException,
   BadRequestException,
-  Logger 
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, ILike } from 'typeorm';
@@ -33,11 +33,16 @@ export class AmenityService {
     const amenity = this.amenityRepository.create(createAmenityDto);
     const savedAmenity = await this.amenityRepository.save(amenity);
 
-    this.logger.log(`New amenity created: ${savedAmenity.name} (${savedAmenity.id})`);
+    this.logger.log(
+      `New amenity created: ${savedAmenity.name} (${savedAmenity.id})`,
+    );
     return savedAmenity;
   }
 
-  async findAll(category?: string, isActive?: boolean): Promise<HotelAmenity[]> {
+  async findAll(
+    category?: string,
+    isActive?: boolean,
+  ): Promise<HotelAmenity[]> {
     const where: any = {};
 
     if (category) {
@@ -71,7 +76,10 @@ export class AmenityService {
     return amenity;
   }
 
-  async update(id: string, updateAmenityDto: UpdateAmenityDto): Promise<HotelAmenity> {
+  async update(
+    id: string,
+    updateAmenityDto: UpdateAmenityDto,
+  ): Promise<HotelAmenity> {
     const amenity = await this.findOne(id);
 
     // Check if new name conflicts with existing amenity
@@ -86,7 +94,7 @@ export class AmenityService {
     }
 
     await this.amenityRepository.update(id, updateAmenityDto);
-    
+
     this.logger.log(`Amenity updated: ${id}`);
     return this.findOne(id);
   }
@@ -104,7 +112,7 @@ export class AmenityService {
     // Check if amenity is being used by any hotels
     if (amenity.hotels && amenity.hotels.length > 0) {
       throw new BadRequestException(
-        `Cannot delete amenity. It is currently being used by ${amenity.hotels.length} hotel(s)`
+        `Cannot delete amenity. It is currently being used by ${amenity.hotels.length} hotel(s)`,
       );
     }
 
@@ -116,7 +124,7 @@ export class AmenityService {
     const amenity = await this.findOne(id);
 
     await this.amenityRepository.update(id, { is_active: false });
-    
+
     this.logger.log(`Amenity soft deleted: ${id} (${amenity.name})`);
     return this.findOne(id);
   }
@@ -125,22 +133,27 @@ export class AmenityService {
     const amenity = await this.findOne(id);
 
     await this.amenityRepository.update(id, { is_active: true });
-    
+
     this.logger.log(`Amenity activated: ${id} (${amenity.name})`);
     return this.findOne(id);
   }
 
-  async getAmenitiesByCategory(): Promise<{ [category: string]: HotelAmenity[] }> {
+  async getAmenitiesByCategory(): Promise<{
+    [category: string]: HotelAmenity[];
+  }> {
     const amenities = await this.findAllActive();
-    
-    return amenities.reduce((grouped, amenity) => {
-      const category = amenity.category || 'Uncategorized';
-      if (!grouped[category]) {
-        grouped[category] = [];
-      }
-      grouped[category].push(amenity);
-      return grouped;
-    }, {} as { [category: string]: HotelAmenity[] });
+
+    return amenities.reduce(
+      (grouped, amenity) => {
+        const category = amenity.category || 'Uncategorized';
+        if (!grouped[category]) {
+          grouped[category] = [];
+        }
+        grouped[category].push(amenity);
+        return grouped;
+      },
+      {} as { [category: string]: HotelAmenity[] },
+    );
   }
 
   async search(searchTerm: string): Promise<HotelAmenity[]> {
@@ -154,7 +167,9 @@ export class AmenityService {
     });
   }
 
-  async getUsageStatistics(): Promise<{ amenityId: string; amenityName: string; hotelCount: number }[]> {
+  async getUsageStatistics(): Promise<
+    { amenityId: string; amenityName: string; hotelCount: number }[]
+  > {
     const result = await this.amenityRepository
       .createQueryBuilder('amenity')
       .leftJoin('amenity.hotels', 'hotel')
@@ -167,10 +182,10 @@ export class AmenityService {
       .orderBy('hotelCount', 'DESC')
       .getRawMany();
 
-    return result.map(row => ({
+    return result.map((row) => ({
       amenityId: row.amenityId,
       amenityName: row.amenityName,
       hotelCount: parseInt(row.hotelCount) || 0,
     }));
   }
-} 
+}

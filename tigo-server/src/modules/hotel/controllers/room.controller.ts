@@ -1,14 +1,15 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Body, 
-  Patch, 
-  Param, 
-  Delete, 
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
   Query,
-  UseGuards, 
-  Request 
+  UseGuards,
+  Request,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../common/guards/roles.guard';
@@ -16,10 +17,10 @@ import { Roles } from '../../../common/decorators/roles.decorator';
 import { RoomService } from '../services/room.service';
 import { CreateRoomDto } from '../dto/room/create-room.dto';
 import { UpdateRoomDto } from '../dto/room/update-room.dto';
-import { 
-  CreateRoomAvailabilityDto, 
+import {
+  CreateRoomAvailabilityDto,
   UpdateRoomAvailabilityDto,
-  BulkRoomAvailabilityDto 
+  BulkRoomAvailabilityDto,
 } from '../dto/room/room-availability.dto';
 
 @Controller('rooms')
@@ -31,7 +32,11 @@ export class RoomController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HotelOwner', 'Admin')
   create(@Body() createRoomDto: CreateRoomDto, @Request() req) {
-    return this.roomService.create(createRoomDto, req.user.userId, req.user.roles);
+    return this.roomService.create(
+      createRoomDto,
+      req.user.userId,
+      req.user.roles,
+    );
   }
 
   // Get room details
@@ -47,11 +52,16 @@ export class RoomController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HotelOwner', 'Admin')
   update(
-    @Param('id') id: string, 
-    @Body() updateRoomDto: UpdateRoomDto, 
-    @Request() req
+    @Param('id') id: string,
+    @Body() updateRoomDto: UpdateRoomDto,
+    @Request() req,
   ) {
-    return this.roomService.update(id, updateRoomDto, req.user.userId, req.user.roles);
+    return this.roomService.update(
+      id,
+      updateRoomDto,
+      req.user.userId,
+      req.user.roles,
+    );
   }
 
   // Delete room (Owner/Admin)
@@ -70,11 +80,15 @@ export class RoomController {
   @Roles('HotelOwner', 'Admin')
   createAvailability(
     @Param('id') roomId: string,
-    @Body() createAvailabilityDto: CreateRoomAvailabilityDto, 
-    @Request() req
+    @Body() createAvailabilityDto: CreateRoomAvailabilityDto,
+    @Request() req,
   ) {
     createAvailabilityDto.room_id = roomId;
-    return this.roomService.createAvailability(createAvailabilityDto, req.user.userId, req.user.roles);
+    return this.roomService.createAvailability(
+      createAvailabilityDto,
+      req.user.userId,
+      req.user.roles,
+    );
   }
 
   // Set bulk room availability (Owner/Admin)
@@ -83,11 +97,15 @@ export class RoomController {
   @Roles('HotelOwner', 'Admin')
   createBulkAvailability(
     @Param('id') roomId: string,
-    @Body() bulkAvailabilityDto: BulkRoomAvailabilityDto, 
-    @Request() req
+    @Body() bulkAvailabilityDto: BulkRoomAvailabilityDto,
+    @Request() req,
   ) {
     bulkAvailabilityDto.room_id = roomId;
-    return this.roomService.createBulkAvailability(bulkAvailabilityDto, req.user.userId, req.user.roles);
+    return this.roomService.createBulkAvailability(
+      bulkAvailabilityDto,
+      req.user.userId,
+      req.user.roles,
+    );
   }
 
   // Update room availability (Owner/Admin)
@@ -97,10 +115,16 @@ export class RoomController {
   updateAvailability(
     @Param('id') roomId: string,
     @Param('date') date: string,
-    @Body() updateAvailabilityDto: UpdateRoomAvailabilityDto, 
-    @Request() req
+    @Body() updateAvailabilityDto: UpdateRoomAvailabilityDto,
+    @Request() req,
   ) {
-    return this.roomService.updateAvailability(roomId, date, updateAvailabilityDto, req.user.userId, req.user.roles);
+    return this.roomService.updateAvailability(
+      roomId,
+      date,
+      updateAvailabilityDto,
+      req.user.userId,
+      req.user.roles,
+    );
   }
 
   // Get room availability (Public for search, Owner/Admin for management)
@@ -108,7 +132,7 @@ export class RoomController {
   getAvailability(
     @Param('id') roomId: string,
     @Query('start_date') startDate?: string,
-    @Query('end_date') endDate?: string
+    @Query('end_date') endDate?: string,
   ) {
     return this.roomService.getAvailability(roomId, startDate, endDate);
   }
@@ -119,9 +143,14 @@ export class RoomController {
     @Param('id') roomId: string,
     @Query('check_in_date') checkInDate: string,
     @Query('check_out_date') checkOutDate: string,
-    @Query('units') units: string = '1'
+    @Query('units') units: string = '1',
   ) {
-    return this.roomService.checkAvailability(roomId, checkInDate, checkOutDate, parseInt(units));
+    return this.roomService.checkAvailability(
+      roomId,
+      checkInDate,
+      checkOutDate,
+      parseInt(units),
+    );
   }
 }
 
@@ -134,7 +163,11 @@ export class HotelRoomController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HotelOwner', 'Admin')
   findAllByHotel(@Param('hotelId') hotelId: string, @Request() req) {
-    return this.roomService.findByHotel(hotelId, req.user.userId, req.user.roles);
+    return this.roomService.findByHotel(
+      hotelId,
+      req.user.userId,
+      req.user.roles,
+    );
   }
 
   // Create room for specific hotel (Owner/Admin)
@@ -143,10 +176,19 @@ export class HotelRoomController {
   @Roles('HotelOwner', 'Admin')
   createForHotel(
     @Param('hotelId') hotelId: string,
-    @Body() createRoomDto: CreateRoomDto, 
-    @Request() req
+    @Body() createRoomDto: CreateRoomDto,
+    @Request() req,
   ) {
+    // Validate hotelId from URL parameter
+    if (!hotelId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(hotelId)) {
+      throw new BadRequestException('Invalid hotel ID in URL parameter');
+    }
+    
     createRoomDto.hotel_id = hotelId;
-    return this.roomService.create(createRoomDto, req.user.userId, req.user.roles);
+    return this.roomService.create(
+      createRoomDto,
+      req.user.userId,
+      req.user.roles,
+    );
   }
-} 
+}

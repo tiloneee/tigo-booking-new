@@ -1,12 +1,12 @@
-import { 
-  IsString, 
-  IsNumber, 
-  IsOptional, 
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
   IsUUID,
   IsNotEmpty,
   Min,
   Max,
-  Length 
+  Length,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -62,4 +62,4 @@ export class CreateReviewDto {
   @Max(5)
   @Type(() => Number)
   value_rating?: number;
-} 
+}

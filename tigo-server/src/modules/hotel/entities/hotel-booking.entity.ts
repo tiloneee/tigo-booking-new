@@ -1,11 +1,11 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
   ManyToOne,
-  JoinColumn
+  JoinColumn,
 } from 'typeorm';
 import { Hotel } from './hotel.entity';
 import { Room } from './room.entity';
@@ -50,17 +50,25 @@ export class HotelBooking {
   special_requests: string;
 
   // Status tracking
-  @Column({ 
-    type: 'enum', 
-    enum: ['Pending', 'Confirmed', 'Cancelled', 'Completed', 'CheckedIn', 'CheckedOut', 'NoShow'], 
-    default: 'Pending' 
+  @Column({
+    type: 'enum',
+    enum: [
+      'Pending',
+      'Confirmed',
+      'Cancelled',
+      'Completed',
+      'CheckedIn',
+      'CheckedOut',
+      'NoShow',
+    ],
+    default: 'Pending',
   })
   status: string;
 
-  @Column({ 
-    type: 'enum', 
-    enum: ['Pending', 'Paid', 'Refunded', 'PartialRefund', 'Failed'], 
-    default: 'Pending' 
+  @Column({
+    type: 'enum',
+    enum: ['Pending', 'Paid', 'Refunded', 'PartialRefund', 'Failed'],
+    default: 'Pending',
   })
   payment_status: string;
 
@@ -78,14 +86,14 @@ export class HotelBooking {
   confirmed_at: Date;
 
   // Relationships
-  @ManyToOne(() => Hotel, hotel => hotel.bookings)
+  @ManyToOne(() => Hotel, (hotel) => hotel.bookings)
   @JoinColumn({ name: 'hotel_id' })
   hotel: Hotel;
 
   @Column()
   hotel_id: string;
 
-  @ManyToOne(() => Room, room => room.bookings)
+  @ManyToOne(() => Room, (room) => room.bookings)
   @JoinColumn({ name: 'room_id' })
   room: Room;
 
@@ -104,4 +112,4 @@ export class HotelBooking {
 
   @UpdateDateColumn()
   updated_at: Date;
-} 
+}

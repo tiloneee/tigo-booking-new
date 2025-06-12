@@ -30,6 +30,24 @@ let BookingService = BookingService_1 = class BookingService {
     userRepository;
     dataSource;
     logger = new common_1.Logger(BookingService_1.name);
+    SENSITIVE_USER_FIELDS = [
+        'password_hash',
+        'refresh_token',
+        'activation_token',
+        'roles',
+        'is_active',
+        'created_at',
+        'updated_at',
+    ];
+    SENSITIVE_OWNER_FIELDS = [
+        'password_hash',
+        'refresh_token',
+        'activation_token',
+        'roles',
+        'is_active',
+        'created_at',
+        'updated_at'
+    ];
     constructor(bookingRepository, hotelRepository, roomRepository, roomAvailabilityRepository, userRepository, dataSource) {
         this.bookingRepository = bookingRepository;
         this.hotelRepository = hotelRepository;
@@ -37,6 +55,20 @@ let BookingService = BookingService_1 = class BookingService {
         this.roomAvailabilityRepository = roomAvailabilityRepository;
         this.userRepository = userRepository;
         this.dataSource = dataSource;
+    }
+    sanitizeUserObject(user, fieldsToRemove) {
+        if (!user)
+            return;
+        fieldsToRemove.forEach(field => {
+            delete user[field];
+        });
+    }
+    sanitizeBookingOwnerData(booking) {
+        this.sanitizeUserObject(booking.user, this.SENSITIVE_USER_FIELDS);
+        this.sanitizeUserObject(booking.hotel?.owner, this.SENSITIVE_OWNER_FIELDS);
+    }
+    sanitizeBookingsOwnerData(bookings) {
+        bookings.forEach((booking) => this.sanitizeBookingOwnerData(booking));
     }
     async create(createBookingDto, userId) {
         return this.dataSource.transaction(async (manager) => {
@@ -53,7 +85,7 @@ let BookingService = BookingService_1 = class BookingService {
             const room = await manager.findOne(room_entity_1.Room, {
                 where: {
                     id: createBookingDto.room_id,
-                    hotel_id: createBookingDto.hotel_id
+                    hotel_id: createBookingDto.hotel_id,
                 },
                 relations: ['hotel'],
             });
@@ -80,16 +112,16 @@ let BookingService = BookingService_1 = class BookingService {
                 order: { date: 'ASC' },
             });
             if (availability.length !== dates.length) {
-                const availableDates = availability.map(a => a.date);
-                const unavailableDates = dates.filter(date => !availableDates.includes(date));
+                const availableDates = availability.map((a) => a.date);
+                const unavailableDates = dates.filter((date) => !availableDates.includes(date));
                 throw new common_1.ConflictException(`Room is not available for dates: ${unavailableDates.join(', ')}`);
             }
-            const insufficientDates = availability.filter(a => a.available_units < unitsRequested);
+            const insufficientDates = availability.filter((a) => a.available_units < unitsRequested);
             if (insufficientDates.length > 0) {
-                throw new common_1.ConflictException(`Insufficient units available for dates: ${insufficientDates.map(a => a.date).join(', ')}`);
+                throw new common_1.ConflictException(`Insufficient units available for dates: ${insufficientDates.map((a) => a.date).join(', ')}`);
             }
             const totalPrice = availability.reduce((sum, record) => {
-                return sum + (parseFloat(record.price_per_night.toString()) * unitsRequested);
+                return (sum + parseFloat(record.price_per_night.toString()) * unitsRequested);
             }, 0);
             const bookingData = {
                 hotel_id: createBookingDto.hotel_id,
@@ -122,18 +154,22 @@ let BookingService = BookingService_1 = class BookingService {
             if (!bookingWithRelations) {
                 throw new common_1.NotFoundException('Failed to retrieve created booking');
             }
+            this.sanitizeBookingOwnerData(bookingWithRelations);
             return bookingWithRelations;
         });
     }
     async findByUser(userId) {
-        return this.bookingRepository.find({
+        const bookings = await this.bookingRepository.find({
             where: { user_id: userId },
             relations: ['hotel', 'room'],
             order: { created_at: 'DESC' },
         });
+        this.sanitizeBookingsOwnerData(bookings);
+        return bookings;
     }
     async findByHotelOwner(ownerId, hotelId) {
-        const queryBuilder = this.bookingRepository.createQueryBuilder('booking')
+        const queryBuilder = this.bookingRepository
+            .createQueryBuilder('booking')
             .leftJoinAndSelect('booking.hotel', 'hotel')
             .leftJoinAndSelect('booking.room', 'room')
             .leftJoinAndSelect('booking.user', 'user')
@@ -141,15 +177,17 @@ let BookingService = BookingService_1 = class BookingService {
         if (hotelId) {
             queryBuilder.andWhere('booking.hotel_id = :hotelId', { hotelId });
         }
-        return queryBuilder
-            .orderBy('booking.created_at', 'DESC')
-            .getMany();
+        const bookings = await queryBuilder.orderBy('booking.created_at', 'DESC').getMany();
+        this.sanitizeBookingsOwnerData(bookings);
+        return bookings;
     }
     async findAll() {
-        return this.bookingRepository.find({
+        const bookings = await this.bookingRepository.find({
             relations: ['hotel', 'room', 'user'],
             order: { created_at: 'DESC' },
         });
+        this.sanitizeBookingsOwnerData(bookings);
+        return bookings;
     }
     async findOne(id) {
         const booking = await this.bookingRepository.findOne({
@@ -159,6 +197,7 @@ let BookingService = BookingService_1 = class BookingService {
         if (!booking) {
             throw new common_1.NotFoundException('Booking not found');
         }
+        this.sanitizeBookingOwnerData(booking);
         return booking;
     }
     async updateStatus(id, updateBookingDto, userId, userRoles) {
@@ -174,22 +213,26 @@ let BookingService = BookingService_1 = class BookingService {
             switch (updateBookingDto.status) {
                 case 'Confirmed':
                     updateBookingDto.confirmed_at = now;
+                    updateBookingDto.admin_notes = `Room ${booking.room.room_number} assigned to Mr/Mrs ${booking.guest_name}`;
                     break;
                 case 'Cancelled':
                     if (booking.status === 'Cancelled') {
                         throw new common_1.BadRequestException('Booking is already cancelled');
                     }
                     updateBookingDto.cancelled_at = now;
+                    updateBookingDto.confirmed_at = undefined;
                     await this.restoreAvailability(booking);
                     break;
             }
         }
         await this.bookingRepository.update(id, updateBookingDto);
-        return this.findOne(id);
+        const updatedBooking = await this.findOne(id);
+        this.sanitizeBookingOwnerData(updatedBooking);
+        return updatedBooking;
     }
     async cancelBooking(id, userId, cancellationReason) {
         const booking = await this.findOne(id);
-        if (booking.user_id !== userId) {
+        if (booking.user_id !== userId && booking) {
             throw new common_1.ForbiddenException('You can only cancel your own bookings');
         }
         if (booking.status === 'Cancelled') {
@@ -218,47 +261,65 @@ let BookingService = BookingService_1 = class BookingService {
             if (!cancelledBooking) {
                 throw new common_1.NotFoundException('Failed to retrieve cancelled booking');
             }
+            this.sanitizeBookingOwnerData(cancelledBooking);
             return cancelledBooking;
         });
     }
     async search(searchDto) {
-        const queryBuilder = this.bookingRepository.createQueryBuilder('booking')
+        const queryBuilder = this.bookingRepository
+            .createQueryBuilder('booking')
             .leftJoinAndSelect('booking.hotel', 'hotel')
             .leftJoinAndSelect('booking.room', 'room')
             .leftJoinAndSelect('booking.user', 'user');
         if (searchDto.hotel_id) {
-            queryBuilder.andWhere('booking.hotel_id = :hotelId', { hotelId: searchDto.hotel_id });
+            queryBuilder.andWhere('booking.hotel_id = :hotelId', {
+                hotelId: searchDto.hotel_id,
+            });
         }
         if (searchDto.room_id) {
-            queryBuilder.andWhere('booking.room_id = :roomId', { roomId: searchDto.room_id });
+            queryBuilder.andWhere('booking.room_id = :roomId', {
+                roomId: searchDto.room_id,
+            });
         }
         if (searchDto.user_id) {
-            queryBuilder.andWhere('booking.user_id = :userId', { userId: searchDto.user_id });
+            queryBuilder.andWhere('booking.user_id = :userId', {
+                userId: searchDto.user_id,
+            });
         }
         if (searchDto.status && searchDto.status.length > 0) {
-            queryBuilder.andWhere('booking.status IN (:...statuses)', { statuses: searchDto.status });
+            queryBuilder.andWhere('booking.status IN (:...statuses)', {
+                statuses: searchDto.status,
+            });
         }
         if (searchDto.payment_status && searchDto.payment_status.length > 0) {
             queryBuilder.andWhere('booking.payment_status IN (:...paymentStatuses)', {
-                paymentStatuses: searchDto.payment_status
+                paymentStatuses: searchDto.payment_status,
             });
         }
         if (searchDto.check_in_from) {
-            queryBuilder.andWhere('booking.check_in_date >= :checkInFrom', { checkInFrom: searchDto.check_in_from });
+            queryBuilder.andWhere('booking.check_in_date >= :checkInFrom', {
+                checkInFrom: searchDto.check_in_from,
+            });
         }
         if (searchDto.check_in_to) {
-            queryBuilder.andWhere('booking.check_in_date <= :checkInTo', { checkInTo: searchDto.check_in_to });
+            queryBuilder.andWhere('booking.check_in_date <= :checkInTo', {
+                checkInTo: searchDto.check_in_to,
+            });
         }
         if (searchDto.guest_name) {
             queryBuilder.andWhere('LOWER(booking.guest_name) LIKE LOWER(:guestName)', {
-                guestName: `%${searchDto.guest_name}%`
+                guestName: `%${searchDto.guest_name}%`,
             });
         }
         if (searchDto.min_price) {
-            queryBuilder.andWhere('booking.total_price >= :minPrice', { minPrice: searchDto.min_price });
+            queryBuilder.andWhere('booking.total_price >= :minPrice', {
+                minPrice: searchDto.min_price,
+            });
         }
         if (searchDto.max_price) {
-            queryBuilder.andWhere('booking.total_price <= :maxPrice', { maxPrice: searchDto.max_price });
+            queryBuilder.andWhere('booking.total_price <= :maxPrice', {
+                maxPrice: searchDto.max_price,
+            });
         }
         const sortBy = searchDto.sort_by || 'created_at';
         const sortOrder = searchDto.sort_order || 'DESC';
@@ -268,6 +329,7 @@ let BookingService = BookingService_1 = class BookingService {
         const skip = (page - 1) * limit;
         queryBuilder.skip(skip).take(limit);
         const [bookings, total] = await queryBuilder.getManyAndCount();
+        this.sanitizeBookingsOwnerData(bookings);
         return {
             bookings,
             total,

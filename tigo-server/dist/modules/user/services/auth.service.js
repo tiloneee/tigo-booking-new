@@ -43,7 +43,7 @@ let AuthService = class AuthService {
         const payload = {
             email: user.email,
             sub: user.id,
-            roles: user.roles?.map(role => role.name) || [],
+            roles: user.roles?.map((role) => role.name) || [],
         };
         const accessToken = this.jwtService.sign(payload);
         const refreshToken = this.jwtService.sign(payload, {
@@ -59,7 +59,7 @@ let AuthService = class AuthService {
                 email: user.email,
                 first_name: user.first_name,
                 last_name: user.last_name,
-                roles: user.roles?.map(role => role.name) || [],
+                roles: user.roles?.map((role) => role.name) || [],
             },
         };
     }
@@ -102,7 +102,7 @@ let AuthService = class AuthService {
             const newPayload = {
                 email: user.email,
                 sub: user.id,
-                roles: user.roles?.map(role => role.name) || [],
+                roles: user.roles?.map((role) => role.name) || [],
             };
             const newAccessToken = this.jwtService.sign(newPayload);
             return {

@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from './user.service';
@@ -18,16 +22,17 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const user = await this.userService.create(registerDto);
-    
+
     // Send activation email
     await this.emailService.sendActivationEmail(
       user.email,
       user.activation_token as string,
-      `${user.first_name} ${user.last_name}`
+      `${user.first_name} ${user.last_name}`,
     );
 
     return {
-      message: 'Registration successful. Please check your email to activate your account.',
+      message:
+        'Registration successful. Please check your email to activate your account.',
       userId: user.id,
     };
   }
@@ -39,10 +44,10 @@ export class AuthService {
       throw new UnauthorizedException('Please activate your account first');
     }
 
-    const payload = { 
-      email: user.email, 
+    const payload = {
+      email: user.email,
       sub: user.id,
-      roles: user.roles?.map(role => role.name) || [],
+      roles: user.roles?.map((role) => role.name) || [],
     };
 
     const accessToken = this.jwtService.sign(payload);
@@ -61,20 +66,20 @@ export class AuthService {
         email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,
-        roles: user.roles?.map(role => role.name) || [],
+        roles: user.roles?.map((role) => role.name) || [],
       },
     };
   }
 
   async validateUser(email: string, password: string) {
     const user = await this.userService.findByEmail(email);
-    
+
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password_hash);
-    
+
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -102,25 +107,25 @@ export class AuthService {
       });
 
       const user = await this.userService.findOne(payload.sub);
-      
+
       if (!user.refresh_token) {
         throw new UnauthorizedException('Invalid refresh token');
       }
-      
+
       // Verify refresh token matches stored one
       const isRefreshTokenValid = await bcrypt.compare(
         refreshToken,
-        user.refresh_token
+        user.refresh_token,
       );
 
       if (!isRefreshTokenValid) {
         throw new UnauthorizedException('Invalid refresh token');
       }
 
-      const newPayload = { 
-        email: user.email, 
+      const newPayload = {
+        email: user.email,
         sub: user.id,
-        roles: user.roles?.map(role => role.name) || [],
+        roles: user.roles?.map((role) => role.name) || [],
       };
 
       const newAccessToken = this.jwtService.sign(newPayload);

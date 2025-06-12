@@ -49,7 +49,7 @@ __decorate([
     __metadata("design:type", Boolean)
 ], HotelAmenity.prototype, "is_active", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => hotel_entity_1.Hotel, hotel => hotel.amenities),
+    (0, typeorm_1.ManyToMany)(() => hotel_entity_1.Hotel, (hotel) => hotel.amenities),
     __metadata("design:type", Array)
 ], HotelAmenity.prototype, "hotels", void 0);
 __decorate([

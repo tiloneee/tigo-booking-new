@@ -39,7 +39,7 @@ __decorate([
 ], CreateUserDto.prototype, "password", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsPhoneNumber)("VN"),
+    (0, class_validator_1.IsPhoneNumber)('VN'),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "phone_number", void 0);
 __decorate([

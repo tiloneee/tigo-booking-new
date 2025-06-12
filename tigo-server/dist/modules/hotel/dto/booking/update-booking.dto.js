@@ -24,7 +24,15 @@ class UpdateBookingDto extends (0, mapped_types_1.PartialType)((0, mapped_types_
 exports.UpdateBookingDto = UpdateBookingDto;
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsIn)(['Pending', 'Confirmed', 'Cancelled', 'Completed', 'CheckedIn', 'CheckedOut', 'NoShow']),
+    (0, class_validator_1.IsIn)([
+        'Pending',
+        'Confirmed',
+        'Cancelled',
+        'Completed',
+        'CheckedIn',
+        'CheckedOut',
+        'NoShow',
+    ]),
     __metadata("design:type", String)
 ], UpdateBookingDto.prototype, "status", void 0);
 __decorate([

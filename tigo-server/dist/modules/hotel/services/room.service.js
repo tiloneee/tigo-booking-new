@@ -59,9 +59,11 @@ let RoomService = RoomService_1 = class RoomService {
         const hotel = await this.hotelRepository.findOne({
             where: { id: hotelId },
         });
+        console.log(hotel);
         if (!hotel) {
             throw new common_1.NotFoundException('Hotel not found');
         }
+        console.log(hotel.owner_id);
         if (hotel.owner_id !== userId && !userRoles.includes('Admin')) {
             throw new common_1.ForbiddenException('You can only view rooms for your own hotels');
         }
@@ -92,7 +94,8 @@ let RoomService = RoomService_1 = class RoomService {
         if (room.hotel.owner_id !== userId && !userRoles.includes('Admin')) {
             throw new common_1.ForbiddenException('You can only update rooms in your own hotels');
         }
-        if (updateRoomDto.room_number && updateRoomDto.room_number !== room.room_number) {
+        if (updateRoomDto.room_number &&
+            updateRoomDto.room_number !== room.room_number) {
             const existingRoom = await this.roomRepository.findOne({
                 where: {
                     hotel_id: room.hotel_id,
@@ -144,7 +147,8 @@ let RoomService = RoomService_1 = class RoomService {
         }
         const availability = this.roomAvailabilityRepository.create({
             ...createAvailabilityDto,
-            total_units: createAvailabilityDto.total_units || createAvailabilityDto.available_units,
+            total_units: createAvailabilityDto.total_units ||
+                createAvailabilityDto.available_units,
         });
         return this.roomAvailabilityRepository.save(availability);
     }
@@ -177,7 +181,8 @@ let RoomService = RoomService_1 = class RoomService {
                         date,
                         price_per_night: bulkAvailabilityDto.price_per_night,
                         available_units: bulkAvailabilityDto.available_units,
-                        total_units: bulkAvailabilityDto.total_units || bulkAvailabilityDto.available_units,
+                        total_units: bulkAvailabilityDto.total_units ||
+                            bulkAvailabilityDto.available_units,
                         status: bulkAvailabilityDto.status || 'Available',
                     });
                     const saved = await manager.save(availability);
@@ -215,7 +220,8 @@ let RoomService = RoomService_1 = class RoomService {
         return updatedAvailability;
     }
     async getAvailability(roomId, startDate, endDate) {
-        const query = this.roomAvailabilityRepository.createQueryBuilder('availability')
+        const query = this.roomAvailabilityRepository
+            .createQueryBuilder('availability')
             .where('availability.room_id = :roomId', { roomId });
         if (startDate) {
             query.andWhere('availability.date >= :startDate', { startDate });
@@ -223,9 +229,7 @@ let RoomService = RoomService_1 = class RoomService {
         if (endDate) {
             query.andWhere('availability.date <= :endDate', { endDate });
         }
-        return query
-            .orderBy('availability.date', 'ASC')
-            .getMany();
+        return query.orderBy('availability.date', 'ASC').getMany();
     }
     async checkAvailability(roomId, checkInDate, checkOutDate, requiredUnits = 1) {
         const availability = await this.roomAvailabilityRepository
@@ -242,9 +246,9 @@ let RoomService = RoomService_1 = class RoomService {
         for (let d = new Date(startDate); d < endDate; d.setDate(d.getDate() + 1)) {
             requiredDates.push(d.toISOString().split('T')[0]);
         }
-        const availableDates = availability.map(a => a.date);
-        const unavailableDates = requiredDates.filter(date => {
-            const availRecord = availability.find(a => a.date === date);
+        const availableDates = availability.map((a) => a.date);
+        const unavailableDates = requiredDates.filter((date) => {
+            const availRecord = availability.find((a) => a.date === date);
             return !availRecord || availRecord.available_units < requiredUnits;
         });
         if (unavailableDates.length > 0) {

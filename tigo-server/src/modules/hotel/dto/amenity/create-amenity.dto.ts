@@ -1,9 +1,4 @@
-import { 
-  IsString, 
-  IsOptional, 
-  IsNotEmpty, 
-  Length 
-} from 'class-validator';
+import { IsString, IsOptional, IsNotEmpty, Length } from 'class-validator';
 
 export class CreateAmenityDto {
   @IsString()
@@ -24,4 +19,4 @@ export class CreateAmenityDto {
   @IsString()
   @Length(1, 50)
   icon?: string;
-} 
+}

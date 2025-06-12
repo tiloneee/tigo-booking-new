@@ -96,7 +96,7 @@ __decorate([
     __metadata("design:type", Number)
 ], HotelReview.prototype, "total_votes", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => hotel_entity_1.Hotel, hotel => hotel.reviews),
+    (0, typeorm_1.ManyToOne)(() => hotel_entity_1.Hotel, (hotel) => hotel.reviews),
     (0, typeorm_1.JoinColumn)({ name: 'hotel_id' }),
     __metadata("design:type", hotel_entity_1.Hotel)
 ], HotelReview.prototype, "hotel", void 0);

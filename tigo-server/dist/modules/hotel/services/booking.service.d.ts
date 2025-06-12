@@ -15,7 +15,12 @@ export declare class BookingService {
     private userRepository;
     private dataSource;
     private readonly logger;
+    private readonly SENSITIVE_USER_FIELDS;
+    private readonly SENSITIVE_OWNER_FIELDS;
     constructor(bookingRepository: Repository<HotelBooking>, hotelRepository: Repository<Hotel>, roomRepository: Repository<Room>, roomAvailabilityRepository: Repository<RoomAvailability>, userRepository: Repository<User>, dataSource: DataSource);
+    private sanitizeUserObject;
+    private sanitizeBookingOwnerData;
+    private sanitizeBookingsOwnerData;
     create(createBookingDto: CreateBookingDto, userId: string): Promise<HotelBooking>;
     findByUser(userId: string): Promise<HotelBooking[]>;
     findByHotelOwner(ownerId: string, hotelId?: string): Promise<HotelBooking[]>;

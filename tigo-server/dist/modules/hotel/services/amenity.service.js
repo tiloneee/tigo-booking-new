@@ -135,7 +135,7 @@ let AmenityService = AmenityService_1 = class AmenityService {
             .addGroupBy('amenity.name')
             .orderBy('hotelCount', 'DESC')
             .getRawMany();
-        return result.map(row => ({
+        return result.map((row) => ({
             amenityId: row.amenityId,
             amenityName: row.amenityName,
             hotelCount: parseInt(row.hotelCount) || 0,

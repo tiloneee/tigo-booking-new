@@ -1,13 +1,13 @@
-import { 
-  IsOptional, 
-  IsString, 
-  IsDateString, 
-  IsArray, 
-  IsNumber, 
+import {
+  IsOptional,
+  IsString,
+  IsDateString,
+  IsArray,
+  IsNumber,
   IsUUID,
-  Min, 
+  Min,
   Max,
-  IsIn
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -53,12 +53,25 @@ export class SearchBookingDto {
   // Status filters
   @IsOptional()
   @IsArray()
-  @IsIn(['Pending', 'Confirmed', 'Cancelled', 'Completed', 'CheckedIn', 'CheckedOut', 'NoShow'], { each: true })
+  @IsIn(
+    [
+      'Pending',
+      'Confirmed',
+      'Cancelled',
+      'Completed',
+      'CheckedIn',
+      'CheckedOut',
+      'NoShow',
+    ],
+    { each: true },
+  )
   status?: string[];
 
   @IsOptional()
   @IsArray()
-  @IsIn(['Pending', 'Paid', 'Refunded', 'PartialRefund', 'Failed'], { each: true })
+  @IsIn(['Pending', 'Paid', 'Refunded', 'PartialRefund', 'Failed'], {
+    each: true,
+  })
   payment_status?: string[];
 
   // Price filters
@@ -89,7 +102,13 @@ export class SearchBookingDto {
 
   // Sorting
   @IsOptional()
-  @IsIn(['created_at', 'check_in_date', 'check_out_date', 'total_price', 'status'])
+  @IsIn([
+    'created_at',
+    'check_in_date',
+    'check_out_date',
+    'total_price',
+    'status',
+  ])
   sort_by?: string;
 
   @IsOptional()
@@ -109,4 +128,4 @@ export class SearchBookingDto {
   @Max(100)
   @Type(() => Number)
   limit?: number = 20;
-} 
+}

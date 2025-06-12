@@ -1,5 +1,5 @@
 export declare class CreateRoomDto {
-    hotel_id: string;
+    hotel_id?: string;
     room_number: string;
     room_type: string;
     description?: string;

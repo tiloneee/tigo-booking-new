@@ -1,17 +1,18 @@
-import { 
-  IsString, 
-  IsOptional, 
-  IsNumber, 
-  IsNotEmpty, 
-  Length, 
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsNotEmpty,
+  Length,
   Min,
-  IsUUID 
+  IsUUID,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CreateRoomDto {
+  @IsOptional()
   @IsUUID()
-  hotel_id: string;
+  hotel_id?: string;
 
   @IsString()
   @IsNotEmpty()
@@ -42,4 +43,4 @@ export class CreateRoomDto {
   @Min(0)
   @Type(() => Number)
   size_sqm?: number;
-} 
+}

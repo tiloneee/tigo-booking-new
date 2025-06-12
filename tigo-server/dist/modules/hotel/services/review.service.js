@@ -58,7 +58,7 @@ let ReviewService = ReviewService_1 = class ReviewService {
                         id: createReviewDto.booking_id,
                         user_id: userId,
                         hotel_id: createReviewDto.hotel_id,
-                        status: 'Completed'
+                        status: 'Completed',
                     },
                 });
                 if (booking) {
@@ -74,9 +74,9 @@ let ReviewService = ReviewService_1 = class ReviewService {
                     where: {
                         user_id: userId,
                         hotel_id: createReviewDto.hotel_id,
-                        status: 'Completed'
+                        status: 'Completed',
                     },
-                    order: { check_out_date: 'DESC' }
+                    order: { check_out_date: 'DESC' },
                 });
                 if (completedBooking) {
                     isVerifiedStay = true;
@@ -127,8 +127,8 @@ let ReviewService = ReviewService_1 = class ReviewService {
                     id: true,
                     first_name: true,
                     last_name: true,
-                }
-            }
+                },
+            },
         });
     }
     async findByUser(userId) {
@@ -215,7 +215,7 @@ let ReviewService = ReviewService_1 = class ReviewService {
         const averageRating = reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews;
         const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
         let verifiedStaysCount = 0;
-        reviews.forEach(review => {
+        reviews.forEach((review) => {
             ratingDistribution[review.rating]++;
             if (review.is_verified_stay) {
                 verifiedStaysCount++;
