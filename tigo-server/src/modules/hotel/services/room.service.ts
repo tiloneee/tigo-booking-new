@@ -23,6 +23,16 @@ import {
 export class RoomService {
   private readonly logger = new Logger(RoomService.name);
 
+  private readonly SENSITIVE_OWNER_FIELDS = [
+    'password_hash',
+    'refresh_token',
+    'activation_token',
+    'roles',
+    'is_active',
+    'created_at',
+    'updated_at'
+  ] as const;
+
   constructor(
     @InjectRepository(Room)
     private roomRepository: Repository<Room>,
@@ -34,7 +44,23 @@ export class RoomService {
     private hotelRepository: Repository<Hotel>,
 
     private dataSource: DataSource,
-  ) {}
+  ) { }
+
+  private sanitizeUserObject(user: any, fieldsToRemove: readonly string[]): void {
+    if (!user) return;
+    
+    fieldsToRemove.forEach(field => {
+      delete user[field];
+    });
+  }
+
+  private sanitizeRoomOwnerData(room: Room): void {
+    this.sanitizeUserObject(room.hotel.owner, this.SENSITIVE_OWNER_FIELDS);
+  }
+
+  private sanitizeRoomsOwnerData(rooms: Room[]): void {
+    rooms.forEach((room) => this.sanitizeRoomOwnerData(room));
+  }
 
   async create(
     createRoomDto: CreateRoomDto,
@@ -69,7 +95,9 @@ export class RoomService {
     }
 
     const room = this.roomRepository.create(createRoomDto);
-    return this.roomRepository.save(room);
+    const savedRoom = await this.roomRepository.save(room);
+    this.sanitizeRoomOwnerData(savedRoom);
+    return savedRoom;
   }
 
   async findByHotel(
@@ -92,12 +120,14 @@ export class RoomService {
         'You can only view rooms for your own hotels',
       );
     }
-    
-    return this.roomRepository.find({
+
+    const rooms = await this.roomRepository.find({
       where: { hotel_id: hotelId },
       relations: ['availability'],
       order: { room_number: 'ASC' },
     });
+    this.sanitizeRoomsOwnerData(rooms);
+    return rooms;
   }
 
   async findOne(id: string): Promise<Room> {
@@ -110,6 +140,7 @@ export class RoomService {
       throw new NotFoundException('Room not found');
     }
 
+    this.sanitizeRoomOwnerData(room);
     return room;
   }
 
@@ -226,7 +257,9 @@ export class RoomService {
         createAvailabilityDto.available_units,
     });
 
-    return this.roomAvailabilityRepository.save(availability);
+    const savedAvailability = await this.roomAvailabilityRepository.save(availability);
+    this.sanitizeRoomOwnerData(savedAvailability.room);
+    return savedAvailability;
   }
 
   async createBulkAvailability(
@@ -339,6 +372,7 @@ export class RoomService {
       throw new NotFoundException('Failed to retrieve updated availability');
     }
 
+    this.sanitizeRoomOwnerData(updatedAvailability.room);
     return updatedAvailability;
   }
 
@@ -359,7 +393,9 @@ export class RoomService {
       query.andWhere('availability.date <= :endDate', { endDate });
     }
 
-    return query.orderBy('availability.date', 'ASC').getMany();
+    const availability = await query.orderBy('availability.date', 'ASC').getMany();
+    this.sanitizeRoomsOwnerData(availability.map((a) => a.room));
+    return availability;
   }
 
   async checkAvailability(

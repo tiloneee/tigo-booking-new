@@ -12,7 +12,13 @@ export declare class ReviewService {
     private userRepository;
     private dataSource;
     private readonly logger;
+    private readonly SENSITIVE_REVIEW_FIELDS;
+    private readonly SENSITIVE_USER_FIELDS;
     constructor(reviewRepository: Repository<HotelReview>, hotelRepository: Repository<Hotel>, bookingRepository: Repository<HotelBooking>, userRepository: Repository<User>, dataSource: DataSource);
+    private sanitizeUserObject;
+    private sanitizeReviewObject;
+    private sanitizeReviewData;
+    private sanitizeReviewsOwnerData;
     create(createReviewDto: CreateReviewDto, userId: string): Promise<HotelReview>;
     findByHotel(hotelId: string, isApprovedOnly?: boolean): Promise<HotelReview[]>;
     findByUser(userId: string): Promise<HotelReview[]>;

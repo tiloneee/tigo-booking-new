@@ -11,8 +11,9 @@ import {
 import { Type } from 'class-transformer';
 
 export class CreateReviewDto {
+  @IsOptional()
   @IsUUID()
-  hotel_id: string;
+  hotel_id?: string;
 
   @IsOptional()
   @IsUUID()

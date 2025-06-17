@@ -11,7 +11,11 @@ export declare class RoomService {
     private hotelRepository;
     private dataSource;
     private readonly logger;
+    private readonly SENSITIVE_OWNER_FIELDS;
     constructor(roomRepository: Repository<Room>, roomAvailabilityRepository: Repository<RoomAvailability>, hotelRepository: Repository<Hotel>, dataSource: DataSource);
+    private sanitizeUserObject;
+    private sanitizeRoomOwnerData;
+    private sanitizeRoomsOwnerData;
     create(createRoomDto: CreateRoomDto, userId: string, userRoles: string[]): Promise<Room>;
     findByHotel(hotelId: string, userId: string, userRoles: string[]): Promise<Room[]>;
     findOne(id: string): Promise<Room>;

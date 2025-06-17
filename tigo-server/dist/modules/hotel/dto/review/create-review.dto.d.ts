@@ -1,5 +1,5 @@
 export declare class CreateReviewDto {
-    hotel_id: string;
+    hotel_id?: string;
     booking_id?: string;
     rating: number;
     comment?: string;

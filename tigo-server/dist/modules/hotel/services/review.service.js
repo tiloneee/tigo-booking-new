@@ -28,6 +28,21 @@ let ReviewService = ReviewService_1 = class ReviewService {
     userRepository;
     dataSource;
     logger = new common_1.Logger(ReviewService_1.name);
+    SENSITIVE_REVIEW_FIELDS = [
+        'is_approved',
+        'moderation_notes',
+        'is_verified_stay',
+        'booking',
+    ];
+    SENSITIVE_USER_FIELDS = [
+        'password_hash',
+        'refresh_token',
+        'activation_token',
+        'roles',
+        'is_active',
+        'created_at',
+        'updated_at',
+    ];
     constructor(reviewRepository, hotelRepository, bookingRepository, userRepository, dataSource) {
         this.reviewRepository = reviewRepository;
         this.hotelRepository = hotelRepository;
@@ -35,8 +50,33 @@ let ReviewService = ReviewService_1 = class ReviewService {
         this.userRepository = userRepository;
         this.dataSource = dataSource;
     }
+    sanitizeUserObject(user, fieldsToRemove) {
+        if (!user)
+            return;
+        fieldsToRemove.forEach(field => {
+            delete user[field];
+        });
+    }
+    sanitizeReviewObject(review, fieldsToRemove) {
+        if (!review)
+            return;
+        fieldsToRemove.forEach(field => {
+            delete review[field];
+        });
+    }
+    sanitizeReviewData(review) {
+        this.sanitizeReviewObject(review, this.SENSITIVE_REVIEW_FIELDS);
+        this.sanitizeUserObject(review.user, this.SENSITIVE_USER_FIELDS);
+        this.sanitizeUserObject(review.hotel.owner, this.SENSITIVE_USER_FIELDS);
+    }
+    sanitizeReviewsOwnerData(reviews) {
+        reviews.forEach((review) => this.sanitizeReviewData(review));
+    }
     async create(createReviewDto, userId) {
         return this.dataSource.transaction(async (manager) => {
+            if (!createReviewDto.hotel_id) {
+                throw new common_1.BadRequestException('Hotel ID is required');
+            }
             const hotel = await manager.findOne(hotel_entity_1.Hotel, {
                 where: { id: createReviewDto.hotel_id, is_active: true },
             });
@@ -110,6 +150,7 @@ let ReviewService = ReviewService_1 = class ReviewService {
             if (!reviewWithRelations) {
                 throw new common_1.NotFoundException('Failed to retrieve created review');
             }
+            this.sanitizeReviewData(reviewWithRelations);
             return reviewWithRelations;
         });
     }
@@ -118,7 +159,7 @@ let ReviewService = ReviewService_1 = class ReviewService {
         if (isApprovedOnly) {
             whereCondition.is_approved = true;
         }
-        return this.reviewRepository.find({
+        const reviews = await this.reviewRepository.find({
             where: whereCondition,
             relations: ['user'],
             order: { created_at: 'DESC' },
@@ -130,13 +171,16 @@ let ReviewService = ReviewService_1 = class ReviewService {
                 },
             },
         });
+        return reviews;
     }
     async findByUser(userId) {
-        return this.reviewRepository.find({
+        const reviews = await this.reviewRepository.find({
             where: { user_id: userId },
             relations: ['hotel'],
             order: { created_at: 'DESC' },
         });
+        this.sanitizeReviewsOwnerData(reviews);
+        return reviews;
     }
     async findOne(id) {
         const review = await this.reviewRepository.findOne({
@@ -146,6 +190,7 @@ let ReviewService = ReviewService_1 = class ReviewService {
         if (!review) {
             throw new common_1.NotFoundException('Review not found');
         }
+        this.sanitizeReviewData(review);
         return review;
     }
     async update(id, updateReviewDto, userId) {
@@ -165,6 +210,7 @@ let ReviewService = ReviewService_1 = class ReviewService {
             if (!updatedReview) {
                 throw new common_1.NotFoundException('Failed to retrieve updated review');
             }
+            this.sanitizeReviewData(updatedReview);
             return updatedReview;
         });
     }
@@ -188,7 +234,9 @@ let ReviewService = ReviewService_1 = class ReviewService {
             moderation_notes: moderationNotes,
         });
         this.logger.log(`Review ${isApproved ? 'approved' : 'rejected'}: ${id}`);
-        return this.findOne(id);
+        const updatedReview = await this.findOne(id);
+        this.sanitizeReviewData(updatedReview);
+        return updatedReview;
     }
     async voteHelpful(reviewId, userId, isHelpful) {
         const review = await this.findOne(reviewId);
@@ -197,7 +245,9 @@ let ReviewService = ReviewService_1 = class ReviewService {
             helpful_votes: review.helpful_votes + increment,
             total_votes: review.total_votes + 1,
         });
-        return this.findOne(reviewId);
+        const updatedReview = await this.findOne(reviewId);
+        this.sanitizeReviewData(updatedReview);
+        return updatedReview;
     }
     async getReviewStatistics(hotelId) {
         const reviews = await this.reviewRepository.find({

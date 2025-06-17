@@ -179,7 +179,7 @@ export class AmenityService {
       .where('amenity.is_active = :isActive', { isActive: true })
       .groupBy('amenity.id')
       .addGroupBy('amenity.name')
-      .orderBy('hotelCount', 'DESC')
+      .orderBy('"hotelCount"', 'DESC')
       .getRawMany();
 
     return result.map((row) => ({

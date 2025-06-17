@@ -26,11 +26,33 @@ let RoomService = RoomService_1 = class RoomService {
     hotelRepository;
     dataSource;
     logger = new common_1.Logger(RoomService_1.name);
+    SENSITIVE_OWNER_FIELDS = [
+        'password_hash',
+        'refresh_token',
+        'activation_token',
+        'roles',
+        'is_active',
+        'created_at',
+        'updated_at'
+    ];
     constructor(roomRepository, roomAvailabilityRepository, hotelRepository, dataSource) {
         this.roomRepository = roomRepository;
         this.roomAvailabilityRepository = roomAvailabilityRepository;
         this.hotelRepository = hotelRepository;
         this.dataSource = dataSource;
+    }
+    sanitizeUserObject(user, fieldsToRemove) {
+        if (!user)
+            return;
+        fieldsToRemove.forEach(field => {
+            delete user[field];
+        });
+    }
+    sanitizeRoomOwnerData(room) {
+        this.sanitizeUserObject(room.hotel.owner, this.SENSITIVE_OWNER_FIELDS);
+    }
+    sanitizeRoomsOwnerData(rooms) {
+        rooms.forEach((room) => this.sanitizeRoomOwnerData(room));
     }
     async create(createRoomDto, userId, userRoles) {
         const hotel = await this.hotelRepository.findOne({
@@ -53,7 +75,9 @@ let RoomService = RoomService_1 = class RoomService {
             throw new common_1.ConflictException('Room number already exists in this hotel');
         }
         const room = this.roomRepository.create(createRoomDto);
-        return this.roomRepository.save(room);
+        const savedRoom = await this.roomRepository.save(room);
+        this.sanitizeRoomOwnerData(savedRoom);
+        return savedRoom;
     }
     async findByHotel(hotelId, userId, userRoles) {
         const hotel = await this.hotelRepository.findOne({
@@ -67,11 +91,13 @@ let RoomService = RoomService_1 = class RoomService {
         if (hotel.owner_id !== userId && !userRoles.includes('Admin')) {
             throw new common_1.ForbiddenException('You can only view rooms for your own hotels');
         }
-        return this.roomRepository.find({
+        const rooms = await this.roomRepository.find({
             where: { hotel_id: hotelId },
             relations: ['availability'],
             order: { room_number: 'ASC' },
         });
+        this.sanitizeRoomsOwnerData(rooms);
+        return rooms;
     }
     async findOne(id) {
         const room = await this.roomRepository.findOne({
@@ -81,6 +107,7 @@ let RoomService = RoomService_1 = class RoomService {
         if (!room) {
             throw new common_1.NotFoundException('Room not found');
         }
+        this.sanitizeRoomOwnerData(room);
         return room;
     }
     async update(id, updateRoomDto, userId, userRoles) {
@@ -150,7 +177,9 @@ let RoomService = RoomService_1 = class RoomService {
             total_units: createAvailabilityDto.total_units ||
                 createAvailabilityDto.available_units,
         });
-        return this.roomAvailabilityRepository.save(availability);
+        const savedAvailability = await this.roomAvailabilityRepository.save(availability);
+        this.sanitizeRoomOwnerData(savedAvailability.room);
+        return savedAvailability;
     }
     async createBulkAvailability(bulkAvailabilityDto, userId, userRoles) {
         const room = await this.roomRepository.findOne({
@@ -217,6 +246,7 @@ let RoomService = RoomService_1 = class RoomService {
         if (!updatedAvailability) {
             throw new common_1.NotFoundException('Failed to retrieve updated availability');
         }
+        this.sanitizeRoomOwnerData(updatedAvailability.room);
         return updatedAvailability;
     }
     async getAvailability(roomId, startDate, endDate) {
@@ -229,7 +259,9 @@ let RoomService = RoomService_1 = class RoomService {
         if (endDate) {
             query.andWhere('availability.date <= :endDate', { endDate });
         }
-        return query.orderBy('availability.date', 'ASC').getMany();
+        const availability = await query.orderBy('availability.date', 'ASC').getMany();
+        this.sanitizeRoomsOwnerData(availability.map((a) => a.room));
+        return availability;
     }
     async checkAvailability(roomId, checkInDate, checkOutDate, requiredUnits = 1) {
         const availability = await this.roomAvailabilityRepository
