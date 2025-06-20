@@ -36,21 +36,21 @@ export default function Footer() {
               <Button
                 size="icon"
                 variant="outline"
-                className="border-copper-accent/30 text-copper-accent hover:bg-copper-accent hover:text-walnut-dark transition-all duration-300"
+                className="bg-gradient-to-br from-walnut-lightest to-walnut-medium border-copper-accent text-copper-accent hover:bg-copper-accent hover:text-walnut-dark transition-all duration-300"
               >
                 <Facebook className="h-4 w-4" />
               </Button>
               <Button
                 size="icon"
                 variant="outline"
-                className="border-copper-accent/30 text-copper-accent hover:bg-copper-accent hover:text-walnut-dark transition-all duration-300"
+                className="bg-gradient-to-br from-walnut-lightest to-walnut-medium border-copper-accent text-copper-accent hover:bg-copper-accent hover:text-walnut-dark transition-all duration-300"
               >
                 <Instagram className="h-4 w-4" />
               </Button>
               <Button
                 size="icon"
                 variant="outline"
-                className="border-copper-accent/30 text-copper-accent hover:bg-copper-accent hover:text-walnut-dark transition-all duration-300"
+                className="bg-gradient-to-br from-walnut-lightest to-walnut-medium border-copper-accent text-copper-accent hover:bg-copper-accent hover:text-walnut-dark transition-all duration-300"
               >
                 <Twitter className="h-4 w-4" />
               </Button>
@@ -111,16 +111,16 @@ export default function Footer() {
               <li className="flex items-center space-x-3">
                 <MapPin className="h-4 w-4 text-copper-accent flex-shrink-0" />
                 <span className="text-cream-light/70 font-cormorant text-vintage-base">
-                  123 Luxury Lane, Elite District
+                  2 Doan Thi Diem, Phu Nhuan, Ho Chi Minh City
                 </span>
               </li>
               <li className="flex items-center space-x-3">
                 <Phone className="h-4 w-4 text-copper-accent flex-shrink-0" />
-                <span className="text-cream-light/70 font-cormorant text-vintage-base">+1 (555) 123-4567</span>
+                <span className="text-cream-light/70 font-cormorant text-vintage-base">+84 909 090 909</span>
               </li>
               <li className="flex items-center space-x-3">
                 <Mail className="h-4 w-4 text-copper-accent flex-shrink-0" />
-                <span className="text-cream-light/70 font-cormorant text-vintage-base">hello@grandeur.travel</span>
+                <span className="text-cream-light/70 font-cormorant text-vintage-base">hello@aurevia.travel</span>
               </li>
             </ul>
           </div>
@@ -128,7 +128,7 @@ export default function Footer() {
 
         <div className="border-t border-copper-accent/20 mt-12 pt-8 text-center">
           <p className="text-cream-light/60 font-cormorant text-vintage-sm">
-            © 2024 Grandeur Luxury Travel. All rights reserved. | Privacy Policy | Terms of Service
+            © 2024 Aurevia Luxury Travel. All rights reserved. | Privacy Policy | Terms of Service
           </p>
         </div>
       </div>

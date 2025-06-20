@@ -51,7 +51,7 @@ export class UserService {
       ...userDataWithoutRole,
       password_hash: hashedPassword,
       activation_token: activationToken,
-      is_active: true,
+      is_active: false,
       roles: [role],
     });
 

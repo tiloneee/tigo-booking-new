@@ -4,6 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import { Menu, X, Plane } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import UserNav from "@/components/auth/user-nav"
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -54,15 +55,7 @@ export default function Header() {
             >
               Contact
             </Link>
-            <Link
-              href="/login"
-              className="text-cream-light hover:text-copper-accent transition-colors duration-300 font-cormorant font-medium text-vintage-lg tracking-wide"
-            >
-              Sign In
-            </Link>
-            <Button className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 text-vintage-sm tracking-wider uppercase">
-              Plan Your Journey
-            </Button>
+            <UserNav />
           </nav>
 
           {/* Mobile Menu Button */}
@@ -118,15 +111,9 @@ export default function Header() {
               >
                 Contact
               </Link>
-              <Link
-                href="/login"
-                className="text-cream-light hover:text-copper-accent transition-colors duration-300 font-cormorant font-medium text-vintage-lg tracking-wide"
-              >
-                Sign In
-              </Link>
-              <Button className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-copper-accent/30 transition-all duration-300 w-full text-vintage-sm tracking-wider uppercase">
-                Plan Your Journey
-              </Button>
+              <div className="pt-4">
+                <UserNav />
+              </div>
             </nav>
           </div>
         )}

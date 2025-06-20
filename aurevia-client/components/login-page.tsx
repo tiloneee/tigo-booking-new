@@ -1,19 +1,112 @@
 "use client"
 
 import { useState } from "react"
+import { signIn, getSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Plane, Eye, EyeOff, Mail, Lock, ArrowRight, Shield } from "lucide-react"
+import { Plane, Eye, EyeOff, Mail, Lock, ArrowRight, Shield, AlertCircle } from "lucide-react"
+// import { authApi } from "@/lib/api" // Uncomment if you want to use direct API calls
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
+  const router = useRouter()
 
-  const handleLogin = () => {
-    
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !password) {
+      setError("Please fill in all fields")
+      return
+    }
+
+    setIsLoading(true)
+    setError("")
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.error) {
+        // Handle specific backend errors with user-friendly messages
+        if (result.error.includes("Invalid credentials")) {
+          setError("Invalid email or password. Please check your credentials and try again.")
+        } else if (result.error.includes("activate your account")) {
+          setError("Please activate your account first. Check your email for activation instructions.")
+        } else if (result.error.includes("Email and password are required")) {
+          setError("Please fill in all fields")
+        } else {
+          // Generic error message for other cases
+          setError(result.error)
+        }
+      } else if (result?.ok) {
+        // Get the session to check user data
+        const session = await getSession()
+        if (session) {
+          router.push("/dashboard") // Redirect to dashboard
+        }
+      } else {
+        // This shouldn't happen, but just in case
+        setError("Login failed. Please try again.")
+      }
+    } catch (error) {
+      // Fallback error handling
+      setError("An unexpected error occurred during login")
+      console.error("Login error:", error)
+    } finally {
+      setIsLoading(false)
+    }
   }
+
+  /* 
+  Alternative approach using direct API calls for more granular error handling:
+  
+  const handleLoginDirect = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!email || !password) {
+      setError("Please fill in all fields")
+      return
+    }
+
+    setIsLoading(true)
+    setError("")
+
+    try {
+      const authResponse = await authApi.login({ email, password })
+      
+      // Successfully logged in with authApi, now sign in with NextAuth
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      })
+
+      if (result?.ok) {
+        router.push("/dashboard")
+      } else {
+        setError("Authentication failed. Please try again.")
+      }
+    } catch (error: any) {
+      // Direct error handling from backend
+      if (error.message.includes("Invalid credentials")) {
+        setError("Invalid email or password. Please check your credentials and try again.")
+      } else if (error.message.includes("activate your account")) {
+        setError("Please activate your account first. Check your email for activation instructions.")
+      } else {
+        setError(error.message || "Login failed. Please try again.")
+      }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+  */
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-darkest relative overflow-hidden">
@@ -89,69 +182,85 @@ export default function LoginPage() {
             </CardHeader>
 
             <CardContent className="space-y-6 p-8 pt-1">
-              {/* Email Field */}
-              <div className="space-y-2">
-                <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
-                  <Mail className="h-4 w-4 text-copper-accent" />
-                  <span>Email Address</span>
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email address"
-                  className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
-                />
-              </div>
-
-              {/* Password Field */}
-              <div className="space-y-2">
-                <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
-                  <Lock className="h-4 w-4 text-copper-accent" />
-                  <span>Password</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full px-4 py-3 pr-12 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-copper-accent hover:text-copper-light transition-colors duration-300"
-                  >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
-                  </button>
+              {/* Error Message */}
+              {error && (
+                <div className="flex items-center space-x-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                  <AlertCircle className="h-4 w-4 text-red-400" />
+                  <span className="text-red-400 font-cormorant text-vintage-md">{error}</span>
                 </div>
-              </div>
+              )}
 
-              {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between">
-                <label className="flex items-center space-x-2 cursor-pointer">
+              <form onSubmit={handleLogin} className="space-y-6">
+                {/* Email Field */}
+                <div className="space-y-2">
+                  <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
+                    <Mail className="h-4 w-4 text-copper-accent" />
+                    <span>Email Address</span>
+                  </label>
                   <input
-                    type="checkbox"
-                    className="w-4 h-4 text-copper-accent bg-walnut-darkest border-copper-accent/30 rounded focus:ring-copper-accent/20 focus:ring-2"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email address"
+                    className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+                    required
                   />
-                  <span className="text-cream-light/80 font-cormorant text-vintage-sm">Remember me</span>
-                </label>
-                <Link
-                  href="/forgot-password"
-                  className="text-copper-accent hover:text-copper-light font-cormorant text-vintage-sm transition-colors duration-300"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+                </div>
 
-              {/* Login Button */}
-              <Button className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold px-8 py-4 rounded-lg shadow-2xl hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-[1.02] text-vintage-lg tracking-wider uppercase transform-gpu">
-                <span className="flex items-center justify-center space-x-3">
-                  <span>Sign In to Aurevia</span>
-                  <ArrowRight className="h-5 w-5" />
-                </span>
-              </Button>
+                {/* Password Field */}
+                <div className="space-y-2">
+                  <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
+                    <Lock className="h-4 w-4 text-copper-accent" />
+                    <span>Password</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Enter your password"
+                      className="w-full px-4 py-3 pr-12 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-copper-accent hover:text-copper-light transition-colors duration-300"
+                    >
+                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Remember Me & Forgot Password */}
+                <div className="flex items-center justify-between">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 text-copper-accent bg-walnut-darkest border-copper-accent/30 rounded focus:ring-copper-accent/20 focus:ring-2"
+                    />
+                    <span className="text-cream-light/80 font-cormorant text-vintage-sm">Remember me</span>
+                  </label>
+                  <Link
+                    href="/forgot-password"
+                    className="text-copper-accent hover:text-copper-light font-cormorant text-vintage-sm transition-colors duration-300"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+
+                {/* Login Button */}
+                <Button 
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold px-8 py-4 rounded-lg shadow-2xl hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-[1.02] text-vintage-lg tracking-wider uppercase transform-gpu disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <span className="flex items-center justify-center space-x-3">
+                    <span>{isLoading ? "Signing In..." : "Sign In to Aurevia"}</span>
+                    {!isLoading && <ArrowRight className="h-5 w-5" />}
+                  </span>
+                </Button>
+              </form>
 
               {/* Divider */}
               <div className="relative">
@@ -167,13 +276,13 @@ export default function LoginPage() {
               <div className="grid grid-cols-2 gap-4">
                 <Button
                   variant="outline"
-                  className="border-copper-accent/30 text-cream-dark/45 hover:bg-gradient-to-r hover:from-copper-accent hover:via-copper-light hover:to-copper-dark hover:border-copper-accent font-cormorant font-medium py-3 transition-all duration-300"
+                  className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark border-copper-accent/30 font-cormorant font-bold text-lg hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 tracking-wider"
                 >
                   Google
                 </Button>
                 <Button
                   variant="outline"
-                  className="border-copper-accent/30 text-cream-light hover:bg-gradient-to-r hover:from-copper-accent hover:via-copper-light hover:to-copper-dark hover:border-copper-accent font-cormorant font-medium py-3 transition-all duration-300"
+                  className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark border-copper-accent/30 font-cormorant font-bold text-lg hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 tracking-wider"
                 >
                   Apple
                 </Button>
@@ -184,7 +293,7 @@ export default function LoginPage() {
                 <p className="text-cream-light/70 font-cormorant text-vintage-base">
                   Don't have an account?{" "}
                   <Link
-                    href="/signup"
+                    href="/auth/register"
                     className="text-copper-accent hover:text-copper-light font-medium transition-colors duration-300"
                   >
                     Create your account

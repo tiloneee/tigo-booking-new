@@ -25,6 +25,7 @@ const config: Config = {
         "walnut-dark": "#241611",
         "walnut-medium": "#2F1D15",
         "walnut-light": "#3A251A",
+        "walnut-lightest": "#453025",
         "copper-dark": "#B87333",
         "copper-accent": "#CD7F32",
         "copper-light": "#D2B48C",
