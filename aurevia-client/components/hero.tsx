@@ -1,0 +1,265 @@
+"use client"
+
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Calendar, MapPin, Users, Plane, Hotel, Utensils, Search, Plus, Minus } from "lucide-react"
+
+export default function Hero() {
+  const [activeTab, setActiveTab] = useState("hotels")
+  const [guests, setGuests] = useState(2)
+  const [rooms, setRooms] = useState(1)
+
+  const tabs = [
+    { id: "hotels", label: "Hotels", icon: Hotel },
+    { id: "restaurants", label: "Restaurants", icon: Utensils },
+    { id: "transportation", label: "Transportation", icon: Plane },
+  ]
+
+  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background with overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-darkest">
+        <div className="absolute inset-0 bg-[url('/placeholder.svg?height=1080&width=1920')] bg-cover bg-center opacity-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-walnut-darkest/95 via-transparent to-walnut-darkest/70"></div>
+      </div>
+
+      {/* Warm lighting effects */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-copper-accent/8 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-copper-light/6 rounded-full blur-3xl"></div>
+
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <div className="max-w-6xl mx-auto">
+          {/* Header Content */}
+          <div className="mb-12">
+            {/* Decorative element */}
+            <div className="mb-8">
+              <div className="w-24 h-px bg-gradient-to-r from-transparent via-copper-accent to-transparent mx-auto mb-4"></div>
+              <p className="text-copper-accent font-great-vibes text-vintage-2xl">Your Complete Travel Companion</p>
+              <div className="w-24 h-px bg-gradient-to-r from-transparent via-copper-accent to-transparent mx-auto mt-4"></div>
+            </div>
+
+            <h1 className="text-vintage-4xl md:text-vintage-6xl font-playfair font-bold text-cream-light mb-6 leading-tight animate-fade-in">
+              Discover, Book & Experience
+              <span className="block text-copper-accent font-great-vibes text-vintage-5xl md:text-vintage-6xl font-normal italic mt-2">
+                Luxury Travel
+              </span>
+            </h1>
+
+            <p
+              className="text-vintage-lg md:text-vintage-xl text-cream-light/85 mb-8 max-w-3xl mx-auto leading-relaxed font-cormorant font-light animate-fade-in"
+              style={{ animationDelay: "0.2s" }}
+            >
+              Your all-in-one platform for luxury accommodations, exquisite dining, and premium transportation.
+              Experience seamless booking with unparalleled service.
+            </p>
+          </div>
+
+          {/* Search Interface */}
+          <Card
+            className="bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30 shadow-2xl animate-fade-in max-w-5xl mx-auto"
+            style={{ animationDelay: "0.4s" }}
+          >
+            <CardContent className="p-8">
+              {/* Search Tabs */}
+              <div className="flex flex-wrap justify-center mb-8 bg-walnut-darkest/50 rounded-lg p-2">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-cinzel font-semibold text-vintage-sm tracking-wider uppercase transition-all duration-300 ${
+                      activeTab === tab.id
+                        ? "bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark shadow-lg"
+                        : "text-cream-light hover:text-copper-accent hover:bg-walnut-dark/50"
+                    }`}
+                  >
+                    <tab.icon className="h-4 w-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Search Form */}
+              <div className="space-y-6">
+                {/* Destination */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
+                      <MapPin className="h-4 w-4 text-copper-accent" />
+                      <span>Destination</span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Where would you like to go?"
+                      className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+                    />
+                  </div>
+
+                  {activeTab === "transportation" && (
+                    <div className="space-y-2">
+                      <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
+                        <MapPin className="h-4 w-4 text-copper-accent" />
+                        <span>Departure</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="From where?"
+                        className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Dates */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
+                      <Calendar className="h-4 w-4 text-copper-accent" />
+                      <span>{activeTab === "restaurants" ? "Date" : "Check-in"}</span>
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+                    />
+                  </div>
+
+                  {activeTab !== "restaurants" && (
+                    <div className="space-y-2">
+                      <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
+                        <Calendar className="h-4 w-4 text-copper-accent" />
+                        <span>Check-out</span>
+                      </label>
+                      <input
+                        type="date"
+                        className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+                      />
+                    </div>
+                  )}
+
+                  {activeTab === "restaurants" && (
+                    <div className="space-y-2">
+                      <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
+                        <Calendar className="h-4 w-4 text-copper-accent" />
+                        <span>Time</span>
+                      </label>
+                      <select className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300">
+                        <option value="">Select time</option>
+                        <option value="12:00">12:00 PM</option>
+                        <option value="12:30">12:30 PM</option>
+                        <option value="13:00">1:00 PM</option>
+                        <option value="13:30">1:30 PM</option>
+                        <option value="19:00">7:00 PM</option>
+                        <option value="19:30">7:30 PM</option>
+                        <option value="20:00">8:00 PM</option>
+                        <option value="20:30">8:30 PM</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Guests and Rooms */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
+                      <Users className="h-4 w-4 text-copper-accent" />
+                      <span>{activeTab === "restaurants" ? "Party Size" : "Guests"}</span>
+                    </label>
+                    <div className="flex items-center space-x-4 px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg">
+                      <button
+                        onClick={() => setGuests(Math.max(1, guests - 1))}
+                        className="p-1 text-copper-accent hover:bg-copper-accent hover:text-walnut-dark rounded transition-all duration-300"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="text-cream-light font-cormorant text-vintage-base font-medium flex-1 text-center">
+                        {guests} {guests === 1 ? "Guest" : "Guests"}
+                      </span>
+                      <button
+                        onClick={() => setGuests(guests + 1)}
+                        className="p-1 text-copper-accent hover:bg-copper-accent hover:text-walnut-dark rounded transition-all duration-300"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {activeTab === "hotels" && (
+                    <div className="space-y-2">
+                      <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
+                        <Hotel className="h-4 w-4 text-copper-accent" />
+                        <span>Rooms</span>
+                      </label>
+                      <div className="flex items-center space-x-4 px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg">
+                        <button
+                          onClick={() => setRooms(Math.max(1, rooms - 1))}
+                          className="p-1 text-copper-accent hover:bg-copper-accent hover:text-walnut-dark rounded transition-all duration-300"
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="text-cream-light font-cormorant text-vintage-base font-medium flex-1 text-center">
+                          {rooms} {rooms === 1 ? "Room" : "Rooms"}
+                        </span>
+                        <button
+                          onClick={() => setRooms(rooms + 1)}
+                          className="p-1 text-copper-accent hover:bg-copper-accent hover:text-walnut-dark rounded transition-all duration-300"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === "transportation" && (
+                    <div className="space-y-2">
+                      <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
+                        <Plane className="h-4 w-4 text-copper-accent" />
+                        <span>Travel Class</span>
+                      </label>
+                      <select className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300">
+                        <option value="economy">Economy</option>
+                        <option value="business">Business</option>
+                        <option value="first">First Class</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+
+                {/* Search Button */}
+                <div className="pt-4">
+                  <Button className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold px-8 py-4 rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 text-vintage-lg tracking-wider uppercase">
+                    <Search className="mr-3 h-5 w-5" />
+                    Search{" "}
+                    {activeTab === "hotels" ? "Hotels" : activeTab === "restaurants" ? "Restaurants" : "Transportation"}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Quick Stats */}
+          <div
+            className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mt-12 animate-fade-in"
+            style={{ animationDelay: "0.6s" }}
+          >
+            <div className="text-center group">
+              <div className="text-vintage-3xl font-playfair font-bold text-cream-light mb-1">50K+</div>
+              <div className="text-cream-light/70 font-cormorant text-vintage-base tracking-wide">Hotels</div>
+            </div>
+            <div className="text-center group">
+              <div className="text-vintage-3xl font-playfair font-bold text-cream-light mb-1">25K+</div>
+              <div className="text-cream-light/70 font-cormorant text-vintage-base tracking-wide">Restaurants</div>
+            </div>
+            <div className="text-center group">
+              <div className="text-vintage-3xl font-playfair font-bold text-cream-light mb-1">500+</div>
+              <div className="text-cream-light/70 font-cormorant text-vintage-base tracking-wide">Airlines</div>
+            </div>
+            <div className="text-center group">
+              <div className="text-vintage-3xl font-playfair font-bold text-cream-light mb-1">150+</div>
+              <div className="text-cream-light/70 font-cormorant text-vintage-base tracking-wide">Countries</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
