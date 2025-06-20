@@ -107,19 +107,19 @@ __decorate([
     __metadata("design:type", String)
 ], Hotel.prototype, "owner_id", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => room_entity_1.Room, room => room.hotel, { cascade: true }),
+    (0, typeorm_1.OneToMany)(() => room_entity_1.Room, (room) => room.hotel, { cascade: true }),
     __metadata("design:type", Array)
 ], Hotel.prototype, "rooms", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => hotel_booking_entity_1.HotelBooking, booking => booking.hotel),
+    (0, typeorm_1.OneToMany)(() => hotel_booking_entity_1.HotelBooking, (booking) => booking.hotel),
     __metadata("design:type", Array)
 ], Hotel.prototype, "bookings", void 0);
 __decorate([
-    (0, typeorm_1.OneToMany)(() => hotel_review_entity_1.HotelReview, review => review.hotel),
+    (0, typeorm_1.OneToMany)(() => hotel_review_entity_1.HotelReview, (review) => review.hotel),
     __metadata("design:type", Array)
 ], Hotel.prototype, "reviews", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => hotel_amenity_entity_1.HotelAmenity, amenity => amenity.hotels),
+    (0, typeorm_1.ManyToMany)(() => hotel_amenity_entity_1.HotelAmenity, (amenity) => amenity.hotels),
     (0, typeorm_1.JoinTable)({
         name: 'hotel_amenity_mappings',
         joinColumn: { name: 'hotel_id', referencedColumnName: 'id' },
@@ -136,6 +136,12 @@ __decorate([
     __metadata("design:type", Date)
 ], Hotel.prototype, "updated_at", void 0);
 exports.Hotel = Hotel = __decorate([
-    (0, typeorm_1.Entity)('hotels')
+    (0, typeorm_1.Entity)('hotels'),
+    (0, typeorm_1.Index)(['city', 'is_active']),
+    (0, typeorm_1.Index)(['avg_rating', 'is_active']),
+    (0, typeorm_1.Index)(['latitude', 'longitude']),
+    (0, typeorm_1.Index)(['owner_id', 'is_active']),
+    (0, typeorm_1.Index)(['created_at']),
+    (0, typeorm_1.Index)(['name'])
 ], Hotel);
 //# sourceMappingURL=hotel.entity.js.map

@@ -64,7 +64,7 @@ __decorate([
     __metadata("design:type", Object)
 ], User.prototype, "activation_token", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => role_entity_1.Role, role => role.users),
+    (0, typeorm_1.ManyToMany)(() => role_entity_1.Role, (role) => role.users),
     (0, typeorm_1.JoinTable)({
         name: 'user_roles',
         joinColumn: { name: 'user_id', referencedColumnName: 'id' },

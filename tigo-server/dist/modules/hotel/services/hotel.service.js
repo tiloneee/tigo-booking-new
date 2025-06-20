@@ -37,6 +37,21 @@ let HotelService = HotelService_1 = class HotelService {
         this.roomAvailabilityRepository = roomAvailabilityRepository;
         this.geocodingService = geocodingService;
     }
+    sanitizeHotelOwnerData(hotel) {
+        if (hotel.owner) {
+            delete hotel.owner.password_hash;
+            delete hotel.owner.refresh_token;
+            delete hotel.owner.activation_token;
+            delete hotel.owner.roles;
+            delete hotel.owner.is_active;
+            delete hotel.owner.created_at;
+            delete hotel.owner.updated_at;
+            delete hotel.owner.phone_number;
+        }
+    }
+    sanitizeHotelsOwnerData(hotels) {
+        hotels.forEach((hotel) => this.sanitizeHotelOwnerData(hotel));
+    }
     async create(createHotelDto, ownerId) {
         try {
             const existingHotel = await this.hotelRepository.findOne({
@@ -66,11 +81,12 @@ let HotelService = HotelService_1 = class HotelService {
             const savedHotel = await this.hotelRepository.save(hotel);
             if (createHotelDto.amenity_ids && createHotelDto.amenity_ids.length > 0) {
                 const amenities = await this.amenityRepository.find({
-                    where: { id: (0, typeorm_3.In)(createHotelDto.amenity_ids) }
+                    where: { id: (0, typeorm_3.In)(createHotelDto.amenity_ids) },
                 });
                 savedHotel.amenities = amenities;
                 await this.hotelRepository.save(savedHotel);
             }
+            this.logger.log(`Hotel created successfully: ${savedHotel.id} by owner ${ownerId}`);
             return this.findOne(savedHotel.id);
         }
         catch (error) {
@@ -82,17 +98,21 @@ let HotelService = HotelService_1 = class HotelService {
         }
     }
     async findAll() {
-        return this.hotelRepository.find({
+        const hotels = await this.hotelRepository.find({
             relations: ['owner', 'amenities', 'rooms'],
             order: { created_at: 'DESC' },
         });
+        this.sanitizeHotelsOwnerData(hotels);
+        return hotels;
     }
     async findByOwner(ownerId) {
-        return this.hotelRepository.find({
+        const hotels = await this.hotelRepository.find({
             where: { owner_id: ownerId },
-            relations: ['amenities', 'rooms'],
+            relations: ['owner', 'amenities', 'rooms'],
             order: { created_at: 'DESC' },
         });
+        this.sanitizeHotelsOwnerData(hotels);
+        return hotels;
     }
     async findOne(id) {
         const hotel = await this.hotelRepository.findOne({
@@ -102,6 +122,7 @@ let HotelService = HotelService_1 = class HotelService {
         if (!hotel) {
             throw new common_1.NotFoundException('Hotel not found');
         }
+        this.sanitizeHotelOwnerData(hotel);
         return hotel;
     }
     async findOneForPublic(id) {
@@ -112,6 +133,7 @@ let HotelService = HotelService_1 = class HotelService {
         if (!hotel) {
             throw new common_1.NotFoundException('Hotel not found');
         }
+        this.sanitizeHotelOwnerData(hotel);
         return hotel;
     }
     async update(id, updateHotelDto, userId, userRoles) {
@@ -119,8 +141,10 @@ let HotelService = HotelService_1 = class HotelService {
         if (hotel.owner_id !== userId && !userRoles.includes('Admin')) {
             throw new common_1.ForbiddenException('You can only update your own hotels');
         }
-        const needsGeocoding = updateHotelDto.address || updateHotelDto.city ||
-            updateHotelDto.state || updateHotelDto.country;
+        const needsGeocoding = updateHotelDto.address ||
+            updateHotelDto.city ||
+            updateHotelDto.state ||
+            updateHotelDto.country;
         let coordinates = null;
         if (needsGeocoding) {
             coordinates = await this.geocodingService.geocodeAddress(updateHotelDto.address || hotel.address, updateHotelDto.city || hotel.city, updateHotelDto.state || hotel.state, updateHotelDto.country || hotel.country);
@@ -137,7 +161,7 @@ let HotelService = HotelService_1 = class HotelService {
             const updatedHotel = await this.findOne(id);
             if (updateHotelDto.amenity_ids.length > 0) {
                 const amenities = await this.amenityRepository.find({
-                    where: { id: (0, typeorm_3.In)(updateHotelDto.amenity_ids) }
+                    where: { id: (0, typeorm_3.In)(updateHotelDto.amenity_ids) },
                 });
                 updatedHotel.amenities = amenities;
             }
@@ -146,7 +170,10 @@ let HotelService = HotelService_1 = class HotelService {
             }
             await this.hotelRepository.save(updatedHotel);
         }
-        return this.findOne(id);
+        this.logger.log(`Hotel updated: ${id} by user ${userId}`);
+        const updatedHotel = await this.findOne(id);
+        this.sanitizeHotelOwnerData(updatedHotel);
+        return updatedHotel;
     }
     async delete(id, userId, userRoles) {
         const hotel = await this.findOne(id);
@@ -154,16 +181,19 @@ let HotelService = HotelService_1 = class HotelService {
             throw new common_1.ForbiddenException('You can only delete your own hotels');
         }
         await this.hotelRepository.delete(id);
+        this.logger.log(`Hotel deleted: ${id} by user ${userId}`);
     }
     async search(searchDto) {
-        const queryBuilder = this.hotelRepository.createQueryBuilder('hotel')
+        const startTime = Date.now();
+        const queryBuilder = this.hotelRepository
+            .createQueryBuilder('hotel')
             .leftJoinAndSelect('hotel.amenities', 'amenities')
             .leftJoinAndSelect('hotel.rooms', 'rooms')
             .leftJoinAndSelect('rooms.availability', 'availability')
             .where('hotel.is_active = :isActive', { isActive: true });
         if (searchDto.city) {
             queryBuilder.andWhere('LOWER(hotel.city) LIKE LOWER(:city)', {
-                city: `%${searchDto.city}%`
+                city: `%${searchDto.city}%`,
             });
         }
         if (searchDto.latitude && searchDto.longitude && searchDto.radius_km) {
@@ -179,35 +209,37 @@ let HotelService = HotelService_1 = class HotelService {
         }
         if (searchDto.min_rating) {
             queryBuilder.andWhere('hotel.avg_rating >= :minRating', {
-                minRating: searchDto.min_rating
+                minRating: searchDto.min_rating,
             });
         }
         if (searchDto.room_type) {
             queryBuilder.andWhere('rooms.room_type = :roomType', {
-                roomType: searchDto.room_type
+                roomType: searchDto.room_type,
             });
         }
         if (searchDto.check_in_date && searchDto.check_out_date) {
             queryBuilder.andWhere('availability.date >= :checkIn AND availability.date < :checkOut', {
                 checkIn: searchDto.check_in_date,
-                checkOut: searchDto.check_out_date
+                checkOut: searchDto.check_out_date,
             });
             queryBuilder.andWhere('availability.available_units > 0');
-            queryBuilder.andWhere('availability.status = :status', { status: 'Available' });
+            queryBuilder.andWhere('availability.status = :status', {
+                status: 'Available',
+            });
             if (searchDto.min_price) {
                 queryBuilder.andWhere('availability.price_per_night >= :minPrice', {
-                    minPrice: searchDto.min_price
+                    minPrice: searchDto.min_price,
                 });
             }
             if (searchDto.max_price) {
                 queryBuilder.andWhere('availability.price_per_night <= :maxPrice', {
-                    maxPrice: searchDto.max_price
+                    maxPrice: searchDto.max_price,
                 });
             }
         }
         if (searchDto.amenity_ids && searchDto.amenity_ids.length > 0) {
             queryBuilder.andWhere('amenities.id IN (:...amenityIds)', {
-                amenityIds: searchDto.amenity_ids
+                amenityIds: searchDto.amenity_ids,
             });
         }
         if (searchDto.sort_by) {
@@ -243,10 +275,13 @@ let HotelService = HotelService_1 = class HotelService {
         queryBuilder.addGroupBy('rooms.id');
         queryBuilder.addGroupBy('availability.id');
         const page = searchDto.page || 1;
-        const limit = searchDto.limit || 10;
+        const limit = Math.min(searchDto.limit || 10, 100);
         const skip = (page - 1) * limit;
         queryBuilder.skip(skip).take(limit);
         const [hotels, total] = await queryBuilder.getManyAndCount();
+        const executionTime = Date.now() - startTime;
+        this.logger.log(`Hotel search completed in ${executionTime}ms. Found ${total} results.`);
+        this.sanitizeHotelsOwnerData(hotels);
         return {
             hotels,
             total,
@@ -255,19 +290,51 @@ let HotelService = HotelService_1 = class HotelService {
         };
     }
     async calculateAverageRating(hotelId) {
-        const result = await this.hotelRepository
-            .createQueryBuilder('hotel')
-            .leftJoin('hotel.reviews', 'review')
-            .select('AVG(review.rating)', 'avgRating')
-            .addSelect('COUNT(review.id)', 'totalReviews')
-            .where('hotel.id = :hotelId', { hotelId })
-            .getRawOne();
-        const avgRating = parseFloat(result.avgRating) || 0;
-        const totalReviews = parseInt(result.totalReviews) || 0;
-        await this.hotelRepository.update(hotelId, {
-            avg_rating: Math.round(avgRating * 100) / 100,
-            total_reviews: totalReviews,
-        });
+        try {
+            const result = await this.hotelRepository
+                .createQueryBuilder('hotel')
+                .leftJoin('hotel.reviews', 'review')
+                .select('AVG(review.rating)', 'avgRating')
+                .addSelect('COUNT(review.id)', 'totalReviews')
+                .where('hotel.id = :hotelId', { hotelId })
+                .getRawOne();
+            const avgRating = parseFloat(result.avgRating) || 0;
+            const totalReviews = parseInt(result.totalReviews) || 0;
+            await this.hotelRepository.update(hotelId, {
+                avg_rating: Math.round(avgRating * 100) / 100,
+                total_reviews: totalReviews,
+            });
+            this.logger.log(`Updated hotel ${hotelId} rating: ${avgRating} (${totalReviews} reviews)`);
+        }
+        catch (error) {
+            this.logger.error(`Failed to calculate average rating for hotel ${hotelId}`, error);
+        }
+    }
+    async healthCheck() {
+        try {
+            const hotelCount = await this.hotelRepository.count();
+            const activeHotelCount = await this.hotelRepository.count({
+                where: { is_active: true },
+            });
+            return {
+                status: 'healthy',
+                details: {
+                    totalHotels: hotelCount,
+                    activeHotels: activeHotelCount,
+                    timestamp: new Date().toISOString(),
+                },
+            };
+        }
+        catch (error) {
+            this.logger.error('Hotel service health check failed', error);
+            return {
+                status: 'unhealthy',
+                details: {
+                    error: error.message,
+                    timestamp: new Date().toISOString(),
+                },
+            };
+        }
     }
 };
 exports.HotelService = HotelService;

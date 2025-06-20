@@ -45,7 +45,7 @@ __decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
         enum: ['Available', 'Booked', 'Maintenance', 'Blocked'],
-        default: 'Available'
+        default: 'Available',
     }),
     __metadata("design:type", String)
 ], RoomAvailability.prototype, "status", void 0);
@@ -54,7 +54,7 @@ __decorate([
     __metadata("design:type", Number)
 ], RoomAvailability.prototype, "total_units", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => room_entity_1.Room, room => room.availability, { onDelete: 'CASCADE' }),
+    (0, typeorm_1.ManyToOne)(() => room_entity_1.Room, (room) => room.availability, { onDelete: 'CASCADE' }),
     (0, typeorm_1.JoinColumn)({ name: 'room_id' }),
     __metadata("design:type", room_entity_1.Room)
 ], RoomAvailability.prototype, "room", void 0);
@@ -72,6 +72,10 @@ __decorate([
 ], RoomAvailability.prototype, "updated_at", void 0);
 exports.RoomAvailability = RoomAvailability = __decorate([
     (0, typeorm_1.Entity)('room_availability'),
-    (0, typeorm_1.Unique)(['room_id', 'date'])
+    (0, typeorm_1.Unique)(['room_id', 'date']),
+    (0, typeorm_1.Index)(['room_id', 'date', 'status']),
+    (0, typeorm_1.Index)(['date', 'available_units', 'status']),
+    (0, typeorm_1.Index)(['price_per_night', 'status']),
+    (0, typeorm_1.Index)(['room_id', 'date', 'available_units'])
 ], RoomAvailability);
 //# sourceMappingURL=room-availability.entity.js.map

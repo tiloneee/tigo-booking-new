@@ -36,11 +36,11 @@ __decorate([
     __metadata("design:type", String)
 ], Role.prototype, "description", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => user_entity_1.User, user => user.roles),
+    (0, typeorm_1.ManyToMany)(() => user_entity_1.User, (user) => user.roles),
     __metadata("design:type", Array)
 ], Role.prototype, "users", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => permission_entity_1.Permission, permission => permission.roles),
+    (0, typeorm_1.ManyToMany)(() => permission_entity_1.Permission, (permission) => permission.roles),
     (0, typeorm_1.JoinTable)({
         name: 'role_permissions',
         joinColumn: { name: 'role_id', referencedColumnName: 'id' },

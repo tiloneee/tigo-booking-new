@@ -98,6 +98,7 @@ class BulkRoomAvailabilityDto {
 exports.BulkRoomAvailabilityDto = BulkRoomAvailabilityDto;
 __decorate([
     (0, class_validator_1.IsUUID)(),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", String)
 ], BulkRoomAvailabilityDto.prototype, "room_id", void 0);
 __decorate([

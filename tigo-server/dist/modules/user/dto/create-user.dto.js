@@ -17,6 +17,7 @@ class CreateUserDto {
     email;
     password;
     phone_number;
+    role;
 }
 exports.CreateUserDto = CreateUserDto;
 __decorate([
@@ -38,7 +39,13 @@ __decorate([
 ], CreateUserDto.prototype, "password", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsPhoneNumber)("VN"),
+    (0, class_validator_1.IsPhoneNumber)('VN'),
     __metadata("design:type", String)
 ], CreateUserDto.prototype, "phone_number", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsIn)(['Customer', 'HotelOwner', 'Admin']),
+    __metadata("design:type", String)
+], CreateUserDto.prototype, "role", void 0);
 //# sourceMappingURL=create-user.dto.js.map

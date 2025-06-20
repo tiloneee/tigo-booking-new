@@ -1,7 +1,14 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToMany, JoinTable } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToMany,
+  JoinTable,
+} from 'typeorm';
 import { User } from './user.entity';
-import { Permission } from "./permission.entity"
-
+import { Permission } from './permission.entity';
 
 @Entity('roles')
 export class Role {
@@ -14,10 +21,10 @@ export class Role {
   @Column({ type: 'text', nullable: true })
   description: string;
 
-  @ManyToMany(() => User, user => user.roles)
+  @ManyToMany(() => User, (user) => user.roles)
   users: User[];
 
-  @ManyToMany(() => Permission, permission => permission.roles)
+  @ManyToMany(() => Permission, (permission) => permission.roles)
   @JoinTable({
     name: 'role_permissions',
     joinColumn: { name: 'role_id', referencedColumnName: 'id' },
@@ -30,4 +37,4 @@ export class Role {
 
   @UpdateDateColumn()
   updated_at: Date;
-} 
+}

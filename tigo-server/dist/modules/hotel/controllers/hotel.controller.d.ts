@@ -18,4 +18,8 @@ export declare class HotelController {
     update(id: string, updateHotelDto: UpdateHotelDto, req: any): Promise<import("../entities/hotel.entity").Hotel>;
     remove(id: string, req: any): Promise<void>;
     findAll(): Promise<import("../entities/hotel.entity").Hotel[]>;
+    healthCheck(): Promise<{
+        status: string;
+        details: any;
+    }>;
 }

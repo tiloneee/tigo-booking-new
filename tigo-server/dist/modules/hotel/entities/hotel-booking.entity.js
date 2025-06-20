@@ -19,7 +19,19 @@ let HotelBooking = class HotelBooking {
     check_in_date;
     check_out_date;
     number_of_guests;
+    units_requested;
+    total_price;
+    paid_amount;
+    guest_name;
+    guest_phone;
+    guest_email;
+    special_requests;
     status;
+    payment_status;
+    cancellation_reason;
+    admin_notes;
+    cancelled_at;
+    confirmed_at;
     hotel;
     hotel_id;
     room;
@@ -47,16 +59,75 @@ __decorate([
     __metadata("design:type", Number)
 ], HotelBooking.prototype, "number_of_guests", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'int', default: 1 }),
+    __metadata("design:type", Number)
+], HotelBooking.prototype, "units_requested", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2 }),
+    __metadata("design:type", Number)
+], HotelBooking.prototype, "total_price", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], HotelBooking.prototype, "paid_amount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 200, nullable: true }),
+    __metadata("design:type", String)
+], HotelBooking.prototype, "guest_name", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 20, nullable: true }),
+    __metadata("design:type", String)
+], HotelBooking.prototype, "guest_phone", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ length: 100, nullable: true }),
+    __metadata("design:type", String)
+], HotelBooking.prototype, "guest_email", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], HotelBooking.prototype, "special_requests", void 0);
+__decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
-        enum: ['Pending', 'Confirmed', 'Cancelled', 'Completed'],
-        enumName: 'hotel_booking_status_enum',
-        default: 'Pending'
+        enum: [
+            'Pending',
+            'Confirmed',
+            'Cancelled',
+            'Completed',
+            'CheckedIn',
+            'CheckedOut',
+            'NoShow',
+        ],
+        default: 'Pending',
     }),
     __metadata("design:type", String)
 ], HotelBooking.prototype, "status", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => hotel_entity_1.Hotel, hotel => hotel.bookings),
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: ['Pending', 'Paid', 'Refunded', 'PartialRefund', 'Failed'],
+        default: 'Pending',
+    }),
+    __metadata("design:type", String)
+], HotelBooking.prototype, "payment_status", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], HotelBooking.prototype, "cancellation_reason", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'text', nullable: true }),
+    __metadata("design:type", String)
+], HotelBooking.prototype, "admin_notes", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
+    __metadata("design:type", Date)
+], HotelBooking.prototype, "cancelled_at", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'timestamp', nullable: true }),
+    __metadata("design:type", Date)
+], HotelBooking.prototype, "confirmed_at", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => hotel_entity_1.Hotel, (hotel) => hotel.bookings),
     (0, typeorm_1.JoinColumn)({ name: 'hotel_id' }),
     __metadata("design:type", hotel_entity_1.Hotel)
 ], HotelBooking.prototype, "hotel", void 0);
@@ -65,7 +136,7 @@ __decorate([
     __metadata("design:type", String)
 ], HotelBooking.prototype, "hotel_id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => room_entity_1.Room, room => room.bookings),
+    (0, typeorm_1.ManyToOne)(() => room_entity_1.Room, (room) => room.bookings),
     (0, typeorm_1.JoinColumn)({ name: 'room_id' }),
     __metadata("design:type", room_entity_1.Room)
 ], HotelBooking.prototype, "room", void 0);

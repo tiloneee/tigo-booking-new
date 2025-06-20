@@ -32,7 +32,7 @@ __decorate([
     __metadata("design:type", String)
 ], Permission.prototype, "description", void 0);
 __decorate([
-    (0, typeorm_1.ManyToMany)(() => role_entity_1.Role, role => role.permissions),
+    (0, typeorm_1.ManyToMany)(() => role_entity_1.Role, (role) => role.permissions),
     __metadata("design:type", Array)
 ], Permission.prototype, "roles", void 0);
 exports.Permission = Permission = __decorate([

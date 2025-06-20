@@ -35,4 +35,4 @@ export class EmailService {
 
     await this.transporter.sendMail(mailOptions);
   }
-} 
+}

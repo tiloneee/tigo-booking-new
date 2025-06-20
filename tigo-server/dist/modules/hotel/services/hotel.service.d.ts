@@ -15,6 +15,8 @@ export declare class HotelService {
     private geocodingService;
     private readonly logger;
     constructor(hotelRepository: Repository<Hotel>, amenityRepository: Repository<HotelAmenity>, roomRepository: Repository<Room>, roomAvailabilityRepository: Repository<RoomAvailability>, geocodingService: GeocodingService);
+    private sanitizeHotelOwnerData;
+    private sanitizeHotelsOwnerData;
     create(createHotelDto: CreateHotelDto, ownerId: string): Promise<Hotel>;
     findAll(): Promise<Hotel[]>;
     findByOwner(ownerId: string): Promise<Hotel[]>;
@@ -29,4 +31,8 @@ export declare class HotelService {
         limit: number;
     }>;
     calculateAverageRating(hotelId: string): Promise<void>;
+    healthCheck(): Promise<{
+        status: string;
+        details: any;
+    }>;
 }

@@ -15,11 +15,18 @@ const room_entity_1 = require("./entities/room.entity");
 const room_availability_entity_1 = require("./entities/room-availability.entity");
 const hotel_booking_entity_1 = require("./entities/hotel-booking.entity");
 const hotel_review_entity_1 = require("./entities/hotel-review.entity");
+const user_entity_1 = require("../user/entities/user.entity");
 const hotel_service_1 = require("./services/hotel.service");
 const room_service_1 = require("./services/room.service");
 const geocoding_service_1 = require("./services/geocoding.service");
+const booking_service_1 = require("./services/booking.service");
+const amenity_service_1 = require("./services/amenity.service");
+const review_service_1 = require("./services/review.service");
 const hotel_controller_1 = require("./controllers/hotel.controller");
 const room_controller_1 = require("./controllers/room.controller");
+const booking_controller_1 = require("./controllers/booking.controller");
+const amenity_controller_1 = require("./controllers/amenity.controller");
+const review_controller_1 = require("./controllers/review.controller");
 const hotel_ownership_guard_1 = require("./guards/hotel-ownership.guard");
 let HotelModule = class HotelModule {
 };
@@ -34,23 +41,35 @@ exports.HotelModule = HotelModule = __decorate([
                 room_availability_entity_1.RoomAvailability,
                 hotel_booking_entity_1.HotelBooking,
                 hotel_review_entity_1.HotelReview,
+                user_entity_1.User,
             ]),
         ],
         controllers: [
             hotel_controller_1.HotelController,
             room_controller_1.RoomController,
             room_controller_1.HotelRoomController,
+            booking_controller_1.BookingController,
+            booking_controller_1.HotelBookingController,
+            amenity_controller_1.AmenityController,
+            review_controller_1.ReviewController,
+            review_controller_1.HotelReviewController,
         ],
         providers: [
             hotel_service_1.HotelService,
             room_service_1.RoomService,
             geocoding_service_1.GeocodingService,
+            booking_service_1.BookingService,
+            amenity_service_1.AmenityService,
+            review_service_1.ReviewService,
             hotel_ownership_guard_1.HotelOwnershipGuard,
         ],
         exports: [
             hotel_service_1.HotelService,
             room_service_1.RoomService,
             geocoding_service_1.GeocodingService,
+            booking_service_1.BookingService,
+            amenity_service_1.AmenityService,
+            review_service_1.ReviewService,
             typeorm_1.TypeOrmModule,
         ],
     })

@@ -23,6 +23,7 @@ class CreateRoomDto {
 }
 exports.CreateRoomDto = CreateRoomDto;
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], CreateRoomDto.prototype, "hotel_id", void 0);

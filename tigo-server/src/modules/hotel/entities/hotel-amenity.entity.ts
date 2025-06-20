@@ -1,10 +1,10 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
-  ManyToMany
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToMany,
 } from 'typeorm';
 import { Hotel } from './hotel.entity';
 
@@ -29,7 +29,7 @@ export class HotelAmenity {
   is_active: boolean;
 
   // Relationships
-  @ManyToMany(() => Hotel, hotel => hotel.amenities)
+  @ManyToMany(() => Hotel, (hotel) => hotel.amenities)
   hotels: Hotel[];
 
   @CreateDateColumn()
@@ -37,4 +37,4 @@ export class HotelAmenity {
 
   @UpdateDateColumn()
   updated_at: Date;
-} 
+}

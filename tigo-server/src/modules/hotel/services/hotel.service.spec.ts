@@ -1,7 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { NotFoundException, ConflictException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 
 import { HotelService } from './hotel.service';
 import { GeocodingService } from './geocoding.service';
@@ -88,9 +93,13 @@ describe('HotelService', () => {
 
     service = module.get<HotelService>(HotelService);
     hotelRepository = module.get<Repository<Hotel>>(getRepositoryToken(Hotel));
-    amenityRepository = module.get<Repository<HotelAmenity>>(getRepositoryToken(HotelAmenity));
+    amenityRepository = module.get<Repository<HotelAmenity>>(
+      getRepositoryToken(HotelAmenity),
+    );
     roomRepository = module.get<Repository<Room>>(getRepositoryToken(Room));
-    roomAvailabilityRepository = module.get<Repository<RoomAvailability>>(getRepositoryToken(RoomAvailability));
+    roomAvailabilityRepository = module.get<Repository<RoomAvailability>>(
+      getRepositoryToken(RoomAvailability),
+    );
     geocodingService = module.get<GeocodingService>(GeocodingService);
   });
 
@@ -126,8 +135,11 @@ describe('HotelService', () => {
       mockHotelRepository.create.mockReturnValue(mockHotel);
       mockHotelRepository.save.mockResolvedValueOnce(mockHotel);
       mockAmenityRepository.find.mockResolvedValue(mockAmenities);
-      mockHotelRepository.save.mockResolvedValueOnce({ ...mockHotel, amenities: mockAmenities });
-      
+      mockHotelRepository.save.mockResolvedValueOnce({
+        ...mockHotel,
+        amenities: mockAmenities,
+      });
+
       // Mock findOne for final result
       jest.spyOn(service, 'findOne').mockResolvedValue({
         ...mockHotel,
@@ -146,7 +158,7 @@ describe('HotelService', () => {
         createHotelDto.address,
         createHotelDto.city,
         createHotelDto.state,
-        createHotelDto.country
+        createHotelDto.country,
       );
       expect(mockHotelRepository.create).toHaveBeenCalled();
       expect(mockHotelRepository.save).toHaveBeenCalled();
@@ -157,7 +169,9 @@ describe('HotelService', () => {
       const existingHotel = { id: 'existing-hotel', name: createHotelDto.name };
       mockHotelRepository.findOne.mockResolvedValue(existingHotel);
 
-      await expect(service.create(createHotelDto, ownerId)).rejects.toThrow(ConflictException);
+      await expect(service.create(createHotelDto, ownerId)).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should handle geocoding failure gracefully', async () => {
@@ -169,7 +183,10 @@ describe('HotelService', () => {
       mockHotelRepository.save.mockResolvedValue(mockHotel);
       jest.spyOn(service, 'findOne').mockResolvedValue(mockHotel as any);
 
-      const result = await service.create({ ...createHotelDto, amenity_ids: undefined }, ownerId);
+      const result = await service.create(
+        { ...createHotelDto, amenity_ids: undefined },
+        ownerId,
+      );
 
       expect(result).toBeDefined();
       expect(mockGeocodingService.geocodeAddress).toHaveBeenCalled();
@@ -197,7 +214,9 @@ describe('HotelService', () => {
   describe('findByOwner', () => {
     it('should return hotels by owner', async () => {
       const ownerId = 'owner-1';
-      const mockHotels = [{ id: 'hotel-1', name: 'Hotel 1', owner_id: ownerId }];
+      const mockHotels = [
+        { id: 'hotel-1', name: 'Hotel 1', owner_id: ownerId },
+      ];
       mockHotelRepository.find.mockResolvedValue(mockHotels);
 
       const result = await service.findByOwner(ownerId);
@@ -253,7 +272,9 @@ describe('HotelService', () => {
       const hotelId = 'inactive-hotel';
       mockHotelRepository.findOne.mockResolvedValue(null);
 
-      await expect(service.findOneForPublic(hotelId)).rejects.toThrow(NotFoundException);
+      await expect(service.findOneForPublic(hotelId)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -267,16 +288,28 @@ describe('HotelService', () => {
     };
 
     it('should update hotel successfully', async () => {
-      const mockHotel = { id: hotelId, owner_id: userId, name: 'Original Name' };
+      const mockHotel = {
+        id: hotelId,
+        owner_id: userId,
+        name: 'Original Name',
+      };
       const updatedHotel = { ...mockHotel, ...updateHotelDto };
 
       jest.spyOn(service, 'findOne').mockResolvedValueOnce(mockHotel as any);
       mockHotelRepository.update.mockResolvedValue({ affected: 1 });
       jest.spyOn(service, 'findOne').mockResolvedValueOnce(updatedHotel as any);
 
-      const result = await service.update(hotelId, updateHotelDto, userId, userRoles);
+      const result = await service.update(
+        hotelId,
+        updateHotelDto,
+        userId,
+        userRoles,
+      );
 
-      expect(mockHotelRepository.update).toHaveBeenCalledWith(hotelId, updateHotelDto);
+      expect(mockHotelRepository.update).toHaveBeenCalledWith(
+        hotelId,
+        updateHotelDto,
+      );
       expect(result).toEqual(updatedHotel);
     });
 
@@ -284,7 +317,9 @@ describe('HotelService', () => {
       const mockHotel = { id: hotelId, owner_id: 'different-owner' };
       jest.spyOn(service, 'findOne').mockResolvedValue(mockHotel as any);
 
-      await expect(service.update(hotelId, updateHotelDto, userId, userRoles)).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.update(hotelId, updateHotelDto, userId, userRoles),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should allow admin to update any hotel', async () => {
@@ -296,19 +331,24 @@ describe('HotelService', () => {
       mockHotelRepository.update.mockResolvedValue({ affected: 1 });
       jest.spyOn(service, 'findOne').mockResolvedValueOnce(updatedHotel as any);
 
-      const result = await service.update(hotelId, updateHotelDto, userId, adminRoles);
+      const result = await service.update(
+        hotelId,
+        updateHotelDto,
+        userId,
+        adminRoles,
+      );
 
       expect(result).toEqual(updatedHotel);
     });
 
     it('should handle geocoding when address fields are updated', async () => {
-      const mockHotel = { 
-        id: hotelId, 
-        owner_id: userId, 
+      const mockHotel = {
+        id: hotelId,
+        owner_id: userId,
         address: 'Old Address',
         city: 'Old City',
         state: 'Old State',
-        country: 'Old Country'
+        country: 'Old Country',
       };
       const updateWithAddress = { ...updateHotelDto, address: 'New Address' };
       const mockCoordinates = { latitude: 10.762622, longitude: 106.660172 };
@@ -343,7 +383,9 @@ describe('HotelService', () => {
       const mockHotel = { id: hotelId, owner_id: 'different-owner' };
       jest.spyOn(service, 'findOne').mockResolvedValue(mockHotel as any);
 
-      await expect(service.delete(hotelId, userId, userRoles)).rejects.toThrow(ForbiddenException);
+      await expect(service.delete(hotelId, userId, userRoles)).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -364,9 +406,17 @@ describe('HotelService', () => {
 
       const result = await service.search(searchDto);
 
-      expect(mockHotelRepository.createQueryBuilder).toHaveBeenCalledWith('hotel');
-      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith('hotel.amenities', 'amenities');
-      expect(mockQueryBuilder.where).toHaveBeenCalledWith('hotel.is_active = :isActive', { isActive: true });
+      expect(mockHotelRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'hotel',
+      );
+      expect(mockQueryBuilder.leftJoinAndSelect).toHaveBeenCalledWith(
+        'hotel.amenities',
+        'amenities',
+      );
+      expect(mockQueryBuilder.where).toHaveBeenCalledWith(
+        'hotel.is_active = :isActive',
+        { isActive: true },
+      );
       expect(result).toEqual({
         hotels: mockHotels,
         total: 1,
@@ -393,18 +443,25 @@ describe('HotelService', () => {
           lat: geoSearchDto.latitude,
           lng: geoSearchDto.longitude,
           radius: geoSearchDto.radius_km,
-        })
+        }),
       );
     });
 
     it('should handle sorting by different criteria', async () => {
-      const sortedSearchDto = { ...searchDto, sort_by: 'rating' as const, sort_order: 'DESC' as const };
+      const sortedSearchDto = {
+        ...searchDto,
+        sort_by: 'rating' as const,
+        sort_order: 'DESC' as const,
+      };
       const mockResult = [[], 0];
       mockQueryBuilder.getManyAndCount.mockResolvedValue(mockResult);
 
       await service.search(sortedSearchDto);
 
-      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith('hotel.avg_rating', 'DESC');
+      expect(mockQueryBuilder.orderBy).toHaveBeenCalledWith(
+        'hotel.avg_rating',
+        'DESC',
+      );
     });
   });
 
@@ -417,7 +474,9 @@ describe('HotelService', () => {
 
       await service.calculateAverageRating(hotelId);
 
-      expect(mockHotelRepository.createQueryBuilder).toHaveBeenCalledWith('hotel');
+      expect(mockHotelRepository.createQueryBuilder).toHaveBeenCalledWith(
+        'hotel',
+      );
       expect(mockHotelRepository.update).toHaveBeenCalledWith(hotelId, {
         avg_rating: 4.5,
         total_reviews: 10,
@@ -438,4 +497,4 @@ describe('HotelService', () => {
       });
     });
   });
-}); 
+});

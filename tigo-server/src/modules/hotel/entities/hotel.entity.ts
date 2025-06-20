@@ -1,14 +1,15 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
-  ManyToOne, 
-  OneToMany, 
-  ManyToMany, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
+  OneToMany,
+  ManyToMany,
   JoinTable,
-  JoinColumn
+  JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { Room } from './room.entity';
@@ -17,6 +18,12 @@ import { HotelReview } from './hotel-review.entity';
 import { HotelAmenity } from './hotel-amenity.entity';
 
 @Entity('hotels')
+@Index(['city', 'is_active']) // For location-based searches
+@Index(['avg_rating', 'is_active']) // For rating-based searches
+@Index(['latitude', 'longitude']) // For geospatial searches
+@Index(['owner_id', 'is_active']) // For owner's hotel listings
+@Index(['created_at']) // For ordering by creation date
+@Index(['name']) // For hotel name searches
 export class Hotel {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -68,16 +75,16 @@ export class Hotel {
   @Column()
   owner_id: string;
 
-  @OneToMany(() => Room, room => room.hotel, { cascade: true })
+  @OneToMany(() => Room, (room) => room.hotel, { cascade: true })
   rooms: Room[];
 
-  @OneToMany(() => HotelBooking, booking => booking.hotel)
+  @OneToMany(() => HotelBooking, (booking) => booking.hotel)
   bookings: HotelBooking[];
 
-  @OneToMany(() => HotelReview, review => review.hotel)
+  @OneToMany(() => HotelReview, (review) => review.hotel)
   reviews: HotelReview[];
 
-  @ManyToMany(() => HotelAmenity, amenity => amenity.hotels)
+  @ManyToMany(() => HotelAmenity, (amenity) => amenity.hotels)
   @JoinTable({
     name: 'hotel_amenity_mappings',
     joinColumn: { name: 'hotel_id', referencedColumnName: 'id' },
@@ -90,4 +97,4 @@ export class Hotel {
 
   @UpdateDateColumn()
   updated_at: Date;
-} 
+}

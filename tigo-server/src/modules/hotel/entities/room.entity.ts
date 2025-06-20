@@ -1,12 +1,12 @@
-import { 
-  Entity, 
-  PrimaryGeneratedColumn, 
-  Column, 
-  CreateDateColumn, 
-  UpdateDateColumn, 
-  ManyToOne, 
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+  UpdateDateColumn,
+  ManyToOne,
   OneToMany,
-  JoinColumn
+  JoinColumn,
 } from 'typeorm';
 import { Hotel } from './hotel.entity';
 import { RoomAvailability } from './room-availability.entity';
@@ -39,17 +39,19 @@ export class Room {
   is_active: boolean;
 
   // Relationships
-  @ManyToOne(() => Hotel, hotel => hotel.rooms, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Hotel, (hotel) => hotel.rooms, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'hotel_id' })
   hotel: Hotel;
 
   @Column()
   hotel_id: string;
 
-  @OneToMany(() => RoomAvailability, availability => availability.room, { cascade: true })
+  @OneToMany(() => RoomAvailability, (availability) => availability.room, {
+    cascade: true,
+  })
   availability: RoomAvailability[];
 
-  @OneToMany(() => HotelBooking, booking => booking.room)
+  @OneToMany(() => HotelBooking, (booking) => booking.room)
   bookings: HotelBooking[];
 
   @CreateDateColumn()
@@ -57,4 +59,4 @@ export class Room {
 
   @UpdateDateColumn()
   updated_at: Date;
-} 
+}

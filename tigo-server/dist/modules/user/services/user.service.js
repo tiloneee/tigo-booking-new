@@ -29,25 +29,27 @@ let UserService = class UserService {
     }
     async create(createUserDto) {
         const existingUser = await this.userRepository.findOne({
-            where: { email: createUserDto.email }
+            where: { email: createUserDto.email },
         });
         if (existingUser) {
             throw new common_1.ConflictException('User with this email already exists');
         }
         const hashedPassword = await bcrypt.hash(createUserDto.password, 12);
         const activationToken = (0, uuid_1.v4)();
-        const customerRole = await this.roleRepository.findOne({
-            where: { name: 'Customer' }
+        const roleName = createUserDto.role || 'Customer';
+        const role = await this.roleRepository.findOne({
+            where: { name: roleName },
         });
-        if (!customerRole) {
-            throw new Error('Default role not found');
+        if (!role) {
+            throw new Error(`Role '${roleName}' not found`);
         }
+        const { role: _, ...userDataWithoutRole } = createUserDto;
         const user = this.userRepository.create({
-            ...createUserDto,
+            ...userDataWithoutRole,
             password_hash: hashedPassword,
             activation_token: activationToken,
-            is_active: false,
-            roles: [customerRole]
+            is_active: true,
+            roles: [role],
         });
         return this.userRepository.save(user);
     }
@@ -84,7 +86,7 @@ let UserService = class UserService {
     }
     async activateAccount(token) {
         const user = await this.userRepository.findOne({
-            where: { activation_token: token }
+            where: { activation_token: token },
         });
         if (!user) {
             throw new common_1.NotFoundException('Invalid activation token');
@@ -108,14 +110,16 @@ let UserService = class UserService {
     }
     async assignRole(userId, roleName) {
         const user = await this.findOne(userId);
-        const role = await this.roleRepository.findOne({ where: { name: roleName } });
+        const role = await this.roleRepository.findOne({
+            where: { name: roleName },
+        });
         if (!role) {
             throw new common_1.NotFoundException(`Role ${roleName} not found`);
         }
-        const hasRole = user.roles.some(r => r.id === role.id);
+        const hasRole = user.roles.some((r) => r.id === role.id);
         if (!hasRole) {
             user.roles.push(role);
-            user.refresh_token = "";
+            user.refresh_token = '';
             await this.userRepository.save(user);
         }
         return user;

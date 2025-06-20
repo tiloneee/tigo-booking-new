@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Hotel } from '../entities/hotel.entity';
@@ -36,4 +41,4 @@ export class HotelOwnershipGuard implements CanActivate {
 
     return false;
   }
-} 
+}

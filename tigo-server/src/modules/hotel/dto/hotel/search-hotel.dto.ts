@@ -1,13 +1,13 @@
-import { 
-  IsOptional, 
-  IsString, 
-  IsNumber, 
-  IsDateString, 
-  IsArray, 
-  Min, 
-  Max, 
-  IsLatitude, 
-  IsLongitude 
+import {
+  IsOptional,
+  IsString,
+  IsNumber,
+  IsDateString,
+  IsArray,
+  Min,
+  Max,
+  IsLatitude,
+  IsLongitude,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -100,4 +100,4 @@ export class SearchHotelDto {
   @Max(100)
   @Type(() => Number)
   limit?: number = 10;
-} 
+}
