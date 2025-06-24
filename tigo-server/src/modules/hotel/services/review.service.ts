@@ -14,6 +14,7 @@ import { HotelBooking } from '../entities/hotel-booking.entity';
 import { User } from '../../user/entities/user.entity';
 import { CreateReviewDto } from '../dto/review/create-review.dto';
 import { UpdateReviewDto } from '../dto/review/update-review.dto';
+import { DataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
 
 @Injectable()
 export class ReviewService {
@@ -50,6 +51,8 @@ export class ReviewService {
     private userRepository: Repository<User>,
 
     private dataSource: DataSource,
+
+    private dataSyncService: DataSyncService,
   ) {}
 
   private sanitizeUserObject(
@@ -191,6 +194,7 @@ export class ReviewService {
       }
 
       this.sanitizeReviewData(reviewWithRelations);
+      this.dataSyncService.onReviewChanged(reviewWithRelations);
       return reviewWithRelations;
     });
   }
@@ -274,6 +278,7 @@ export class ReviewService {
       }
 
       this.sanitizeReviewData(updatedReview);
+      this.dataSyncService.onReviewChanged(updatedReview);
       return updatedReview;
     });
   }
@@ -297,6 +302,7 @@ export class ReviewService {
     });
 
     this.logger.log(`Review deleted: ${id}`);
+    this.dataSyncService.onReviewChanged(review);
   }
 
   async moderateReview(
@@ -314,6 +320,7 @@ export class ReviewService {
     this.logger.log(`Review ${isApproved ? 'approved' : 'rejected'}: ${id}`);
     const updatedReview = await this.findOne(id);
     this.sanitizeReviewData(updatedReview);
+    this.dataSyncService.onReviewChanged(updatedReview);
     return updatedReview;
   }
 
@@ -333,6 +340,7 @@ export class ReviewService {
 
     const updatedReview = await this.findOne(reviewId);
     this.sanitizeReviewData(updatedReview);
+    this.dataSyncService.onReviewChanged(updatedReview);
     return updatedReview;
   }
 

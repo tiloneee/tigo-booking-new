@@ -13,11 +13,13 @@ import { RoomAvailability } from '../entities/room-availability.entity';
 import { Hotel } from '../entities/hotel.entity';
 import { CreateRoomDto } from '../dto/room/create-room.dto';
 import { UpdateRoomDto } from '../dto/room/update-room.dto';
+
 import {
   CreateRoomAvailabilityDto,
   UpdateRoomAvailabilityDto,
   BulkRoomAvailabilityDto,
 } from '../dto/room/room-availability.dto';
+import { DataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
 
 @Injectable()
 export class RoomService {
@@ -44,6 +46,8 @@ export class RoomService {
     private hotelRepository: Repository<Hotel>,
 
     private dataSource: DataSource,
+
+    private dataSyncService: DataSyncService,
   ) {}
 
   private sanitizeUserObject(
@@ -263,6 +267,7 @@ export class RoomService {
     const savedAvailability =
       await this.roomAvailabilityRepository.save(availability);
     this.sanitizeRoomOwnerData(savedAvailability.room);
+    this.dataSyncService.onRoomAvailabilityChanged(savedAvailability.room_id);
     return savedAvailability;
   }
 
@@ -324,6 +329,7 @@ export class RoomService {
 
           const saved = await manager.save(availability);
           availabilityRecords.push(saved);
+          this.dataSyncService.onRoomAvailabilityChanged(saved.room_id);
         }
       }
 
@@ -377,6 +383,7 @@ export class RoomService {
     }
 
     this.sanitizeRoomOwnerData(updatedAvailability.room);
+    this.dataSyncService.onRoomAvailabilityChanged(updatedAvailability.room_id);
     return updatedAvailability;
   }
 

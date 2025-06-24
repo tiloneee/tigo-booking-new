@@ -17,6 +17,7 @@ import { GeocodingService } from './services/geocoding.service';
 import { BookingService } from './services/booking.service';
 import { AmenityService } from './services/amenity.service';
 import { ReviewService } from './services/review.service';
+import { DataSyncService } from '../search/services/data-sync/hotel.data-sync.service';
 
 // Controllers
 import { HotelController } from './controllers/hotel.controller';
@@ -67,6 +68,7 @@ import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
     AmenityService,
     ReviewService,
     HotelOwnershipGuard,
+    DataSyncService,
   ],
   exports: [
     HotelService,

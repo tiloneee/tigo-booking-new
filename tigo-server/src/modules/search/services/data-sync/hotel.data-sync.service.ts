@@ -1,11 +1,11 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { HotelSearchService } from './hotel-search.service';
-import { Hotel } from '../../hotel/entities/hotel.entity';
-import { Room } from '../../hotel/entities/room.entity';
-import { HotelReview } from '../../hotel/entities/hotel-review.entity';
-import { HotelBooking } from '../../hotel/entities/hotel-booking.entity';
+import { HotelSearchService } from '../hotel-search.service';
+import { Hotel } from '../../../hotel/entities/hotel.entity';
+import { Room } from '../../../hotel/entities/room.entity';
+import { HotelReview } from '../../../hotel/entities/hotel-review.entity';
+import { HotelBooking } from '../../../hotel/entities/hotel-booking.entity';
 
 @Injectable()
 export class DataSyncService implements OnModuleInit {
