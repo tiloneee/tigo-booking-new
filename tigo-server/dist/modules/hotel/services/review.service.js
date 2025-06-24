@@ -53,14 +53,14 @@ let ReviewService = ReviewService_1 = class ReviewService {
     sanitizeUserObject(user, fieldsToRemove) {
         if (!user)
             return;
-        fieldsToRemove.forEach(field => {
+        fieldsToRemove.forEach((field) => {
             delete user[field];
         });
     }
     sanitizeReviewObject(review, fieldsToRemove) {
         if (!review)
             return;
-        fieldsToRemove.forEach(field => {
+        fieldsToRemove.forEach((field) => {
             delete review[field];
         });
     }

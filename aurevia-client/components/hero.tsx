@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, MapPin, Users, Plane, Hotel, Utensils, Search, Plus, Minus } from "lucide-react"
@@ -9,6 +9,26 @@ export default function Hero() {
   const [activeTab, setActiveTab] = useState("hotels")
   const [guests, setGuests] = useState(2)
   const [rooms, setRooms] = useState(1)
+  
+  // Form input states
+  const [destination, setDestination] = useState("")
+  const [departure, setDeparture] = useState("")
+  const [checkIn, setCheckIn] = useState("")
+  const [checkOut, setCheckOut] = useState("")
+  const [time, setTime] = useState("")
+  const [travelClass, setTravelClass] = useState("economy")
+
+  // Clear form data when tab changes
+  useEffect(() => {
+    setDestination("")
+    setDeparture("")
+    setCheckIn("")
+    setCheckOut("")
+    setTime("")
+    setTravelClass("economy")
+    setGuests(2)
+    setRooms(1)
+  }, [activeTab])
 
   const tabs = [
     { id: "hotels", label: "Hotels", icon: Hotel },
@@ -60,14 +80,14 @@ export default function Hero() {
             className="bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30 shadow-2xl animate-fade-in max-w-5xl mx-auto"
             style={{ animationDelay: "0.4s" }}
           >
-            <CardContent className="p-8">
+            <CardContent className="px-8 py-4">
               {/* Search Tabs */}
-              <div className="flex flex-wrap justify-center mb-8 bg-walnut-darkest/50 rounded-lg p-2">
+              <div className="flex flex-wrap justify-center mb-8  bg-walnut-darkest/50 rounded-lg p-2">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-cinzel font-semibold text-vintage-sm tracking-wider uppercase transition-all duration-300 ${
+                    className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-cinzel font-semibold text-vintage-sm shadow-copper-accent/30 scale-[1.02] uppercase transform-gpu disabled:opacity-50 disabled:cursor-not-allowed tracking-wider transition-all duration-300 ${
                       activeTab === tab.id
                         ? "bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark shadow-lg"
                         : "text-cream-light hover:text-copper-accent hover:bg-walnut-dark/50"
@@ -91,6 +111,8 @@ export default function Hero() {
                     <input
                       type="text"
                       placeholder="Where would you like to go?"
+                      value={destination}
+                      onChange={(e) => setDestination(e.target.value)}
                       className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
                     />
                   </div>
@@ -104,6 +126,8 @@ export default function Hero() {
                       <input
                         type="text"
                         placeholder="From where?"
+                        value={departure}
+                        onChange={(e) => setDeparture(e.target.value)}
                         className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
                       />
                     </div>
@@ -119,6 +143,8 @@ export default function Hero() {
                     </label>
                     <input
                       type="date"
+                      value={checkIn}
+                      onChange={(e) => setCheckIn(e.target.value)}
                       className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
                     />
                   </div>
@@ -131,6 +157,8 @@ export default function Hero() {
                       </label>
                       <input
                         type="date"
+                        value={checkOut}
+                        onChange={(e) => setCheckOut(e.target.value)}
                         className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
                       />
                     </div>
@@ -142,7 +170,11 @@ export default function Hero() {
                         <Calendar className="h-4 w-4 text-copper-accent" />
                         <span>Time</span>
                       </label>
-                      <select className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300">
+                      <select 
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                        className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+                      >
                         <option value="">Select time</option>
                         <option value="12:00">12:00 PM</option>
                         <option value="12:30">12:30 PM</option>
@@ -215,7 +247,11 @@ export default function Hero() {
                         <Plane className="h-4 w-4 text-copper-accent" />
                         <span>Travel Class</span>
                       </label>
-                      <select className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300">
+                      <select 
+                        value={travelClass}
+                        onChange={(e) => setTravelClass(e.target.value)}
+                        className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+                      >
                         <option value="economy">Economy</option>
                         <option value="business">Business</option>
                         <option value="first">First Class</option>

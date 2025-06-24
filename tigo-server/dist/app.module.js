@@ -12,6 +12,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const config_1 = require("@nestjs/config");
 const user_module_1 = require("./modules/user/user.module");
 const hotel_module_1 = require("./modules/hotel/hotel.module");
+const search_module_1 = require("./modules/search/search.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -37,6 +38,7 @@ exports.AppModule = AppModule = __decorate([
             }),
             user_module_1.UserModule,
             hotel_module_1.HotelModule,
+            search_module_1.SearchModule,
         ],
     })
 ], AppModule);

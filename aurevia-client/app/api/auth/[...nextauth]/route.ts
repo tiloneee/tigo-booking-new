@@ -41,7 +41,6 @@ const authOptions: AuthOptions = {
           }
 
           const data = await response.json()
-          console.log(data)
 
           if (data.access_token && data.user) {
             return {

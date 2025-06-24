@@ -273,7 +273,6 @@ export class HotelController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - not owner or admin' })
   @ApiResponse({ status: 404, description: 'Hotel not found' })
-  
   update(
     @Param('id') id: string,
     @Body() updateHotelDto: UpdateHotelDto,

@@ -24,7 +24,6 @@ export class ReviewService {
     'moderation_notes',
     'is_verified_stay',
     'booking',
-
   ] as const;
 
   private readonly SENSITIVE_USER_FIELDS = [
@@ -36,7 +35,6 @@ export class ReviewService {
     'created_at',
     'updated_at',
   ] as const;
-
 
   constructor(
     @InjectRepository(HotelReview)
@@ -54,18 +52,24 @@ export class ReviewService {
     private dataSource: DataSource,
   ) {}
 
-  private sanitizeUserObject(user: any, fieldsToRemove: readonly string[]): void {
+  private sanitizeUserObject(
+    user: any,
+    fieldsToRemove: readonly string[],
+  ): void {
     if (!user) return;
-    
-    fieldsToRemove.forEach(field => {
+
+    fieldsToRemove.forEach((field) => {
       delete user[field];
     });
   }
 
-  private sanitizeReviewObject(review: any, fieldsToRemove: readonly string[]): void {
+  private sanitizeReviewObject(
+    review: any,
+    fieldsToRemove: readonly string[],
+  ): void {
     if (!review) return;
-    
-    fieldsToRemove.forEach(field => {
+
+    fieldsToRemove.forEach((field) => {
       delete review[field];
     });
   }
@@ -79,7 +83,6 @@ export class ReviewService {
   private sanitizeReviewsOwnerData(reviews: HotelReview[]): void {
     reviews.forEach((review) => this.sanitizeReviewData(review));
   }
-
 
   async create(
     createReviewDto: CreateReviewDto,

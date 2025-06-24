@@ -33,7 +33,7 @@ let RoomService = RoomService_1 = class RoomService {
         'roles',
         'is_active',
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
     constructor(roomRepository, roomAvailabilityRepository, hotelRepository, dataSource) {
         this.roomRepository = roomRepository;
@@ -44,7 +44,7 @@ let RoomService = RoomService_1 = class RoomService {
     sanitizeUserObject(user, fieldsToRemove) {
         if (!user)
             return;
-        fieldsToRemove.forEach(field => {
+        fieldsToRemove.forEach((field) => {
             delete user[field];
         });
     }
@@ -259,7 +259,9 @@ let RoomService = RoomService_1 = class RoomService {
         if (endDate) {
             query.andWhere('availability.date <= :endDate', { endDate });
         }
-        const availability = await query.orderBy('availability.date', 'ASC').getMany();
+        const availability = await query
+            .orderBy('availability.date', 'ASC')
+            .getMany();
         this.sanitizeRoomsOwnerData(availability.map((a) => a.room));
         return availability;
     }

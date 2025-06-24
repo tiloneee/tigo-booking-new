@@ -70,9 +70,9 @@ export default function BookingShowcase() {
   const [activeCategory, setActiveCategory] = useState("hotels")
 
   const categories = [
-    { id: "hotels", label: "Luxury Hotels", icon: "🏨" },
-    { id: "restaurants", label: "Fine Dining", icon: "🍽️" },
-    { id: "transportation", label: "Premium Travel", icon: "✈️" },
+    { id: "hotels", label: "Luxury Hotels"},
+    { id: "restaurants", label: "Fine Dining"},
+    { id: "transportation", label: "Premium Travel"},
   ]
 
   return (
@@ -104,13 +104,12 @@ export default function BookingShowcase() {
             <button
               key={category.id}
               onClick={() => setActiveCategory(category.id)}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-cinzel font-semibold text-vintage-sm tracking-wider transition-all duration-300 ${
+              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-cinzel font-semibold text-vintage-sm shadow-copper-accent/30 scale-[1.02] uppercase transform-gpu disabled:opacity-50 disabled:cursor-not-allowed tracking-wider transition-all duration-300 ${
                 activeCategory === category.id
                   ? "bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark shadow-lg"
                   : "text-cream-light hover:text-copper-accent hover:bg-walnut-dark/50"
               }`}
             >
-              <span className="text-lg">{category.icon}</span>
               <span>{category.label}</span>
             </button>
           ))}

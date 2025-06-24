@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Plane, Eye, EyeOff, Mail, Lock, ArrowRight, Shield, AlertCircle } from "lucide-react"
+import { Plane, Eye, EyeOff, Mail, Lock, ArrowRight, Shield, AlertCircle, Facebook } from "lucide-react"
 // import { authApi } from "@/lib/api" // Uncomment if you want to use direct API calls
 
 export default function LoginPage() {
@@ -171,7 +171,7 @@ export default function LoginPage() {
           </div>
 
           {/* Login Card */}
-          <Card className="bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30 shadow-2xl">
+          <Card className="bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30 shadow-2xl animate-fade-in">
             <CardHeader className="pt-4 pb-[1px]">
               <div className="flex items-center justify-center space-x-2 mb-2">
                 <Shield className="h-5 w-5 text-copper-accent" />
@@ -275,16 +275,14 @@ export default function LoginPage() {
               {/* Social Login Options */}
               <div className="grid grid-cols-2 gap-4">
                 <Button
-                  variant="outline"
                   className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark border-copper-accent/30 font-cormorant font-bold text-lg hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 tracking-wider"
                 >
                   Google
                 </Button>
                 <Button
-                  variant="outline"
-                  className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark border-copper-accent/30 font-cormorant font-bold text-lg hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 tracking-wider"
+                  className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark  border-copper-accent/30 font-cormorant font-bold text-lg hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 tracking-wider"
                 >
-                  Apple
+                  Facebook
                 </Button>
               </div>
 
@@ -304,7 +302,7 @@ export default function LoginPage() {
           </Card>
 
           {/* Security Notice */}
-          <div className="text-center mt-6">
+          <div className="text-center mt-6 mb-8">
             <p className="text-cream-light/60 font-cormorant text-vintage-sm leading-relaxed">
               Your privacy and security are our top priority. All data is encrypted and protected.
             </p>
