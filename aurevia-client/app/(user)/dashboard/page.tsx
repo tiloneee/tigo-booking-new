@@ -4,7 +4,8 @@ import { useSession } from "next-auth/react"
 import ProtectedRoute from "@/components/auth/protected-route"
 import Header from "@/components/header"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { User, Calendar, MapPin, Star } from "lucide-react"
+import { User, Calendar, MapPin, Star, MessageCircle } from "lucide-react"
+import Link from "next/link"
 
 export default function Dashboard() {
   const { data: session } = useSession()
@@ -138,6 +139,12 @@ export default function Dashboard() {
                 <button className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold px-8 py-3 rounded-lg shadow-lg hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 text-vintage-base tracking-wider uppercase">
                   Manage Profile
                 </button>
+                <Link href="/chat">
+                  <button className="bg-gradient-to-r from-walnut-medium to-walnut-light text-cream-light border-2 border-copper-accent font-cinzel font-bold px-8 py-3 rounded-lg shadow-lg hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 text-vintage-base tracking-wider uppercase flex items-center space-x-2">
+                    <MessageCircle className="h-5 w-5" />
+                    <span>Test Chat System</span>
+                  </button>
+                </Link>
               </div>
             </div>
           </div>

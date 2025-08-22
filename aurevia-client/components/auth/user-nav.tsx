@@ -3,7 +3,7 @@
 import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { User, LogOut } from "lucide-react"
+import { User, LogOut, MessageCircle } from "lucide-react"
 
 export default function UserNav() {
   const { data: session, status } = useSession()
@@ -63,6 +63,27 @@ export default function UserNav() {
           </div>
         </div>
       </div>
+
+      <Link href="/dashboard">
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10 hover:text-copper-accent transition-all duration-300"
+        >
+          Dashboard
+        </Button>
+      </Link>
+
+      <Link href="/chat">
+        <Button
+          size="sm"
+          variant="outline"
+          className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10 hover:text-copper-accent transition-all duration-300"
+        >
+          <MessageCircle className="h-4 w-4 mr-1" />
+          Chat
+        </Button>
+      </Link>
 
       <Button
         onClick={handleLogout}
