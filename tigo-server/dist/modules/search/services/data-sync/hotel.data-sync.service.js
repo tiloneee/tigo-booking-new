@@ -11,24 +11,24 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
-var DataSyncService_1;
+var HotelDataSyncService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DataSyncService = void 0;
+exports.HotelDataSyncService = void 0;
 const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
-const hotel_search_service_1 = require("./hotel-search.service");
-const hotel_entity_1 = require("../../hotel/entities/hotel.entity");
-const room_entity_1 = require("../../hotel/entities/room.entity");
-const hotel_review_entity_1 = require("../../hotel/entities/hotel-review.entity");
-const hotel_booking_entity_1 = require("../../hotel/entities/hotel-booking.entity");
-let DataSyncService = DataSyncService_1 = class DataSyncService {
+const hotel_search_service_1 = require("../hotel-search.service");
+const hotel_entity_1 = require("../../../hotel/entities/hotel.entity");
+const room_entity_1 = require("../../../hotel/entities/room.entity");
+const hotel_review_entity_1 = require("../../../hotel/entities/hotel-review.entity");
+const hotel_booking_entity_1 = require("../../../hotel/entities/hotel-booking.entity");
+let HotelDataSyncService = HotelDataSyncService_1 = class HotelDataSyncService {
     hotelSearchService;
     hotelRepository;
     roomRepository;
     reviewRepository;
     bookingRepository;
-    logger = new common_1.Logger(DataSyncService_1.name);
+    logger = new common_1.Logger(HotelDataSyncService_1.name);
     constructor(hotelSearchService, hotelRepository, roomRepository, reviewRepository, bookingRepository) {
         this.hotelSearchService = hotelSearchService;
         this.hotelRepository = hotelRepository;
@@ -290,8 +290,8 @@ let DataSyncService = DataSyncService_1 = class DataSyncService {
         }
     }
 };
-exports.DataSyncService = DataSyncService;
-exports.DataSyncService = DataSyncService = DataSyncService_1 = __decorate([
+exports.HotelDataSyncService = HotelDataSyncService;
+exports.HotelDataSyncService = HotelDataSyncService = HotelDataSyncService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(1, (0, typeorm_1.InjectRepository)(hotel_entity_1.Hotel)),
     __param(2, (0, typeorm_1.InjectRepository)(room_entity_1.Room)),
@@ -302,5 +302,5 @@ exports.DataSyncService = DataSyncService = DataSyncService_1 = __decorate([
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository])
-], DataSyncService);
-//# sourceMappingURL=data-sync.service.js.map
+], HotelDataSyncService);
+//# sourceMappingURL=hotel.data-sync.service.js.map

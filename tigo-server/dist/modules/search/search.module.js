@@ -14,7 +14,7 @@ const typeorm_1 = require("@nestjs/typeorm");
 const search_service_1 = require("./services/search.service");
 const hotel_search_service_1 = require("./services/hotel-search.service");
 const index_management_service_1 = require("./services/index-management.service");
-const data_sync_service_1 = require("./services/data-sync.service");
+const hotel_data_sync_service_1 = require("./services/data-sync/hotel.data-sync.service");
 const search_controller_1 = require("./controllers/search.controller");
 const hotel_entity_1 = require("../hotel/entities/hotel.entity");
 const room_entity_1 = require("../hotel/entities/room.entity");
@@ -60,14 +60,14 @@ exports.SearchModule = SearchModule = __decorate([
             search_service_1.SearchService,
             hotel_search_service_1.HotelSearchService,
             index_management_service_1.IndexManagementService,
-            data_sync_service_1.DataSyncService,
+            hotel_data_sync_service_1.HotelDataSyncService,
         ],
         controllers: [search_controller_1.SearchController],
         exports: [
             search_service_1.SearchService,
             hotel_search_service_1.HotelSearchService,
             index_management_service_1.IndexManagementService,
-            data_sync_service_1.DataSyncService,
+            hotel_data_sync_service_1.HotelDataSyncService,
         ],
     })
 ], SearchModule);

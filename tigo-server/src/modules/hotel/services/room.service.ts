@@ -19,7 +19,7 @@ import {
   UpdateRoomAvailabilityDto,
   BulkRoomAvailabilityDto,
 } from '../dto/room/room-availability.dto';
-import { DataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
+import { HotelDataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
 
 @Injectable()
 export class RoomService {
@@ -47,7 +47,7 @@ export class RoomService {
 
     private dataSource: DataSource,
 
-    private dataSyncService: DataSyncService,
+    private hotelDataSyncService: HotelDataSyncService,
   ) {}
 
   private sanitizeUserObject(
@@ -267,7 +267,7 @@ export class RoomService {
     const savedAvailability =
       await this.roomAvailabilityRepository.save(availability);
     this.sanitizeRoomOwnerData(savedAvailability.room);
-    this.dataSyncService.onRoomAvailabilityChanged(savedAvailability.room_id);
+    this.hotelDataSyncService.onRoomAvailabilityChanged(savedAvailability.room_id);
     return savedAvailability;
   }
 
@@ -329,7 +329,7 @@ export class RoomService {
 
           const saved = await manager.save(availability);
           availabilityRecords.push(saved);
-          this.dataSyncService.onRoomAvailabilityChanged(saved.room_id);
+          this.hotelDataSyncService.onRoomAvailabilityChanged(saved.room_id);
         }
       }
 
@@ -383,7 +383,7 @@ export class RoomService {
     }
 
     this.sanitizeRoomOwnerData(updatedAvailability.room);
-    this.dataSyncService.onRoomAvailabilityChanged(updatedAvailability.room_id);
+    this.hotelDataSyncService.onRoomAvailabilityChanged(updatedAvailability.room_id);
     return updatedAvailability;
   }
 

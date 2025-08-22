@@ -55,9 +55,12 @@ let HotelSearchService = HotelSearchService_1 = class HotelSearchService {
                 });
             }
             if (city) {
-                filter.push({
-                    term: {
-                        'location.city': city.toLowerCase(),
+                must.push({
+                    match: {
+                        'location.city': {
+                            query: city,
+                            operator: 'and'
+                        }
                     },
                 });
             }
@@ -194,6 +197,9 @@ let HotelSearchService = HotelSearchService_1 = class HotelSearchService {
                 },
             };
             const result = await this.searchService.search(searchParams);
+            console.log(result, "HOTEL SEARCH RESULT: ");
+            console.log(result.hits.hits, "HOTEL SEARCH HITS Hit: ");
+            console.log(result.hits, "HOTEL SEARCH HITS: ");
             return {
                 hotels: result.hits.hits.map((hit) => ({
                     id: hit._id,
@@ -216,23 +222,32 @@ let HotelSearchService = HotelSearchService_1 = class HotelSearchService {
             const searchParams = {
                 index: this.searchService.getIndexName('hotels'),
                 body: {
-                    suggest: {
-                        hotel_suggest: {
-                            prefix: query,
-                            completion: {
-                                field: 'name.suggest',
-                                size: limit,
-                            },
-                        },
-                    },
                     query: {
                         bool: {
                             should: [
                                 {
-                                    match: {
-                                        'location.city': {
+                                    match_phrase_prefix: {
+                                        'name': {
                                             query: query,
-                                            fuzziness: 'AUTO',
+                                            boost: 3,
+                                        },
+                                    },
+                                },
+                                {
+                                    wildcard: {
+                                        'name': {
+                                            value: `*${query.toLowerCase()}*`,
+                                            case_insensitive: true,
+                                            boost: 2,
+                                        },
+                                    },
+                                },
+                                {
+                                    wildcard: {
+                                        'location.city': {
+                                            value: `*${query.toLowerCase()}*`,
+                                            case_insensitive: true,
+                                            boost: 2,
                                         },
                                     },
                                 },
@@ -240,39 +255,59 @@ let HotelSearchService = HotelSearchService_1 = class HotelSearchService {
                                     nested: {
                                         path: 'amenities',
                                         query: {
-                                            match: {
+                                            wildcard: {
                                                 'amenities.name': {
-                                                    query: query,
-                                                    fuzziness: 'AUTO',
+                                                    value: `*${query.toLowerCase()}*`,
+                                                    case_insensitive: true,
                                                 },
                                             },
                                         },
                                     },
                                 },
                             ],
+                            minimum_should_match: 1,
                         },
                     },
-                    size: 5,
+                    size: 10,
                 },
             };
             const result = await this.searchService.search(searchParams);
             const suggestions = [];
-            if (result.suggest.hotel_suggest[0].options) {
-                result.suggest.hotel_suggest[0].options.forEach((option) => {
+            result.hits.hits.forEach((hit) => {
+                const hotelName = hit._source.name;
+                if (hotelName &&
+                    hotelName.toLowerCase().includes(query.toLowerCase()) &&
+                    !suggestions.some((s) => s.text === hotelName && s.type === 'hotel')) {
                     suggestions.push({
-                        text: option.text,
+                        text: hotelName,
                         type: 'hotel',
-                        id: option._source?.id,
+                        id: hit._source.id,
                     });
-                });
-            }
+                }
+            });
             result.hits.hits.forEach((hit) => {
                 const city = hit._source.location.city;
                 if (city &&
+                    city.toLowerCase().includes(query.toLowerCase()) &&
                     !suggestions.some((s) => s.text === city && s.type === 'city')) {
                     suggestions.push({
                         text: city,
                         type: 'city',
+                    });
+                }
+            });
+            result.hits.hits.forEach((hit) => {
+                if (hit._source.amenities) {
+                    hit._source.amenities.forEach((amenity) => {
+                        if (amenity.name &&
+                            amenity.name.toLowerCase().includes(query.toLowerCase()) &&
+                            !suggestions.some((s) => s.text === amenity.name && s.type === 'amenity')) {
+                            suggestions.push({
+                                text: amenity.name,
+                                type: 'amenity',
+                                id: amenity.id,
+                            });
+                        }
                     });
                 }
             });

@@ -22,6 +22,7 @@ const hotel_amenity_entity_1 = require("../entities/hotel-amenity.entity");
 const room_entity_1 = require("../entities/room.entity");
 const room_availability_entity_1 = require("../entities/room-availability.entity");
 const geocoding_service_1 = require("./geocoding.service");
+const hotel_data_sync_service_1 = require("../../search/services/data-sync/hotel.data-sync.service");
 const typeorm_3 = require("typeorm");
 let HotelService = HotelService_1 = class HotelService {
     hotelRepository;
@@ -29,13 +30,15 @@ let HotelService = HotelService_1 = class HotelService {
     roomRepository;
     roomAvailabilityRepository;
     geocodingService;
+    hotelDataSyncService;
     logger = new common_1.Logger(HotelService_1.name);
-    constructor(hotelRepository, amenityRepository, roomRepository, roomAvailabilityRepository, geocodingService) {
+    constructor(hotelRepository, amenityRepository, roomRepository, roomAvailabilityRepository, geocodingService, hotelDataSyncService) {
         this.hotelRepository = hotelRepository;
         this.amenityRepository = amenityRepository;
         this.roomRepository = roomRepository;
         this.roomAvailabilityRepository = roomAvailabilityRepository;
         this.geocodingService = geocodingService;
+        this.hotelDataSyncService = hotelDataSyncService;
     }
     sanitizeHotelOwnerData(hotel) {
         if (hotel.owner) {
@@ -87,6 +90,7 @@ let HotelService = HotelService_1 = class HotelService {
                 await this.hotelRepository.save(savedHotel);
             }
             this.logger.log(`Hotel created successfully: ${savedHotel.id} by owner ${ownerId}`);
+            this.hotelDataSyncService.onHotelCreated(savedHotel);
             return this.findOne(savedHotel.id);
         }
         catch (error) {
@@ -173,6 +177,7 @@ let HotelService = HotelService_1 = class HotelService {
         this.logger.log(`Hotel updated: ${id} by user ${userId}`);
         const updatedHotel = await this.findOne(id);
         this.sanitizeHotelOwnerData(updatedHotel);
+        this.hotelDataSyncService.onHotelUpdated(updatedHotel);
         return updatedHotel;
     }
     async delete(id, userId, userRoles) {
@@ -182,6 +187,7 @@ let HotelService = HotelService_1 = class HotelService {
         }
         await this.hotelRepository.delete(id);
         this.logger.log(`Hotel deleted: ${id} by user ${userId}`);
+        this.hotelDataSyncService.onHotelDeleted(id);
     }
     async search(searchDto) {
         const startTime = Date.now();
@@ -348,6 +354,7 @@ exports.HotelService = HotelService = HotelService_1 = __decorate([
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        geocoding_service_1.GeocodingService])
+        geocoding_service_1.GeocodingService,
+        hotel_data_sync_service_1.HotelDataSyncService])
 ], HotelService);
 //# sourceMappingURL=hotel.service.js.map

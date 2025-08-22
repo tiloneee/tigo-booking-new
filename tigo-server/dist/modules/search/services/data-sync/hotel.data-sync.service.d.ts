@@ -1,11 +1,11 @@
 import { OnModuleInit } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { HotelSearchService } from './hotel-search.service';
-import { Hotel } from '../../hotel/entities/hotel.entity';
-import { Room } from '../../hotel/entities/room.entity';
-import { HotelReview } from '../../hotel/entities/hotel-review.entity';
-import { HotelBooking } from '../../hotel/entities/hotel-booking.entity';
-export declare class DataSyncService implements OnModuleInit {
+import { HotelSearchService } from '../hotel-search.service';
+import { Hotel } from '../../../hotel/entities/hotel.entity';
+import { Room } from '../../../hotel/entities/room.entity';
+import { HotelReview } from '../../../hotel/entities/hotel-review.entity';
+import { HotelBooking } from '../../../hotel/entities/hotel-booking.entity';
+export declare class HotelDataSyncService implements OnModuleInit {
     private readonly hotelSearchService;
     private readonly hotelRepository;
     private readonly roomRepository;

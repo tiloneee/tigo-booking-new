@@ -16,7 +16,7 @@ import { CreateHotelDto } from '../dto/hotel/create-hotel.dto';
 import { UpdateHotelDto } from '../dto/hotel/update-hotel.dto';
 import { SearchHotelDto } from '../dto/hotel/search-hotel.dto';
 import { GeocodingService } from './geocoding.service';
-import { DataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
+import { HotelDataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
 import { In } from 'typeorm';
 
 @Injectable()
@@ -38,7 +38,7 @@ export class HotelService {
 
     private geocodingService: GeocodingService,
 
-    private dataSyncService: DataSyncService,
+    private hotelDataSyncService: HotelDataSyncService,
   ) {}
 
   /**
@@ -123,7 +123,7 @@ export class HotelService {
       this.logger.log(
         `Hotel created successfully: ${savedHotel.id} by owner ${ownerId}`,
       );
-      this.dataSyncService.onHotelCreated(savedHotel);
+      this.hotelDataSyncService.onHotelCreated(savedHotel);
       return this.findOne(savedHotel.id);
     } catch (error) {
       if (error instanceof ConflictException) {
@@ -250,7 +250,7 @@ export class HotelService {
     this.logger.log(`Hotel updated: ${id} by user ${userId}`);
     const updatedHotel = await this.findOne(id);
     this.sanitizeHotelOwnerData(updatedHotel);
-    this.dataSyncService.onHotelUpdated(updatedHotel);
+    this.hotelDataSyncService.onHotelUpdated(updatedHotel);
     return updatedHotel;
   }
 
@@ -264,7 +264,7 @@ export class HotelService {
 
     await this.hotelRepository.delete(id);
     this.logger.log(`Hotel deleted: ${id} by user ${userId}`);
-    this.dataSyncService.onHotelDeleted(id);
+    this.hotelDataSyncService.onHotelDeleted(id);
   }
 
   async search(

@@ -16,6 +16,7 @@ const room_availability_entity_1 = require("./entities/room-availability.entity"
 const hotel_booking_entity_1 = require("./entities/hotel-booking.entity");
 const hotel_review_entity_1 = require("./entities/hotel-review.entity");
 const user_entity_1 = require("../user/entities/user.entity");
+const search_module_1 = require("../search/search.module");
 const hotel_service_1 = require("./services/hotel.service");
 const room_service_1 = require("./services/room.service");
 const geocoding_service_1 = require("./services/geocoding.service");
@@ -43,6 +44,7 @@ exports.HotelModule = HotelModule = __decorate([
                 hotel_review_entity_1.HotelReview,
                 user_entity_1.User,
             ]),
+            search_module_1.SearchModule,
         ],
         controllers: [
             hotel_controller_1.HotelController,

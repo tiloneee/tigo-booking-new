@@ -8,8 +8,8 @@ import { HotelReview } from '../../../hotel/entities/hotel-review.entity';
 import { HotelBooking } from '../../../hotel/entities/hotel-booking.entity';
 
 @Injectable()
-export class DataSyncService implements OnModuleInit {
-  private readonly logger = new Logger(DataSyncService.name);
+export class HotelDataSyncService implements OnModuleInit {
+  private readonly logger = new Logger(HotelDataSyncService.name);
 
   constructor(
     private readonly hotelSearchService: HotelSearchService,

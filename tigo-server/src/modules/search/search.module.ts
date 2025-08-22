@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SearchService } from './services/search.service';
 import { HotelSearchService } from './services/hotel-search.service';
 import { IndexManagementService } from './services/index-management.service';
-import { DataSyncService } from './services/data-sync.service';
+import { HotelDataSyncService } from './services/data-sync/hotel.data-sync.service';
 import { SearchController } from './controllers/search.controller';
 import { Hotel } from '../hotel/entities/hotel.entity';
 import { Room } from '../hotel/entities/room.entity';
@@ -57,14 +57,14 @@ import { RoomAvailability } from '../hotel/entities/room-availability.entity';
     SearchService,
     HotelSearchService,
     IndexManagementService,
-    DataSyncService,
+    HotelDataSyncService,
   ],
   controllers: [SearchController],
   exports: [
     SearchService,
     HotelSearchService,
     IndexManagementService,
-    DataSyncService,
+    HotelDataSyncService,
   ],
 })
 export class SearchModule {}

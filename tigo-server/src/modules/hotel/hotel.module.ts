@@ -10,6 +10,9 @@ import { HotelBooking } from './entities/hotel-booking.entity';
 import { HotelReview } from './entities/hotel-review.entity';
 import { User } from '../user/entities/user.entity';
 
+// Modules
+import { SearchModule } from '../search/search.module';
+
 // Services
 import { HotelService } from './services/hotel.service';
 import { RoomService } from './services/room.service';
@@ -17,7 +20,6 @@ import { GeocodingService } from './services/geocoding.service';
 import { BookingService } from './services/booking.service';
 import { AmenityService } from './services/amenity.service';
 import { ReviewService } from './services/review.service';
-import { DataSyncService } from '../search/services/data-sync/hotel.data-sync.service';
 
 // Controllers
 import { HotelController } from './controllers/hotel.controller';
@@ -49,6 +51,7 @@ import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
       HotelReview,
       User,
     ]),
+    SearchModule,
   ],
   controllers: [
     HotelController,
@@ -68,7 +71,6 @@ import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
     AmenityService,
     ReviewService,
     HotelOwnershipGuard,
-    DataSyncService,
   ],
   exports: [
     HotelService,

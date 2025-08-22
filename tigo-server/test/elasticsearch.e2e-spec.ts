@@ -5,14 +5,14 @@ import { AppModule } from './../src/app.module';
 import { SearchService } from '../src/modules/search/services/search.service';
 import { IndexManagementService } from '../src/modules/search/services/index-management.service';
 import { HotelSearchService } from '../src/modules/search/services/hotel-search.service';
-import { DataSyncService } from '../src/modules/search/services/data-sync.service';
+import { HotelDataSyncService } from '../src/modules/search/services/data-sync/hotel.data-sync.service';
 
 describe('Elasticsearch Integration (e2e)', () => {
   let app: INestApplication;
   let searchService: SearchService;
   let indexManagementService: IndexManagementService;
   let hotelSearchService: HotelSearchService;
-  let dataSyncService: DataSyncService;
+  let hotelDataSyncService: HotelDataSyncService;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -25,7 +25,7 @@ describe('Elasticsearch Integration (e2e)', () => {
     searchService = moduleFixture.get<SearchService>(SearchService);
     indexManagementService = moduleFixture.get<IndexManagementService>(IndexManagementService);
     hotelSearchService = moduleFixture.get<HotelSearchService>(HotelSearchService);
-    dataSyncService = moduleFixture.get<DataSyncService>(DataSyncService);
+    hotelDataSyncService = moduleFixture.get<HotelDataSyncService>(HotelDataSyncService);
   });
 
   afterAll(async () => {
@@ -428,7 +428,7 @@ describe('Elasticsearch Integration (e2e)', () => {
 
   describe('7. Data Consistency Tests', () => {
     it('should validate data consistency', async () => {
-      const result = await dataSyncService.validateDataConsistency();
+      const result = await hotelDataSyncService.validateDataConsistency();
       expect(result.consistent).toBeDefined();
       expect(Array.isArray(result.issues)).toBe(true);
     });
