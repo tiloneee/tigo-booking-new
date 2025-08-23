@@ -14,6 +14,7 @@ const user_module_1 = require("./modules/user/user.module");
 const hotel_module_1 = require("./modules/hotel/hotel.module");
 const search_module_1 = require("./modules/search/search.module");
 const chat_module_1 = require("./modules/chat/chat.module");
+const notification_module_1 = require("./modules/notification/notification.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -41,6 +42,7 @@ exports.AppModule = AppModule = __decorate([
             hotel_module_1.HotelModule,
             search_module_1.SearchModule,
             chat_module_1.ChatModule,
+            notification_module_1.NotificationModule,
         ],
     })
 ], AppModule);

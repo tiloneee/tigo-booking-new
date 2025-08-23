@@ -148,6 +148,22 @@ let ChatService = class ChatService {
             roomId: chat_room_id,
             data: messageWithSender,
         });
+        const recipientId = chatRoom.participant1_id === senderId
+            ? chatRoom.participant2_id
+            : chatRoom.participant1_id;
+        await this.redisService.publishMessage('notification:events', {
+            type: 'CHAT_MESSAGE',
+            user_id: recipientId,
+            title: `New message from ${messageWithSender.sender.first_name || 'User'}`,
+            message: content.length > 100 ? content.substring(0, 100) + '...' : content,
+            metadata: {
+                chat_room_id,
+                sender_id: senderId,
+                message_id: savedMessage.id,
+            },
+            related_entity_type: 'chat_message',
+            related_entity_id: savedMessage.id,
+        });
         return messageWithSender;
     }
     async getMessages(query, currentUserId) {

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { ChatRoom, ChatRoomType } from '../entities/chat-room.entity';
@@ -186,6 +186,26 @@ export class ChatService {
       event: 'new_message',
       roomId: chat_room_id,
       data: messageWithSender,
+    });
+
+    // Send notification to the recipient
+    const recipientId = chatRoom.participant1_id === senderId 
+      ? chatRoom.participant2_id 
+      : chatRoom.participant1_id;
+
+    // Publish notification event to Redis for notification service to pick up
+    await this.redisService.publishMessage('notification:events', {
+      type: 'CHAT_MESSAGE',
+      user_id: recipientId,
+      title: `New message from ${messageWithSender.sender.first_name || 'User'}`,
+      message: content.length > 100 ? content.substring(0, 100) + '...' : content,
+      metadata: {
+        chat_room_id,
+        sender_id: senderId,
+        message_id: savedMessage.id,
+      },
+      related_entity_type: 'chat_message',
+      related_entity_id: savedMessage.id,
     });
 
     return messageWithSender;
