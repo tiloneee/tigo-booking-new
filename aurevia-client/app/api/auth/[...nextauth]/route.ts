@@ -76,7 +76,7 @@ const authOptions: AuthOptions = {
         session.accessToken = token.accessToken
         session.refreshToken = token.refreshToken
         session.roles = token.roles
-        session.user.id = token.sub
+        session.user.id = token.sub as string
       }
       return session
     },

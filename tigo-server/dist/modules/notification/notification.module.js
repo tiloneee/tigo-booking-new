@@ -18,6 +18,7 @@ const notification_service_1 = require("./services/notification.service");
 const redis_notification_service_1 = require("./services/redis-notification.service");
 const notification_event_service_1 = require("./services/notification-event.service");
 const notification_controller_1 = require("./controllers/notification.controller");
+const debug_controller_1 = require("./controllers/debug.controller");
 const notification_gateway_1 = require("./gateways/notification.gateway");
 const chat_module_1 = require("../chat/chat.module");
 const user_module_1 = require("../user/user.module");
@@ -46,7 +47,7 @@ exports.NotificationModule = NotificationModule = __decorate([
                 inject: [config_1.ConfigService],
             }),
         ],
-        controllers: [notification_controller_1.NotificationController],
+        controllers: [notification_controller_1.NotificationController, debug_controller_1.DebugController],
         providers: [
             notification_service_1.NotificationService,
             redis_notification_service_1.RedisNotificationService,

@@ -37,36 +37,72 @@ let NotificationController = class NotificationController {
         return { message: 'Bulk notifications sent successfully' };
     }
     async getNotifications(req, queryDto) {
-        return this.notificationService.getNotifications(req.user.id, queryDto);
+        const userId = req.user?.id || req.user?.userId || req.user?.sub;
+        if (!userId) {
+            throw new common_1.BadRequestException('User ID not found in request');
+        }
+        return this.notificationService.getNotifications(userId, queryDto);
     }
     async getUnreadCount(req) {
-        const count = await this.notificationService.getUnreadCount(req.user.id);
+        const userId = req.user?.id || req.user?.userId || req.user?.sub;
+        if (!userId) {
+            throw new common_1.BadRequestException('User ID not found in request');
+        }
+        const count = await this.notificationService.getUnreadCount(userId);
         return { count };
     }
     async markNotification(req, notificationId, markDto) {
-        await this.notificationService.markAsRead(req.user.id, notificationId);
+        const userId = req.user?.id || req.user?.userId || req.user?.sub;
+        if (!userId) {
+            throw new common_1.BadRequestException('User ID not found in request');
+        }
+        await this.notificationService.markAsRead(userId, notificationId);
         return { message: 'Notification marked successfully' };
     }
     async markAllAsRead(req) {
-        await this.notificationService.markAllAsRead(req.user.id);
+        const userId = req.user?.id || req.user?.userId || req.user?.sub;
+        if (!userId) {
+            throw new common_1.BadRequestException('User ID not found in request');
+        }
+        await this.notificationService.markAllAsRead(userId);
         return { message: 'All notifications marked as read' };
     }
     async bulkMarkNotifications(req, bulkMarkDto) {
-        await this.notificationService.bulkMarkNotifications(req.user.id, bulkMarkDto);
+        const userId = req.user?.id || req.user?.userId || req.user?.sub;
+        if (!userId) {
+            throw new common_1.BadRequestException('User ID not found in request');
+        }
+        await this.notificationService.bulkMarkNotifications(userId, bulkMarkDto);
         return { message: 'Notifications marked successfully' };
     }
     async deleteNotification(req, notificationId) {
-        await this.notificationService.deleteNotification(req.user.id, notificationId);
+        const userId = req.user?.id || req.user?.userId || req.user?.sub;
+        if (!userId) {
+            throw new common_1.BadRequestException('User ID not found in request');
+        }
+        await this.notificationService.deleteNotification(userId, notificationId);
         return { message: 'Notification deleted successfully' };
     }
     async getUserPreferences(req) {
-        return this.notificationService.getAllUserPreferences(req.user.id);
+        const userId = req.user?.id || req.user?.userId || req.user?.sub;
+        if (!userId) {
+            throw new common_1.BadRequestException('User ID not found in request');
+        }
+        return this.notificationService.getAllUserPreferences(userId);
     }
     async updateNotificationPreference(req, type, updateDto) {
-        return this.notificationService.updateUserPreference(req.user.id, type, updateDto);
+        const userId = req.user?.id || req.user?.userId || req.user?.sub;
+        if (!userId) {
+            throw new common_1.BadRequestException('User ID not found in request');
+        }
+        return this.notificationService.updateUserPreference(userId, type, updateDto);
     }
     async createNotificationPreference(req, createDto) {
-        return this.notificationService.updateUserPreference(req.user.id, createDto.type, createDto);
+        const userId = req.user?.id || req.user?.userId || req.user?.sub;
+        if (!userId) {
+            throw new common_1.BadRequestException('User ID not found in request');
+        }
+        return this.notificationService.updateUserPreference(userId, createDto.type, createDto);
     }
 };
 exports.NotificationController = NotificationController;

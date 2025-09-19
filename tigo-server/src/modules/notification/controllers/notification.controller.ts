@@ -11,6 +11,7 @@ import {
   Request,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { NotificationService } from '../services/notification.service';
@@ -54,12 +55,20 @@ export class NotificationController {
     @Request() req: any,
     @Query() queryDto: NotificationQueryDto,
   ) {
-    return this.notificationService.getNotifications(req.user.id, queryDto);
+    const userId = req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    return this.notificationService.getNotifications(userId, queryDto);
   }
 
   @Get('unread-count')
   async getUnreadCount(@Request() req: any) {
-    const count = await this.notificationService.getUnreadCount(req.user.id);
+    const userId = req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    const count = await this.notificationService.getUnreadCount(userId);
     return { count };
   }
 
@@ -70,14 +79,22 @@ export class NotificationController {
     @Param('id') notificationId: string,
     @Body() markDto: MarkNotificationDto,
   ) {
-    await this.notificationService.markAsRead(req.user.id, notificationId);
+    const userId = req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    await this.notificationService.markAsRead(userId, notificationId);
     return { message: 'Notification marked successfully' };
   }
 
   @Put('mark-all-read')
   @HttpCode(HttpStatus.OK)
   async markAllAsRead(@Request() req: any) {
-    await this.notificationService.markAllAsRead(req.user.id);
+    const userId = req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    await this.notificationService.markAllAsRead(userId);
     return { message: 'All notifications marked as read' };
   }
 
@@ -87,7 +104,11 @@ export class NotificationController {
     @Request() req: any,
     @Body() bulkMarkDto: BulkMarkNotificationDto,
   ) {
-    await this.notificationService.bulkMarkNotifications(req.user.id, bulkMarkDto);
+    const userId = req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    await this.notificationService.bulkMarkNotifications(userId, bulkMarkDto);
     return { message: 'Notifications marked successfully' };
   }
 
@@ -97,14 +118,22 @@ export class NotificationController {
     @Request() req: any,
     @Param('id') notificationId: string,
   ) {
-    await this.notificationService.deleteNotification(req.user.id, notificationId);
+    const userId = req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    await this.notificationService.deleteNotification(userId, notificationId);
     return { message: 'Notification deleted successfully' };
   }
 
   // Preference endpoints
   @Get('preferences')
   async getUserPreferences(@Request() req: any) {
-    return this.notificationService.getAllUserPreferences(req.user.id);
+    const userId = req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    return this.notificationService.getAllUserPreferences(userId);
   }
 
   @Put('preferences/:type')
@@ -113,8 +142,12 @@ export class NotificationController {
     @Param('type') type: NotificationType,
     @Body() updateDto: UpdateNotificationPreferenceDto,
   ) {
+    const userId = req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
     return this.notificationService.updateUserPreference(
-      req.user.id,
+      userId,
       type,
       updateDto,
     );
@@ -125,8 +158,12 @@ export class NotificationController {
     @Request() req: any,
     @Body() createDto: CreateNotificationPreferenceDto,
   ) {
+    const userId = req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
     return this.notificationService.updateUserPreference(
-      req.user.id,
+      userId,
       createDto.type,
       createDto,
     );

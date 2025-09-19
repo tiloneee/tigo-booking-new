@@ -4,6 +4,7 @@ import { useSession, signOut } from "next-auth/react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { User, LogOut, MessageCircle } from "lucide-react"
+import { NotificationBell } from "@/components/notifications/notification-bell"
 
 export default function UserNav() {
   const { data: session, status } = useSession()
@@ -84,6 +85,8 @@ export default function UserNav() {
           Chat
         </Button>
       </Link>
+
+      <NotificationBell />
 
       <Button
         onClick={handleLogout}

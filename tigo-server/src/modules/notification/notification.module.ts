@@ -15,6 +15,7 @@ import { NotificationEventService } from './services/notification-event.service'
 
 // Controllers
 import { NotificationController } from './controllers/notification.controller';
+import { DebugController } from './controllers/debug.controller';
 
 // Gateways
 import { NotificationGateway } from './gateways/notification.gateway';
@@ -44,7 +45,7 @@ import { EmailService } from '../../common/services/email.service';
       inject: [ConfigService],
     }),
   ],
-  controllers: [NotificationController],
+  controllers: [NotificationController, DebugController],
   providers: [
     NotificationService,
     RedisNotificationService,

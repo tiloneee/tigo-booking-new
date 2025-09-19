@@ -22,7 +22,7 @@ interface AuthenticatedSocket extends Socket {
 @WebSocketGateway({
   namespace: '/notifications',
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:3000',
+    origin: process.env.CLIENT_URL || 'http://localhost:3001',
     credentials: true,
   },
 })

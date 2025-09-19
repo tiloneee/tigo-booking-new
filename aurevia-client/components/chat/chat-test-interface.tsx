@@ -100,9 +100,23 @@ export default function ChatTestInterface() {
 
     newSocket.on('new_message', (message: ChatMessage) => {
       console.log('New message received:', message)
-      if (selectedRoom && message.chat_room_id === selectedRoom.id) {
-        setMessages(prev => [...prev, message])
-      }
+      // Add message immediately
+      setMessages(prev => {
+        // Check if message already exists to prevent duplicates
+        if (prev.some(msg => msg.id === message.id)) {
+          return prev
+        }
+        
+        // Add the message and sort by timestamp
+        return [...prev, message].sort((a, b) => 
+          new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        )
+      })
+    })
+
+    newSocket.on('message_sent', (data: { messageId: string; message?: ChatMessage }) => {
+      console.log('Message sent confirmation:', data)
+      // Message will come through new_message event, so we don't need to handle it here
     })
 
     newSocket.on('joined_room', (data) => {
@@ -116,10 +130,14 @@ export default function ChatTestInterface() {
     }
   }, [session])
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive or room changes
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [messages])
+    const timeoutId = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }, 100) // Small delay to ensure DOM is updated
+    
+    return () => clearTimeout(timeoutId)
+  }, [messages, selectedRoom])
 
   // Fetch available users for testing
   const fetchUsers = async () => {
@@ -231,13 +249,15 @@ export default function ChatTestInterface() {
 
   // Send message
   const sendMessage = async () => {
-    if (!selectedRoom || !newMessage.trim() || !socket) return
+    if (!selectedRoom || !newMessage.trim() || !socket || !session) return
+
+    const messageContent = newMessage
 
     try {
       // Send via socket for real-time
       socket.emit('send_message', {
         chat_room_id: selectedRoom.id,
-        content: newMessage,
+        content: messageContent,
         type: 'text'
       })
 
@@ -249,6 +269,8 @@ export default function ChatTestInterface() {
 
   // Select room and join it
   const selectRoom = async (room: ChatRoom) => {
+    // Clear messages from previous room
+    setMessages([])
     setSelectedRoom(room)
     
     if (socket) {
@@ -266,7 +288,7 @@ export default function ChatTestInterface() {
   }, [session])
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 h-[800px]">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 h-[700px] relative z-10">
       {/* Left Sidebar - Connection Status & Room Creation */}
       <div className="lg:col-span-1 space-y-6">
         {/* Connection Status */}
@@ -396,12 +418,12 @@ export default function ChatTestInterface() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="lg:col-span-3">
-        <Card className="bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30 shadow-2xl h-full flex flex-col">
+      <div className="lg:col-span-3 relative z-20">
+        <Card className="bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30 shadow-2xl h-[700px] flex flex-col relative z-20 overflow-hidden">
           {selectedRoom ? (
             <>
               {/* Chat Header */}
-              <CardHeader className="pb-4 border-b border-copper-accent/20">
+              <CardHeader className="pb-4 border-b border-copper-accent/20 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center">
@@ -428,8 +450,13 @@ export default function ChatTestInterface() {
               </CardHeader>
 
               {/* Messages Area */}
-              <div className="flex-1 p-6 overflow-y-auto space-y-4">
-                {messages.map(message => {
+              <div 
+                className="flex-1 p-6 overflow-y-auto space-y-4"
+                style={{ height: 'calc(700px - 180px)' }} // Total height minus header and input areas
+              >
+                {messages
+                  .filter(message => message.chat_room_id === selectedRoom.id)
+                  .map(message => {
                   const isOwnMessage = message.sender_id === ((session as any)?.user?.userId || (session as any)?.user?.id)
                   return (
                     <div
@@ -472,7 +499,7 @@ export default function ChatTestInterface() {
               </div>
 
               {/* Message Input */}
-              <div className="p-6 border-t border-copper-accent/20">
+              <div className="p-6 border-t border-copper-accent/20 flex-shrink-0">
                 <div className="flex space-x-4">
                   <input
                     type="text"
