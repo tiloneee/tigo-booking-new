@@ -39,7 +39,7 @@ export class BookingService {
     'roles',
     'is_active',
     'created_at',
-    'updated_at'
+    'updated_at',
   ] as const;
 
   constructor(
@@ -64,10 +64,13 @@ export class BookingService {
   /**
    * Helper function to sanitize user objects by removing sensitive fields
    */
-  private sanitizeUserObject(user: any, fieldsToRemove: readonly string[]): void {
+  private sanitizeUserObject(
+    user: any,
+    fieldsToRemove: readonly string[],
+  ): void {
     if (!user) return;
-    
-    fieldsToRemove.forEach(field => {
+
+    fieldsToRemove.forEach((field) => {
       delete user[field];
     });
   }
@@ -253,7 +256,9 @@ export class BookingService {
       queryBuilder.andWhere('booking.hotel_id = :hotelId', { hotelId });
     }
 
-    const bookings = await queryBuilder.orderBy('booking.created_at', 'DESC').getMany();
+    const bookings = await queryBuilder
+      .orderBy('booking.created_at', 'DESC')
+      .getMany();
     this.sanitizeBookingsOwnerData(bookings);
     return bookings;
   }

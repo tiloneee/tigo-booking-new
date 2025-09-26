@@ -14,6 +14,7 @@ import { HotelBooking } from '../entities/hotel-booking.entity';
 import { User } from '../../user/entities/user.entity';
 import { CreateReviewDto } from '../dto/review/create-review.dto';
 import { UpdateReviewDto } from '../dto/review/update-review.dto';
+import { HotelDataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
 
 @Injectable()
 export class ReviewService {
@@ -24,7 +25,6 @@ export class ReviewService {
     'moderation_notes',
     'is_verified_stay',
     'booking',
-
   ] as const;
 
   private readonly SENSITIVE_USER_FIELDS = [
@@ -36,7 +36,6 @@ export class ReviewService {
     'created_at',
     'updated_at',
   ] as const;
-
 
   constructor(
     @InjectRepository(HotelReview)
@@ -52,20 +51,28 @@ export class ReviewService {
     private userRepository: Repository<User>,
 
     private dataSource: DataSource,
+
+    private hotelDataSyncService: HotelDataSyncService,
   ) {}
 
-  private sanitizeUserObject(user: any, fieldsToRemove: readonly string[]): void {
+  private sanitizeUserObject(
+    user: any,
+    fieldsToRemove: readonly string[],
+  ): void {
     if (!user) return;
-    
-    fieldsToRemove.forEach(field => {
+
+    fieldsToRemove.forEach((field) => {
       delete user[field];
     });
   }
 
-  private sanitizeReviewObject(review: any, fieldsToRemove: readonly string[]): void {
+  private sanitizeReviewObject(
+    review: any,
+    fieldsToRemove: readonly string[],
+  ): void {
     if (!review) return;
-    
-    fieldsToRemove.forEach(field => {
+
+    fieldsToRemove.forEach((field) => {
       delete review[field];
     });
   }
@@ -79,7 +86,6 @@ export class ReviewService {
   private sanitizeReviewsOwnerData(reviews: HotelReview[]): void {
     reviews.forEach((review) => this.sanitizeReviewData(review));
   }
-
 
   async create(
     createReviewDto: CreateReviewDto,
@@ -188,6 +194,7 @@ export class ReviewService {
       }
 
       this.sanitizeReviewData(reviewWithRelations);
+      this.hotelDataSyncService.onReviewChanged(reviewWithRelations);
       return reviewWithRelations;
     });
   }
@@ -271,6 +278,7 @@ export class ReviewService {
       }
 
       this.sanitizeReviewData(updatedReview);
+      this.hotelDataSyncService.onReviewChanged(updatedReview);
       return updatedReview;
     });
   }
@@ -294,6 +302,7 @@ export class ReviewService {
     });
 
     this.logger.log(`Review deleted: ${id}`);
+    this.hotelDataSyncService.onReviewChanged(review);
   }
 
   async moderateReview(
@@ -311,6 +320,7 @@ export class ReviewService {
     this.logger.log(`Review ${isApproved ? 'approved' : 'rejected'}: ${id}`);
     const updatedReview = await this.findOne(id);
     this.sanitizeReviewData(updatedReview);
+    this.hotelDataSyncService.onReviewChanged(updatedReview);
     return updatedReview;
   }
 
@@ -330,6 +340,7 @@ export class ReviewService {
 
     const updatedReview = await this.findOne(reviewId);
     this.sanitizeReviewData(updatedReview);
+    this.hotelDataSyncService.onReviewChanged(updatedReview);
     return updatedReview;
   }
 

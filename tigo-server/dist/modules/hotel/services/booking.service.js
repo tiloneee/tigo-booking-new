@@ -46,7 +46,7 @@ let BookingService = BookingService_1 = class BookingService {
         'roles',
         'is_active',
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
     constructor(bookingRepository, hotelRepository, roomRepository, roomAvailabilityRepository, userRepository, dataSource) {
         this.bookingRepository = bookingRepository;
@@ -59,7 +59,7 @@ let BookingService = BookingService_1 = class BookingService {
     sanitizeUserObject(user, fieldsToRemove) {
         if (!user)
             return;
-        fieldsToRemove.forEach(field => {
+        fieldsToRemove.forEach((field) => {
             delete user[field];
         });
     }
@@ -177,7 +177,9 @@ let BookingService = BookingService_1 = class BookingService {
         if (hotelId) {
             queryBuilder.andWhere('booking.hotel_id = :hotelId', { hotelId });
         }
-        const bookings = await queryBuilder.orderBy('booking.created_at', 'DESC').getMany();
+        const bookings = await queryBuilder
+            .orderBy('booking.created_at', 'DESC')
+            .getMany();
         this.sanitizeBookingsOwnerData(bookings);
         return bookings;
     }

@@ -16,6 +16,7 @@ import { CreateHotelDto } from '../dto/hotel/create-hotel.dto';
 import { UpdateHotelDto } from '../dto/hotel/update-hotel.dto';
 import { SearchHotelDto } from '../dto/hotel/search-hotel.dto';
 import { GeocodingService } from './geocoding.service';
+import { HotelDataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
 import { In } from 'typeorm';
 
 @Injectable()
@@ -36,6 +37,8 @@ export class HotelService {
     private roomAvailabilityRepository: Repository<RoomAvailability>,
 
     private geocodingService: GeocodingService,
+
+    private hotelDataSyncService: HotelDataSyncService,
   ) {}
 
   /**
@@ -120,6 +123,7 @@ export class HotelService {
       this.logger.log(
         `Hotel created successfully: ${savedHotel.id} by owner ${ownerId}`,
       );
+      this.hotelDataSyncService.onHotelCreated(savedHotel);
       return this.findOne(savedHotel.id);
     } catch (error) {
       if (error instanceof ConflictException) {
@@ -140,6 +144,48 @@ export class HotelService {
     this.sanitizeHotelsOwnerData(hotels);
 
     return hotels;
+  }
+
+  async findAllActive(options: {
+    page: number;
+    limit: number;
+    sort_by?: string;
+    sort_order?: 'ASC' | 'DESC';
+  }): Promise<{ hotels: Hotel[]; total: number; page: number; limit: number }> {
+    const queryBuilder = this.hotelRepository
+      .createQueryBuilder('hotel')
+      .leftJoinAndSelect('hotel.amenities', 'amenities')
+      .where('hotel.is_active = :isActive', { isActive: true });
+
+    // Sorting
+    const sortBy = options.sort_by || 'name';
+    const sortOrder = options.sort_order || 'ASC';
+
+    switch (sortBy) {
+      case 'rating':
+        queryBuilder.orderBy('hotel.avg_rating', sortOrder);
+        break;
+      case 'name':
+      default:
+        queryBuilder.orderBy('hotel.name', sortOrder);
+        break;
+    }
+
+    // Pagination
+    const skip = (options.page - 1) * options.limit;
+    queryBuilder.skip(skip).take(options.limit);
+
+    const [hotels, total] = await queryBuilder.getManyAndCount();
+
+    // Sanitize owner data for public access
+    this.sanitizeHotelsOwnerData(hotels);
+
+    return {
+      hotels,
+      total,
+      page: options.page,
+      limit: options.limit,
+    };
   }
 
   // Optimized query for owner's hotels
@@ -172,20 +218,6 @@ export class HotelService {
     return hotel;
   }
 
-  // Optimized public hotel query
-  async findOneForPublic(id: string): Promise<Hotel> {
-    const hotel = await this.hotelRepository.findOne({
-      where: { id, is_active: true },
-      relations: ['amenities', 'rooms'],
-    });
-
-    if (!hotel) {
-      throw new NotFoundException('Hotel not found');
-    }
-
-    this.sanitizeHotelOwnerData(hotel);
-    return hotel;
-  }
 
   async update(
     id: string,
@@ -246,6 +278,7 @@ export class HotelService {
     this.logger.log(`Hotel updated: ${id} by user ${userId}`);
     const updatedHotel = await this.findOne(id);
     this.sanitizeHotelOwnerData(updatedHotel);
+    this.hotelDataSyncService.onHotelUpdated(updatedHotel);
     return updatedHotel;
   }
 
@@ -259,6 +292,7 @@ export class HotelService {
 
     await this.hotelRepository.delete(id);
     this.logger.log(`Hotel deleted: ${id} by user ${userId}`);
+    this.hotelDataSyncService.onHotelDeleted(id);
   }
 
   async search(
@@ -350,7 +384,13 @@ export class HotelService {
       const order = searchDto.sort_order || 'ASC';
       switch (searchDto.sort_by) {
         case 'price':
-          queryBuilder.orderBy('MIN(availability.price_per_night)', order);
+          // Only sort by price if we have date filters (availability data)
+          if (searchDto.check_in_date && searchDto.check_out_date) {
+            queryBuilder.orderBy('MIN(availability.price_per_night)', order);
+          } else {
+            // Fallback to hotel name if no date filters
+            queryBuilder.orderBy('hotel.name', order);
+          }
           break;
         case 'rating':
           queryBuilder.orderBy('hotel.avg_rating', order);
@@ -432,6 +472,30 @@ export class HotelService {
         `Failed to calculate average rating for hotel ${hotelId}`,
         error,
       );
+    }
+  }
+
+  async findOneForPublic(id: string): Promise<Hotel> {
+    try {
+      const hotel = await this.hotelRepository.findOne({
+        where: { id, is_active: true },
+        relations: ['amenities', 'rooms', 'owner'],
+      });
+
+      if (!hotel) {
+        throw new NotFoundException(`Hotel with ID ${id} not found`);
+      }
+
+      // Remove sensitive owner data for public access
+      this.sanitizeHotelsOwnerData([hotel]);
+
+      return hotel;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Failed to find hotel for public: ${id}`, error);
+      throw new BadRequestException('Failed to retrieve hotel details');
     }
   }
 

@@ -37,6 +37,9 @@ let AuthService = class AuthService {
     }
     async login(loginDto) {
         const user = await this.validateUser(loginDto.email, loginDto.password);
+        if (!user) {
+            throw new common_1.UnauthorizedException('Invalid credentials');
+        }
         if (!user.is_active) {
             throw new common_1.UnauthorizedException('Please activate your account first');
         }
@@ -51,6 +54,15 @@ let AuthService = class AuthService {
             expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
         });
         await this.userService.updateRefreshToken(user.id, refreshToken);
+        common_1.Logger.log({
+            user: {
+                id: user.id,
+                email: user.email,
+                first_name: user.first_name,
+                last_name: user.last_name,
+                roles: user.roles?.map((role) => role.name) || [],
+            },
+        });
         return {
             access_token: accessToken,
             refresh_token: refreshToken,

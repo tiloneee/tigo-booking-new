@@ -20,11 +20,13 @@ const typeorm_2 = require("typeorm");
 const room_entity_1 = require("../entities/room.entity");
 const room_availability_entity_1 = require("../entities/room-availability.entity");
 const hotel_entity_1 = require("../entities/hotel.entity");
+const hotel_data_sync_service_1 = require("../../search/services/data-sync/hotel.data-sync.service");
 let RoomService = RoomService_1 = class RoomService {
     roomRepository;
     roomAvailabilityRepository;
     hotelRepository;
     dataSource;
+    hotelDataSyncService;
     logger = new common_1.Logger(RoomService_1.name);
     SENSITIVE_OWNER_FIELDS = [
         'password_hash',
@@ -33,18 +35,19 @@ let RoomService = RoomService_1 = class RoomService {
         'roles',
         'is_active',
         'created_at',
-        'updated_at'
+        'updated_at',
     ];
-    constructor(roomRepository, roomAvailabilityRepository, hotelRepository, dataSource) {
+    constructor(roomRepository, roomAvailabilityRepository, hotelRepository, dataSource, hotelDataSyncService) {
         this.roomRepository = roomRepository;
         this.roomAvailabilityRepository = roomAvailabilityRepository;
         this.hotelRepository = hotelRepository;
         this.dataSource = dataSource;
+        this.hotelDataSyncService = hotelDataSyncService;
     }
     sanitizeUserObject(user, fieldsToRemove) {
         if (!user)
             return;
-        fieldsToRemove.forEach(field => {
+        fieldsToRemove.forEach((field) => {
             delete user[field];
         });
     }
@@ -179,6 +182,7 @@ let RoomService = RoomService_1 = class RoomService {
         });
         const savedAvailability = await this.roomAvailabilityRepository.save(availability);
         this.sanitizeRoomOwnerData(savedAvailability.room);
+        this.hotelDataSyncService.onRoomAvailabilityChanged(savedAvailability.room_id);
         return savedAvailability;
     }
     async createBulkAvailability(bulkAvailabilityDto, userId, userRoles) {
@@ -216,6 +220,7 @@ let RoomService = RoomService_1 = class RoomService {
                     });
                     const saved = await manager.save(availability);
                     availabilityRecords.push(saved);
+                    this.hotelDataSyncService.onRoomAvailabilityChanged(saved.room_id);
                 }
             }
             return availabilityRecords;
@@ -247,6 +252,7 @@ let RoomService = RoomService_1 = class RoomService {
             throw new common_1.NotFoundException('Failed to retrieve updated availability');
         }
         this.sanitizeRoomOwnerData(updatedAvailability.room);
+        this.hotelDataSyncService.onRoomAvailabilityChanged(updatedAvailability.room_id);
         return updatedAvailability;
     }
     async getAvailability(roomId, startDate, endDate) {
@@ -259,7 +265,9 @@ let RoomService = RoomService_1 = class RoomService {
         if (endDate) {
             query.andWhere('availability.date <= :endDate', { endDate });
         }
-        const availability = await query.orderBy('availability.date', 'ASC').getMany();
+        const availability = await query
+            .orderBy('availability.date', 'ASC')
+            .getMany();
         this.sanitizeRoomsOwnerData(availability.map((a) => a.room));
         return availability;
     }
@@ -305,6 +313,7 @@ exports.RoomService = RoomService = RoomService_1 = __decorate([
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.DataSource])
+        typeorm_2.DataSource,
+        hotel_data_sync_service_1.HotelDataSyncService])
 ], RoomService);
 //# sourceMappingURL=room.service.js.map
