@@ -21,9 +21,19 @@ export declare class HotelService {
     private sanitizeHotelsOwnerData;
     create(createHotelDto: CreateHotelDto, ownerId: string): Promise<Hotel>;
     findAll(): Promise<Hotel[]>;
+    findAllActive(options: {
+        page: number;
+        limit: number;
+        sort_by?: string;
+        sort_order?: 'ASC' | 'DESC';
+    }): Promise<{
+        hotels: Hotel[];
+        total: number;
+        page: number;
+        limit: number;
+    }>;
     findByOwner(ownerId: string): Promise<Hotel[]>;
     findOne(id: string): Promise<Hotel>;
-    findOneForPublic(id: string): Promise<Hotel>;
     update(id: string, updateHotelDto: UpdateHotelDto, userId: string, userRoles: string[]): Promise<Hotel>;
     delete(id: string, userId: string, userRoles: string[]): Promise<void>;
     search(searchDto: SearchHotelDto): Promise<{
@@ -33,6 +43,7 @@ export declare class HotelService {
         limit: number;
     }>;
     calculateAverageRating(hotelId: string): Promise<void>;
+    findOneForPublic(id: string): Promise<Hotel>;
     healthCheck(): Promise<{
         status: string;
         details: any;

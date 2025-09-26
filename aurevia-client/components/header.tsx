@@ -32,6 +32,12 @@ export default function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             <Link
+              href="/hotels"
+              className="text-cream-light hover:text-copper-accent transition-colors duration-300 font-cormorant font-medium text-vintage-lg tracking-wide"
+            >
+              Hotels
+            </Link>
+            <Link
               href="#destinations"
               className="text-cream-light hover:text-copper-accent transition-colors duration-300 font-cormorant font-medium text-vintage-lg tracking-wide"
             >
@@ -88,26 +94,37 @@ export default function Header() {
                 </div>
               </Link>
               <Link
+                href="/hotels"
+                className="text-cream-light hover:text-copper-accent transition-colors duration-300 font-cormorant font-medium text-vintage-lg tracking-wide"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Hotels
+              </Link>
+              <Link
                 href="#destinations"
                 className="text-cream-light hover:text-copper-accent transition-colors duration-300 font-cormorant font-medium text-vintage-lg tracking-wide"
+                onClick={() => setIsMenuOpen(false)}
               >
                 Destinations
               </Link>
               <Link
                 href="#services"
                 className="text-cream-light hover:text-copper-accent transition-colors duration-300 font-cormorant font-medium text-vintage-lg tracking-wide"
+                onClick={() => setIsMenuOpen(false)}
               >
                 Services
               </Link>
               <Link
                 href="#about"
                 className="text-cream-light hover:text-copper-accent transition-colors duration-300 font-cormorant font-medium text-vintage-lg tracking-wide"
+                onClick={() => setIsMenuOpen(false)}
               >
                 About
               </Link>
               <Link
                 href="#contact"
                 className="text-cream-light hover:text-copper-accent transition-colors duration-300 font-cormorant font-medium text-vintage-lg tracking-wide"
+                onClick={() => setIsMenuOpen(false)}
               >
                 Contact
               </Link>

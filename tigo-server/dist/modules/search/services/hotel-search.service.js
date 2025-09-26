@@ -41,20 +41,50 @@ let HotelSearchService = HotelSearchService_1 = class HotelSearchService {
             const filter = [];
             if (query) {
                 must.push({
-                    multi_match: {
-                        query: query,
-                        fields: [
-                            'name^3',
-                            'description^2',
-                            'location.address',
-                            'location.city^2',
+                    bool: {
+                        should: [
+                            {
+                                multi_match: {
+                                    query: query,
+                                    fields: [
+                                        'name^5',
+                                        'name.keyword^4',
+                                    ],
+                                    type: 'best_fields',
+                                    fuzziness: 'AUTO',
+                                    boost: 3,
+                                }
+                            },
+                            {
+                                multi_match: {
+                                    query: query,
+                                    fields: [
+                                        'location.city^4',
+                                        'location.city.keyword^3',
+                                    ],
+                                    type: 'best_fields',
+                                    fuzziness: 'AUTO',
+                                    boost: 2,
+                                }
+                            },
+                            {
+                                multi_match: {
+                                    query: query,
+                                    fields: [
+                                        'location.address^2',
+                                        'description^1',
+                                    ],
+                                    type: 'best_fields',
+                                    fuzziness: 'AUTO',
+                                    boost: 1,
+                                }
+                            }
                         ],
-                        type: 'best_fields',
-                        fuzziness: 'AUTO',
-                    },
+                        minimum_should_match: 1,
+                    }
                 });
             }
-            if (city) {
+            if (city && city !== query) {
                 must.push({
                     match: {
                         'location.city': {

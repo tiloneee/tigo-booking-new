@@ -19,6 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "seed": "ts-node src/scripts/seed.ts",
+    "elasticsearch:setup": "ts-node src/scripts/elasticsearch-setup.ts",
+    "elasticsearch:reset": "ts-node src/scripts/elasticsearch-reset.ts",
     "redis:check": "node scripts/check-redis.js",
     "redis:monitor": "node scripts/monitor-chat.js",
     "redis:admin": "node scripts/redis-admin.js",

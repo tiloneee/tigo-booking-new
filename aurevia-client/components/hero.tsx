@@ -1,11 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, MapPin, Users, Plane, Hotel, Utensils, Search, Plus, Minus } from "lucide-react"
+import { HotelApiService } from "@/lib/api/hotels"
 
 export default function Hero() {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState("hotels")
   const [guests, setGuests] = useState(2)
   const [rooms, setRooms] = useState(1)
@@ -17,6 +20,39 @@ export default function Hero() {
   const [checkOut, setCheckOut] = useState("")
   const [time, setTime] = useState("")
   const [travelClass, setTravelClass] = useState("economy")
+  
+  // Hotel search specific states
+  const [popularCities, setPopularCities] = useState<string[]>([])
+  const [showCitySuggestions, setShowCitySuggestions] = useState(false)
+  const [filteredCities, setFilteredCities] = useState<string[]>([])
+  const [searching, setSearching] = useState(false)
+
+  // Load popular cities for hotel search
+  useEffect(() => {
+    const loadCities = async () => {
+      try {
+        const cities = await HotelApiService.getPopularCities()
+        setPopularCities(cities)
+      } catch (error) {
+        console.error('Failed to load popular cities:', error)
+      }
+    }
+    if (activeTab === "hotels") {
+      loadCities()
+    }
+  }, [activeTab])
+
+  // Filter cities based on input
+  useEffect(() => {
+    if (destination && popularCities.length > 0) {
+      const filtered = popularCities.filter(city =>
+        city.toLowerCase().includes(destination.toLowerCase())
+      )
+      setFilteredCities(filtered.slice(0, 6)) // Show top 6 matches
+    } else {
+      setFilteredCities(popularCities.slice(0, 6)) // Show top 6 cities
+    }
+  }, [destination, popularCities])
 
   // Clear form data when tab changes
   useEffect(() => {
@@ -28,6 +64,7 @@ export default function Hero() {
     setTravelClass("economy")
     setGuests(2)
     setRooms(1)
+    setShowCitySuggestions(false)
   }, [activeTab])
 
   const tabs = [
@@ -35,6 +72,70 @@ export default function Hero() {
     { id: "restaurants", label: "Restaurants", icon: Utensils },
     { id: "transportation", label: "Transportation", icon: Plane },
   ]
+
+  // Handle city selection from suggestions
+  const handleCitySelect = (city: string) => {
+    setDestination(city)
+    setShowCitySuggestions(false)
+  }
+
+  // Handle hotel search
+  const handleHotelSearch = async () => {
+    if (!destination.trim()) {
+      alert('Please enter a destination')
+      return
+    }
+    
+    if (!checkIn) {
+      alert('Please select a check-in date')
+      return
+    }
+    
+    if (!checkOut) {
+      alert('Please select a check-out date')
+      return
+    }
+    
+    if (new Date(checkIn) >= new Date(checkOut)) {
+      alert('Check-out date must be after check-in date')
+      return
+    }
+
+    setSearching(true)
+
+    try {
+      // Build URL search parameters
+      const params = new URLSearchParams({
+        city: destination,
+        check_in_date: checkIn,
+        check_out_date: checkOut,
+        number_of_guests: guests.toString(),
+        number_of_rooms: rooms.toString(),
+      })
+
+      // Navigate to results page
+      router.push(`/hotels/results?${params.toString()}`)
+    } catch (error) {
+      console.error('Search error:', error)
+      alert('An error occurred while searching. Please try again.')
+    } finally {
+      setSearching(false)
+    }
+  }
+
+  // Handle search based on active tab
+  const handleSearch = () => {
+    if (activeTab === "hotels") {
+      handleHotelSearch()
+    } else {
+      // Handle other search types (restaurants, transportation)
+      alert(`${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} search coming soon!`)
+    }
+  }
+
+  // Set minimum date to today
+  const today = new Date().toISOString().split('T')[0]
+  const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
@@ -103,18 +204,37 @@ export default function Hero() {
               <div className="space-y-6">
                 {/* Destination */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
+                  <div className="space-y-2 relative">
                     <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
                       <MapPin className="h-4 w-4 text-copper-accent" />
                       <span>Destination</span>
                     </label>
-                    <input
-                      type="text"
-                      placeholder="Where would you like to go?"
-                      value={destination}
-                      onChange={(e) => setDestination(e.target.value)}
-                      className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
-                    />
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Where would you like to go?"
+                        value={destination}
+                        onChange={(e) => setDestination(e.target.value)}
+                        onFocus={() => activeTab === "hotels" && setShowCitySuggestions(true)}
+                        className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+                      />
+                      
+                      {/* City suggestions dropdown for hotels */}
+                      {activeTab === "hotels" && showCitySuggestions && filteredCities.length > 0 && (
+                        <div className="absolute z-50 w-full bg-walnut-dark/95 backdrop-blur-sm border border-copper-accent/30 rounded-lg mt-1 shadow-2xl max-h-48 overflow-y-auto">
+                          {filteredCities.map((city, index) => (
+                            <button
+                              key={index}
+                              type="button"
+                              className="w-full text-left px-4 py-2 text-cream-light hover:bg-copper-accent/20 focus:bg-copper-accent/20 font-cormorant text-vintage-base transition-all duration-200"
+                              onClick={() => handleCitySelect(city)}
+                            >
+                              {city}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {activeTab === "transportation" && (
@@ -145,6 +265,7 @@ export default function Hero() {
                       type="date"
                       value={checkIn}
                       onChange={(e) => setCheckIn(e.target.value)}
+                      min={today}
                       className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
                     />
                   </div>
@@ -159,6 +280,7 @@ export default function Hero() {
                         type="date"
                         value={checkOut}
                         onChange={(e) => setCheckOut(e.target.value)}
+                        min={checkIn || tomorrow}
                         className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
                       />
                     </div>
@@ -262,10 +384,13 @@ export default function Hero() {
 
                 {/* Search Button */}
                 <div className="pt-4">
-                  <Button className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold px-8 py-4 rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 text-vintage-lg tracking-wider uppercase">
+                  <Button 
+                    onClick={handleSearch}
+                    disabled={searching}
+                    className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold px-8 py-4 rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 text-vintage-lg tracking-wider uppercase disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100"
+                  >
                     <Search className="mr-3 h-5 w-5" />
-                    Search{" "}
-                    {activeTab === "hotels" ? "Hotels" : activeTab === "restaurants" ? "Restaurants" : "Transportation"}
+                    {searching ? "Searching..." : `Search ${activeTab === "hotels" ? "Hotels" : activeTab === "restaurants" ? "Restaurants" : "Transportation"}`}
                   </Button>
                 </div>
               </div>
@@ -296,6 +421,14 @@ export default function Hero() {
           </div>
         </div>
       </div>
+      
+      {/* Close suggestions when clicking outside */}
+      {showCitySuggestions && (
+        <div 
+          className="fixed inset-0 z-40" 
+          onClick={() => setShowCitySuggestions(false)}
+        />
+      )}
     </section>
   )
 }

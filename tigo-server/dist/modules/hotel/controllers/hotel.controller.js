@@ -23,10 +23,13 @@ const hotel_service_1 = require("../services/hotel.service");
 const create_hotel_dto_1 = require("../dto/hotel/create-hotel.dto");
 const update_hotel_dto_1 = require("../dto/hotel/update-hotel.dto");
 const search_hotel_dto_1 = require("../dto/hotel/search-hotel.dto");
+const hotel_search_service_1 = require("../../search/services/hotel-search.service");
 let HotelController = class HotelController {
     hotelService;
-    constructor(hotelService) {
+    hotelSearchService;
+    constructor(hotelService, hotelSearchService) {
         this.hotelService = hotelService;
+        this.hotelSearchService = hotelSearchService;
     }
     create(createHotelDto, req) {
         return this.hotelService.create(createHotelDto, req.user.userId);
@@ -34,8 +37,43 @@ let HotelController = class HotelController {
     getMyHotels(req) {
         return this.hotelService.findByOwner(req.user.userId);
     }
-    search(searchDto) {
-        return this.hotelService.search(searchDto);
+    async getAllHotelsPublic(page, limit, sortBy, sortOrder) {
+        const searchDto = {
+            page: page ? parseInt(page) : 1,
+            limit: limit ? parseInt(limit) : 12,
+            sort_by: sortBy || 'name',
+            sort_order: sortOrder || 'ASC',
+        };
+        const result = await this.hotelService.findAllActive(searchDto);
+        return {
+            data: result.hotels,
+            pagination: {
+                total: result.total,
+                page: result.page,
+                limit: result.limit,
+                has_more: result.page * result.limit < result.total,
+            },
+        };
+    }
+    async search(searchDto) {
+        const searchQuery = {
+            query: searchDto.city,
+            city: searchDto.city,
+            latitude: searchDto.latitude,
+            longitude: searchDto.longitude,
+            radius_km: searchDto.radius_km,
+            check_in_date: searchDto.check_in_date,
+            check_out_date: searchDto.check_out_date,
+            number_of_guests: searchDto.number_of_guests,
+            min_price: searchDto.min_price,
+            max_price: searchDto.max_price,
+            min_rating: searchDto.min_rating,
+            sort_by: searchDto.sort_by || 'relevance',
+            sort_order: searchDto.sort_order || 'DESC',
+            page: searchDto.page || 1,
+            limit: searchDto.limit || 10,
+        };
+        return this.hotelSearchService.searchHotels(searchQuery);
     }
     getPublicHotelDetails(id) {
         return this.hotelService.findOneForPublic(id);
@@ -138,6 +176,62 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], HotelController.prototype, "getMyHotels", null);
 __decorate([
+    (0, common_1.Get)('all'),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get all hotels (Public)',
+        description: 'Retrieve all active hotels without search filters. This endpoint is public and does not require authentication.',
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'page',
+        required: false,
+        description: 'Page number (default: 1)',
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'limit',
+        required: false,
+        description: 'Number of hotels per page (default: 12)',
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'sort_by',
+        required: false,
+        description: 'Sort by: name, rating (default: name)',
+    }),
+    (0, swagger_1.ApiQuery)({
+        name: 'sort_order',
+        required: false,
+        description: 'Sort order: ASC, DESC (default: ASC)',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Hotels retrieved successfully',
+        schema: {
+            type: 'object',
+            properties: {
+                data: {
+                    type: 'array',
+                    items: { type: 'object' },
+                },
+                pagination: {
+                    type: 'object',
+                    properties: {
+                        total: { type: 'number' },
+                        page: { type: 'number' },
+                        limit: { type: 'number' },
+                        has_more: { type: 'boolean' },
+                    },
+                },
+            },
+        },
+    }),
+    __param(0, (0, common_1.Query)('page')),
+    __param(1, (0, common_1.Query)('limit')),
+    __param(2, (0, common_1.Query)('sort_by')),
+    __param(3, (0, common_1.Query)('sort_order')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:returntype", Promise)
+], HotelController.prototype, "getAllHotelsPublic", null);
+__decorate([
     (0, common_1.Get)('search'),
     (0, swagger_1.ApiOperation)({
         summary: 'Search hotels (Public)',
@@ -225,7 +319,7 @@ __decorate([
     __param(0, (0, common_1.Query)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [search_hotel_dto_1.SearchHotelDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:returntype", Promise)
 ], HotelController.prototype, "search", null);
 __decorate([
     (0, common_1.Get)(':id/public'),
@@ -378,6 +472,7 @@ __decorate([
 exports.HotelController = HotelController = __decorate([
     (0, swagger_1.ApiTags)('Hotels'),
     (0, common_1.Controller)('hotels'),
-    __metadata("design:paramtypes", [hotel_service_1.HotelService])
+    __metadata("design:paramtypes", [hotel_service_1.HotelService,
+        hotel_search_service_1.HotelSearchService])
 ], HotelController);
 //# sourceMappingURL=hotel.controller.js.map

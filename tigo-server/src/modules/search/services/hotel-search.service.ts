@@ -89,25 +89,58 @@ export class HotelSearchService {
       const must: any[] = [];
       const filter: any[] = [];
 
-      // Text search
+      // Enhanced text search for hotel names and cities
       if (query) {
         must.push({
-          multi_match: {
-            query: query,
-            fields: [
-              'name^3',
-              'description^2',
-              'location.address',
-              'location.city^2',
+          bool: {
+            should: [
+              // Primary search: hotel name (highest boost)
+              {
+                multi_match: {
+                  query: query,
+                  fields: [
+                    'name^5',           // Hotel name gets highest priority
+                    'name.keyword^4',   // Exact match for hotel name
+                  ],
+                  type: 'best_fields',
+                  fuzziness: 'AUTO',
+                  boost: 3,
+                }
+              },
+              // Secondary search: city name (high boost)
+              {
+                multi_match: {
+                  query: query,
+                  fields: [
+                    'location.city^4',     // City name high priority
+                    'location.city.keyword^3', // Exact city match
+                  ],
+                  type: 'best_fields',
+                  fuzziness: 'AUTO',
+                  boost: 2,
+                }
+              },
+              // Tertiary search: address and description
+              {
+                multi_match: {
+                  query: query,
+                  fields: [
+                    'location.address^2',
+                    'description^1',
+                  ],
+                  type: 'best_fields',
+                  fuzziness: 'AUTO',
+                  boost: 1,
+                }
+              }
             ],
-            type: 'best_fields',
-            fuzziness: 'AUTO',
-          },
+            minimum_should_match: 1,
+          }
         });
       }
 
-      // City filter
-      if (city) {
+      // Specific city filter (only use if explicitly different from query)
+      if (city && city !== query) {
         must.push({
           match: {
             'location.city': {
