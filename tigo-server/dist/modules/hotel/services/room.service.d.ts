@@ -5,14 +5,16 @@ import { Hotel } from '../entities/hotel.entity';
 import { CreateRoomDto } from '../dto/room/create-room.dto';
 import { UpdateRoomDto } from '../dto/room/update-room.dto';
 import { CreateRoomAvailabilityDto, UpdateRoomAvailabilityDto, BulkRoomAvailabilityDto } from '../dto/room/room-availability.dto';
+import { HotelDataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
 export declare class RoomService {
     private roomRepository;
     private roomAvailabilityRepository;
     private hotelRepository;
     private dataSource;
+    private hotelDataSyncService;
     private readonly logger;
     private readonly SENSITIVE_OWNER_FIELDS;
-    constructor(roomRepository: Repository<Room>, roomAvailabilityRepository: Repository<RoomAvailability>, hotelRepository: Repository<Hotel>, dataSource: DataSource);
+    constructor(roomRepository: Repository<Room>, roomAvailabilityRepository: Repository<RoomAvailability>, hotelRepository: Repository<Hotel>, dataSource: DataSource, hotelDataSyncService: HotelDataSyncService);
     private sanitizeUserObject;
     private sanitizeRoomOwnerData;
     private sanitizeRoomsOwnerData;

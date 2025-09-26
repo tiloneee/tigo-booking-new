@@ -13,11 +13,13 @@ import { RoomAvailability } from '../entities/room-availability.entity';
 import { Hotel } from '../entities/hotel.entity';
 import { CreateRoomDto } from '../dto/room/create-room.dto';
 import { UpdateRoomDto } from '../dto/room/update-room.dto';
+
 import {
   CreateRoomAvailabilityDto,
   UpdateRoomAvailabilityDto,
   BulkRoomAvailabilityDto,
 } from '../dto/room/room-availability.dto';
+import { HotelDataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
 
 @Injectable()
 export class RoomService {
@@ -30,7 +32,7 @@ export class RoomService {
     'roles',
     'is_active',
     'created_at',
-    'updated_at'
+    'updated_at',
   ] as const;
 
   constructor(
@@ -44,12 +46,17 @@ export class RoomService {
     private hotelRepository: Repository<Hotel>,
 
     private dataSource: DataSource,
-  ) { }
 
-  private sanitizeUserObject(user: any, fieldsToRemove: readonly string[]): void {
+    private hotelDataSyncService: HotelDataSyncService,
+  ) {}
+
+  private sanitizeUserObject(
+    user: any,
+    fieldsToRemove: readonly string[],
+  ): void {
     if (!user) return;
-    
-    fieldsToRemove.forEach(field => {
+
+    fieldsToRemove.forEach((field) => {
       delete user[field];
     });
   }
@@ -257,8 +264,10 @@ export class RoomService {
         createAvailabilityDto.available_units,
     });
 
-    const savedAvailability = await this.roomAvailabilityRepository.save(availability);
+    const savedAvailability =
+      await this.roomAvailabilityRepository.save(availability);
     this.sanitizeRoomOwnerData(savedAvailability.room);
+    this.hotelDataSyncService.onRoomAvailabilityChanged(savedAvailability.room_id);
     return savedAvailability;
   }
 
@@ -320,6 +329,7 @@ export class RoomService {
 
           const saved = await manager.save(availability);
           availabilityRecords.push(saved);
+          this.hotelDataSyncService.onRoomAvailabilityChanged(saved.room_id);
         }
       }
 
@@ -373,6 +383,7 @@ export class RoomService {
     }
 
     this.sanitizeRoomOwnerData(updatedAvailability.room);
+    this.hotelDataSyncService.onRoomAvailabilityChanged(updatedAvailability.room_id);
     return updatedAvailability;
   }
 
@@ -393,7 +404,9 @@ export class RoomService {
       query.andWhere('availability.date <= :endDate', { endDate });
     }
 
-    const availability = await query.orderBy('availability.date', 'ASC').getMany();
+    const availability = await query
+      .orderBy('availability.date', 'ASC')
+      .getMany();
     this.sanitizeRoomsOwnerData(availability.map((a) => a.room));
     return availability;
   }

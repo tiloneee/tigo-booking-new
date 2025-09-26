@@ -180,10 +180,15 @@ export class HotelRoomController {
     @Request() req,
   ) {
     // Validate hotelId from URL parameter
-    if (!hotelId || !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(hotelId)) {
+    if (
+      !hotelId ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        hotelId,
+      )
+    ) {
       throw new BadRequestException('Invalid hotel ID in URL parameter');
     }
-    
+
     createRoomDto.hotel_id = hotelId;
     return this.roomService.create(
       createRoomDto,

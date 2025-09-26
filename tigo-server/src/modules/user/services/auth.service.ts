@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -40,6 +41,10 @@ export class AuthService {
   async login(loginDto: LoginDto) {
     const user = await this.validateUser(loginDto.email, loginDto.password);
 
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
     if (!user.is_active) {
       throw new UnauthorizedException('Please activate your account first');
     }
@@ -57,6 +62,15 @@ export class AuthService {
     });
 
     await this.userService.updateRefreshToken(user.id, refreshToken);
+    Logger.log({
+      user: {
+        id: user.id,
+        email: user.email,
+        first_name: user.first_name,
+        last_name: user.last_name,
+        roles: user.roles?.map((role) => role.name) || [],
+      },
+    });
 
     return {
       access_token: accessToken,

@@ -22,6 +22,7 @@ const hotel_amenity_entity_1 = require("../entities/hotel-amenity.entity");
 const room_entity_1 = require("../entities/room.entity");
 const room_availability_entity_1 = require("../entities/room-availability.entity");
 const geocoding_service_1 = require("./geocoding.service");
+const hotel_data_sync_service_1 = require("../../search/services/data-sync/hotel.data-sync.service");
 const typeorm_3 = require("typeorm");
 let HotelService = HotelService_1 = class HotelService {
     hotelRepository;
@@ -29,13 +30,15 @@ let HotelService = HotelService_1 = class HotelService {
     roomRepository;
     roomAvailabilityRepository;
     geocodingService;
+    hotelDataSyncService;
     logger = new common_1.Logger(HotelService_1.name);
-    constructor(hotelRepository, amenityRepository, roomRepository, roomAvailabilityRepository, geocodingService) {
+    constructor(hotelRepository, amenityRepository, roomRepository, roomAvailabilityRepository, geocodingService, hotelDataSyncService) {
         this.hotelRepository = hotelRepository;
         this.amenityRepository = amenityRepository;
         this.roomRepository = roomRepository;
         this.roomAvailabilityRepository = roomAvailabilityRepository;
         this.geocodingService = geocodingService;
+        this.hotelDataSyncService = hotelDataSyncService;
     }
     sanitizeHotelOwnerData(hotel) {
         if (hotel.owner) {
@@ -87,6 +90,7 @@ let HotelService = HotelService_1 = class HotelService {
                 await this.hotelRepository.save(savedHotel);
             }
             this.logger.log(`Hotel created successfully: ${savedHotel.id} by owner ${ownerId}`);
+            this.hotelDataSyncService.onHotelCreated(savedHotel);
             return this.findOne(savedHotel.id);
         }
         catch (error) {
@@ -105,6 +109,33 @@ let HotelService = HotelService_1 = class HotelService {
         this.sanitizeHotelsOwnerData(hotels);
         return hotels;
     }
+    async findAllActive(options) {
+        const queryBuilder = this.hotelRepository
+            .createQueryBuilder('hotel')
+            .leftJoinAndSelect('hotel.amenities', 'amenities')
+            .where('hotel.is_active = :isActive', { isActive: true });
+        const sortBy = options.sort_by || 'name';
+        const sortOrder = options.sort_order || 'ASC';
+        switch (sortBy) {
+            case 'rating':
+                queryBuilder.orderBy('hotel.avg_rating', sortOrder);
+                break;
+            case 'name':
+            default:
+                queryBuilder.orderBy('hotel.name', sortOrder);
+                break;
+        }
+        const skip = (options.page - 1) * options.limit;
+        queryBuilder.skip(skip).take(options.limit);
+        const [hotels, total] = await queryBuilder.getManyAndCount();
+        this.sanitizeHotelsOwnerData(hotels);
+        return {
+            hotels,
+            total,
+            page: options.page,
+            limit: options.limit,
+        };
+    }
     async findByOwner(ownerId) {
         const hotels = await this.hotelRepository.find({
             where: { owner_id: ownerId },
@@ -118,17 +149,6 @@ let HotelService = HotelService_1 = class HotelService {
         const hotel = await this.hotelRepository.findOne({
             where: { id },
             relations: ['owner', 'amenities', 'rooms', 'rooms.availability'],
-        });
-        if (!hotel) {
-            throw new common_1.NotFoundException('Hotel not found');
-        }
-        this.sanitizeHotelOwnerData(hotel);
-        return hotel;
-    }
-    async findOneForPublic(id) {
-        const hotel = await this.hotelRepository.findOne({
-            where: { id, is_active: true },
-            relations: ['amenities', 'rooms'],
         });
         if (!hotel) {
             throw new common_1.NotFoundException('Hotel not found');
@@ -173,6 +193,7 @@ let HotelService = HotelService_1 = class HotelService {
         this.logger.log(`Hotel updated: ${id} by user ${userId}`);
         const updatedHotel = await this.findOne(id);
         this.sanitizeHotelOwnerData(updatedHotel);
+        this.hotelDataSyncService.onHotelUpdated(updatedHotel);
         return updatedHotel;
     }
     async delete(id, userId, userRoles) {
@@ -182,6 +203,7 @@ let HotelService = HotelService_1 = class HotelService {
         }
         await this.hotelRepository.delete(id);
         this.logger.log(`Hotel deleted: ${id} by user ${userId}`);
+        this.hotelDataSyncService.onHotelDeleted(id);
     }
     async search(searchDto) {
         const startTime = Date.now();
@@ -246,7 +268,12 @@ let HotelService = HotelService_1 = class HotelService {
             const order = searchDto.sort_order || 'ASC';
             switch (searchDto.sort_by) {
                 case 'price':
-                    queryBuilder.orderBy('MIN(availability.price_per_night)', order);
+                    if (searchDto.check_in_date && searchDto.check_out_date) {
+                        queryBuilder.orderBy('MIN(availability.price_per_night)', order);
+                    }
+                    else {
+                        queryBuilder.orderBy('hotel.name', order);
+                    }
                     break;
                 case 'rating':
                     queryBuilder.orderBy('hotel.avg_rating', order);
@@ -310,6 +337,26 @@ let HotelService = HotelService_1 = class HotelService {
             this.logger.error(`Failed to calculate average rating for hotel ${hotelId}`, error);
         }
     }
+    async findOneForPublic(id) {
+        try {
+            const hotel = await this.hotelRepository.findOne({
+                where: { id, is_active: true },
+                relations: ['amenities', 'rooms', 'owner'],
+            });
+            if (!hotel) {
+                throw new common_1.NotFoundException(`Hotel with ID ${id} not found`);
+            }
+            this.sanitizeHotelsOwnerData([hotel]);
+            return hotel;
+        }
+        catch (error) {
+            if (error instanceof common_1.NotFoundException) {
+                throw error;
+            }
+            this.logger.error(`Failed to find hotel for public: ${id}`, error);
+            throw new common_1.BadRequestException('Failed to retrieve hotel details');
+        }
+    }
     async healthCheck() {
         try {
             const hotelCount = await this.hotelRepository.count();
@@ -348,6 +395,7 @@ exports.HotelService = HotelService = HotelService_1 = __decorate([
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        geocoding_service_1.GeocodingService])
+        geocoding_service_1.GeocodingService,
+        hotel_data_sync_service_1.HotelDataSyncService])
 ], HotelService);
 //# sourceMappingURL=hotel.service.js.map

@@ -27,11 +27,15 @@ import { HotelService } from '../services/hotel.service';
 import { CreateHotelDto } from '../dto/hotel/create-hotel.dto';
 import { UpdateHotelDto } from '../dto/hotel/update-hotel.dto';
 import { SearchHotelDto } from '../dto/hotel/search-hotel.dto';
+import { HotelSearchService } from '../../search/services/hotel-search.service';
 
 @ApiTags('Hotels')
 @Controller('hotels')
 export class HotelController {
-  constructor(private readonly hotelService: HotelService) {}
+  constructor(
+    private readonly hotelService: HotelService,
+    private readonly hotelSearchService: HotelSearchService,
+  ) {}
 
   // Create hotel (HotelOwner, Admin)
   @Post()
@@ -109,6 +113,81 @@ export class HotelController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   getMyHotels(@Request() req) {
     return this.hotelService.findByOwner(req.user.userId);
+  }
+
+  // Get all hotels (Public)
+  @Get('all')
+  @ApiOperation({
+    summary: 'Get all hotels (Public)',
+    description:
+      'Retrieve all active hotels without search filters. This endpoint is public and does not require authentication.',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Number of hotels per page (default: 12)',
+  })
+  @ApiQuery({
+    name: 'sort_by',
+    required: false,
+    description: 'Sort by: name, rating (default: name)',
+  })
+  @ApiQuery({
+    name: 'sort_order',
+    required: false,
+    description: 'Sort order: ASC, DESC (default: ASC)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Hotels retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { type: 'object' },
+        },
+        pagination: {
+          type: 'object',
+          properties: {
+            total: { type: 'number' },
+            page: { type: 'number' },
+            limit: { type: 'number' },
+            has_more: { type: 'boolean' },
+          },
+        },
+      },
+    },
+  })
+  async getAllHotelsPublic(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sort_by') sortBy?: string,
+    @Query('sort_order') sortOrder?: 'ASC' | 'DESC',
+  ) {
+    const searchDto = {
+      page: page ? parseInt(page) : 1,
+      limit: limit ? parseInt(limit) : 12,
+      sort_by: (sortBy as 'name' | 'rating') || 'name',
+      sort_order: sortOrder || 'ASC',
+    };
+
+    const result = await this.hotelService.findAllActive(searchDto);
+    
+    return {
+      data: result.hotels,
+      pagination: {
+        total: result.total,
+        page: result.page,
+        limit: result.limit,
+        has_more: result.page * result.limit < result.total,
+      },
+    };
   }
 
   // Search hotels (Public)
@@ -197,8 +276,27 @@ export class HotelController {
       },
     },
   })
-  search(@Query() searchDto: SearchHotelDto) {
-    return this.hotelService.search(searchDto);
+  async search(@Query() searchDto: SearchHotelDto) {
+    // Convert SearchHotelDto to HotelSearchQuery for Elasticsearch
+    const searchQuery = {
+      query: searchDto.city, // Use city as general search term
+      city: searchDto.city,
+      latitude: searchDto.latitude,
+      longitude: searchDto.longitude,
+      radius_km: searchDto.radius_km,
+      check_in_date: searchDto.check_in_date,
+      check_out_date: searchDto.check_out_date,
+      number_of_guests: searchDto.number_of_guests,
+      min_price: searchDto.min_price,
+      max_price: searchDto.max_price,
+      min_rating: searchDto.min_rating,
+      sort_by: (searchDto.sort_by as 'price' | 'rating' | 'distance' | 'name' | 'relevance') || 'relevance',
+      sort_order: searchDto.sort_order || 'DESC',
+      page: searchDto.page || 1,
+      limit: searchDto.limit || 10,
+    };
+
+    return this.hotelSearchService.searchHotels(searchQuery);
   }
 
   // Get hotel details for public (Public)
@@ -273,7 +371,6 @@ export class HotelController {
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   @ApiResponse({ status: 403, description: 'Forbidden - not owner or admin' })
   @ApiResponse({ status: 404, description: 'Hotel not found' })
-  
   update(
     @Param('id') id: string,
     @Body() updateHotelDto: UpdateHotelDto,

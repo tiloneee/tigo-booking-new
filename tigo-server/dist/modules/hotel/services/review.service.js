@@ -21,12 +21,14 @@ const hotel_review_entity_1 = require("../entities/hotel-review.entity");
 const hotel_entity_1 = require("../entities/hotel.entity");
 const hotel_booking_entity_1 = require("../entities/hotel-booking.entity");
 const user_entity_1 = require("../../user/entities/user.entity");
+const hotel_data_sync_service_1 = require("../../search/services/data-sync/hotel.data-sync.service");
 let ReviewService = ReviewService_1 = class ReviewService {
     reviewRepository;
     hotelRepository;
     bookingRepository;
     userRepository;
     dataSource;
+    hotelDataSyncService;
     logger = new common_1.Logger(ReviewService_1.name);
     SENSITIVE_REVIEW_FIELDS = [
         'is_approved',
@@ -43,24 +45,25 @@ let ReviewService = ReviewService_1 = class ReviewService {
         'created_at',
         'updated_at',
     ];
-    constructor(reviewRepository, hotelRepository, bookingRepository, userRepository, dataSource) {
+    constructor(reviewRepository, hotelRepository, bookingRepository, userRepository, dataSource, hotelDataSyncService) {
         this.reviewRepository = reviewRepository;
         this.hotelRepository = hotelRepository;
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
         this.dataSource = dataSource;
+        this.hotelDataSyncService = hotelDataSyncService;
     }
     sanitizeUserObject(user, fieldsToRemove) {
         if (!user)
             return;
-        fieldsToRemove.forEach(field => {
+        fieldsToRemove.forEach((field) => {
             delete user[field];
         });
     }
     sanitizeReviewObject(review, fieldsToRemove) {
         if (!review)
             return;
-        fieldsToRemove.forEach(field => {
+        fieldsToRemove.forEach((field) => {
             delete review[field];
         });
     }
@@ -151,6 +154,7 @@ let ReviewService = ReviewService_1 = class ReviewService {
                 throw new common_1.NotFoundException('Failed to retrieve created review');
             }
             this.sanitizeReviewData(reviewWithRelations);
+            this.hotelDataSyncService.onReviewChanged(reviewWithRelations);
             return reviewWithRelations;
         });
     }
@@ -211,6 +215,7 @@ let ReviewService = ReviewService_1 = class ReviewService {
                 throw new common_1.NotFoundException('Failed to retrieve updated review');
             }
             this.sanitizeReviewData(updatedReview);
+            this.hotelDataSyncService.onReviewChanged(updatedReview);
             return updatedReview;
         });
     }
@@ -226,6 +231,7 @@ let ReviewService = ReviewService_1 = class ReviewService {
             await this.updateHotelRating(review.hotel_id, manager);
         });
         this.logger.log(`Review deleted: ${id}`);
+        this.hotelDataSyncService.onReviewChanged(review);
     }
     async moderateReview(id, isApproved, moderationNotes) {
         const review = await this.findOne(id);
@@ -236,6 +242,7 @@ let ReviewService = ReviewService_1 = class ReviewService {
         this.logger.log(`Review ${isApproved ? 'approved' : 'rejected'}: ${id}`);
         const updatedReview = await this.findOne(id);
         this.sanitizeReviewData(updatedReview);
+        this.hotelDataSyncService.onReviewChanged(updatedReview);
         return updatedReview;
     }
     async voteHelpful(reviewId, userId, isHelpful) {
@@ -247,6 +254,7 @@ let ReviewService = ReviewService_1 = class ReviewService {
         });
         const updatedReview = await this.findOne(reviewId);
         this.sanitizeReviewData(updatedReview);
+        this.hotelDataSyncService.onReviewChanged(updatedReview);
         return updatedReview;
     }
     async getReviewStatistics(hotelId) {
@@ -308,6 +316,7 @@ exports.ReviewService = ReviewService = ReviewService_1 = __decorate([
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.DataSource])
+        typeorm_2.DataSource,
+        hotel_data_sync_service_1.HotelDataSyncService])
 ], ReviewService);
 //# sourceMappingURL=review.service.js.map

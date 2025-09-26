@@ -10,6 +10,9 @@ import { HotelBooking } from './entities/hotel-booking.entity';
 import { HotelReview } from './entities/hotel-review.entity';
 import { User } from '../user/entities/user.entity';
 
+// Modules
+import { SearchModule } from '../search/search.module';
+
 // Services
 import { HotelService } from './services/hotel.service';
 import { RoomService } from './services/room.service';
@@ -48,6 +51,7 @@ import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
       HotelReview,
       User,
     ]),
+    SearchModule,
   ],
   controllers: [
     HotelController,
