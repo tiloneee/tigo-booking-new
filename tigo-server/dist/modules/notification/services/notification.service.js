@@ -71,25 +71,56 @@ let NotificationService = class NotificationService {
             },
             relations: ['user'],
         });
-        for (const preference of preferences) {
-            await this.createNotification({
-                type: bulkDto.type,
-                title: bulkDto.title,
-                message: bulkDto.message,
-                user_id: preference.user_id,
-                metadata: bulkDto.metadata,
-            });
-            if (preference.email_enabled) {
-                const notification = await this.notificationRepository.findOne({
-                    where: {
-                        user_id: preference.user_id,
-                        type: bulkDto.type,
-                        title: bulkDto.title,
-                    },
-                    order: { created_at: 'DESC' },
+        if (preferences.length === 0) {
+            const allUsers = await this.preferenceRepository.manager
+                .createQueryBuilder()
+                .select('DISTINCT user_id')
+                .from('notification_preferences', 'np')
+                .getRawMany();
+            const allUserIds = await this.preferenceRepository.manager
+                .createQueryBuilder()
+                .select('id')
+                .from('users', 'u')
+                .getRawMany();
+            for (const user of allUserIds) {
+                const defaultPreference = this.preferenceRepository.create({
+                    user_id: user.id,
+                    type: bulkDto.type,
+                    in_app_enabled: true,
+                    email_enabled: true,
+                    push_enabled: false,
                 });
-                if (notification) {
-                    await this.sendEmailNotification(preference.user_id, notification);
+                await this.preferenceRepository.save(defaultPreference);
+                await this.createNotification({
+                    type: bulkDto.type,
+                    title: bulkDto.title,
+                    message: bulkDto.message,
+                    user_id: user.id,
+                    metadata: bulkDto.metadata,
+                });
+            }
+        }
+        else {
+            for (const preference of preferences) {
+                await this.createNotification({
+                    type: bulkDto.type,
+                    title: bulkDto.title,
+                    message: bulkDto.message,
+                    user_id: preference.user_id,
+                    metadata: bulkDto.metadata,
+                });
+                if (preference.email_enabled) {
+                    const notification = await this.notificationRepository.findOne({
+                        where: {
+                            user_id: preference.user_id,
+                            type: bulkDto.type,
+                            title: bulkDto.title,
+                        },
+                        order: { created_at: 'DESC' },
+                    });
+                    if (notification) {
+                        await this.sendEmailNotification(preference.user_id, notification);
+                    }
                 }
             }
         }

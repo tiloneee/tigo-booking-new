@@ -58,7 +58,8 @@ export function NotificationTest() {
     setSending(testNotif.type)
 
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications`, {
+      // Use the bulk send endpoint to send to all users
+      const response = await fetch(`${API_BASE_URL}/notifications/send/bulk`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${session.accessToken}`,
@@ -66,7 +67,6 @@ export function NotificationTest() {
         },
         body: JSON.stringify({
           type: testNotif.type,
-          user_id: session.user.id || session.user.sub,
           title: testNotif.title,
           message: testNotif.message,
           metadata: {
@@ -183,10 +183,11 @@ export function NotificationTest() {
             Testing Instructions
           </h4>
           <ul className="text-cream-light/70 text-vintage-sm space-y-1">
-            <li>• Click "Send Test" to create a test notification</li>
+            <li>• Click "Send Test" to create a test notification for ALL users</li>
+            <li>• Open multiple browser tabs/windows to test cross-user notifications</li>
             <li>• Check the notification bell in the header for new notifications</li>
             <li>• Test browser notifications (if enabled)</li>
-            <li>• Verify real-time updates work properly</li>
+            <li>• Verify real-time updates work properly across all users</li>
             <li>• Check the notifications page for full list</li>
           </ul>
         </div>

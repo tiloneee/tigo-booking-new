@@ -481,16 +481,6 @@ function HotelsPageContent() {
               {/* Search & Clear Buttons */}
               <div className="flex justify-center gap-4 pt-4">
                 <Button
-                  type="button"
-                  onClick={handleClearSearch}
-                  disabled={searching || loading}
-                  className="px-6 py-4 bg-walnut-darkest/80 border-2 border-copper-accent/30 text-copper-accent font-cinzel font-bold rounded-lg hover:bg-copper-accent/10 hover:border-copper-accent transition-all duration-300 hover:scale-105 disabled:opacity-50 text-vintage-base tracking-wider uppercase"
-                  size="lg"
-                >
-                  <X className="mr-2 h-5 w-5" />
-                  Clear
-                </Button>
-                <Button
                   type="submit"
                   disabled={searching || loading}
                   className="px-8 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50 text-vintage-lg tracking-wider uppercase"
@@ -498,6 +488,16 @@ function HotelsPageContent() {
                 >
                   <Search className="mr-3 h-5 w-5" />
                   {searching ? 'Searching...' : 'Search Hotels'}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleClearSearch}
+                  disabled={searching || loading}
+                  className="px-6 py-4 bg-walnut-light border-2 border-copper-accent/30 text-copper-accent font-cinzel font-bold rounded-lg hover:bg-copper-accent/10 hover:border-copper-accent transition-all duration-300 hover:scale-105 disabled:opacity-50 tracking-wider uppercase"
+                  size="lg"
+                >
+                  <X className="mr-2 h-5 w-5" />
+                  Clear
                 </Button>
               </div>
             </form>

@@ -45,7 +45,7 @@ export default function HotelCard({
   const shouldShowPrice = checkInDate && checkOutDate;
 
   return (
-    <Card className="overflow-hidden hover:shadow-2xl hover:shadow-copper-accent/20 transition-all duration-500 cursor-pointer group bg-walnut-dark/60 border border-copper-accent/20 backdrop-blur-sm">
+    <Card className="overflow-hidden hover:shadow-2xl hover:shadow-copper-accent/20 transition-all duration-500 cursor-pointer group bg-walnut-dark/60 border border-copper-accent/20 backdrop-blur-sm" onClick={handleViewDetails}>
       <div className="flex flex-col md:flex-row">
         {/* Hotel Image */}
         <div className="relative md:w-80 h-48 md:h-auto">
@@ -77,7 +77,7 @@ export default function HotelCard({
               </CardTitle>
               <div className="flex items-center text-cream-light/70 mt-1">
                 <MapPin className="w-4 h-4 mr-1 text-copper-accent" />
-                <span className="text-vintage-sm font-cormorant">{hotel.city}, {hotel.state}</span>
+                <span className="text-vintage-sm font-cormorant">{hotel.city}, {hotel.country}</span>
               </div>
             </div>
             
@@ -162,6 +162,7 @@ export default function HotelCard({
           </div>
         </CardContent>
       </div>
+
     </Card>
   );
 }
