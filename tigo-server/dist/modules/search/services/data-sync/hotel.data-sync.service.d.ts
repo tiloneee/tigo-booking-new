@@ -12,6 +12,8 @@ export declare class HotelDataSyncService implements OnModuleInit {
     private readonly reviewRepository;
     private readonly bookingRepository;
     private readonly logger;
+    private pricingUpdateQueue;
+    private readonly DEBOUNCE_MS;
     constructor(hotelSearchService: HotelSearchService, hotelRepository: Repository<Hotel>, roomRepository: Repository<Room>, reviewRepository: Repository<HotelReview>, bookingRepository: Repository<HotelBooking>);
     onModuleInit(): Promise<void>;
     syncHotel(hotelId: string): Promise<void>;
@@ -24,6 +26,7 @@ export declare class HotelDataSyncService implements OnModuleInit {
     onHotelUpdated(hotel: Hotel): Promise<void>;
     onHotelDeleted(hotelId: string): Promise<void>;
     onRoomAvailabilityChanged(roomId: string): Promise<void>;
+    private debouncePricingUpdate;
     onBookingStatusChanged(booking: HotelBooking): Promise<void>;
     onReviewChanged(review: HotelReview): Promise<void>;
     validateDataConsistency(): Promise<{

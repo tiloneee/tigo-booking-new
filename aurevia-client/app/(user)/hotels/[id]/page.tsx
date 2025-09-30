@@ -57,6 +57,7 @@ function HotelDetailContent() {
     'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=800&h=600&fit=crop',
   ];
 
+  // Initial load - only runs once when component mounts or hotelId changes
   useEffect(() => {
     const fetchHotelDetails = async () => {
       setLoading(true);
@@ -70,11 +71,15 @@ function HotelDetailContent() {
         console.log('✅ Hotel data received:', hotelData);
         setHotel(hotelData);
 
-        // Only fetch rooms if dates are provided, otherwise set empty array
-        if (checkInDate && checkOutDate) {
+        // Only fetch rooms if dates are provided from URL params on initial load
+        const initialCheckIn = searchParams.get('check_in_date');
+        const initialCheckOut = searchParams.get('check_out_date');
+        const initialGuests = parseInt(searchParams.get('number_of_guests') || '2');
+
+        if (initialCheckIn && initialCheckOut) {
           try {
-            console.log('🏠 Fetching rooms for dates:', { checkInDate, checkOutDate, numberOfGuests });
-            const roomsData = await HotelApiService.getHotelRooms(hotelId, checkInDate, checkOutDate, numberOfGuests);
+            console.log('🏠 Fetching rooms for initial dates:', { initialCheckIn, initialCheckOut, initialGuests });
+            const roomsData = await HotelApiService.getHotelRooms(hotelId, initialCheckIn, initialCheckOut, initialGuests);
             console.log('✅ Rooms data received:', roomsData);
             setRooms(roomsData);
           } catch (roomError) {
@@ -96,7 +101,7 @@ function HotelDetailContent() {
     if (hotelId) {
       fetchHotelDetails();
     }
-  }, [hotelId, checkInDate, checkOutDate, numberOfGuests]);
+  }, [hotelId]); // Only depend on hotelId - dates won't trigger reload
 
   const handleBookRoom = (room: Room) => {
     setSelectedRoom(room);
@@ -132,7 +137,7 @@ function HotelDetailContent() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    return new Date(dateString).toLocaleDateString('en-GB', {
       weekday: 'short',
       month: 'short',
       day: 'numeric'
@@ -463,7 +468,7 @@ function HotelDetailContent() {
                           <p className="text-cream-light/60 font-cormorant text-vintage-sm mb-3">
                             Standard room types available:
                           </p>
-                          {['Standard Room', 'Deluxe Suite', 'Vietnamese Heritage Room'].map((roomType, index) => (
+                          {['Standard Room', 'Deluxe Suite', 'Vietnamese Heritage Room'].map((roomType,index, ) => (
                             <div key={index} className="border border-copper-accent/20 rounded-lg p-4 bg-walnut-darkest/20">
                               <h3 className="font-playfair font-semibold text-vintage-lg mb-2 text-cream-light">{roomType}</h3>
                               <p className="text-cream-light/80 text-sm mb-3 font-cormorant">
@@ -522,8 +527,12 @@ function HotelDetailContent() {
                       </div>
                     )}
                   </div>
-                ) : (
-                  rooms.map((room) => (
+                ) : ([...rooms]
+                  .sort((a, b) => {
+                    const priceA = a.pricing?.price_per_night ?? Infinity;
+                    const priceB = b.pricing?.price_per_night ?? Infinity;
+                    return priceA - priceB;
+                  }). map((room) => (
                     <div key={room.id} className="border border-copper-accent/20 rounded-lg p-4 bg-walnut-darkest/20 hover:bg-copper-accent/10 transition-colors">
                       <h3 className="font-playfair font-semibold text-vintage-lg mb-2 text-cream-light">{room.room_type}</h3>
                       <p className="text-cream-light/80 text-sm mb-3 font-cormorant">{room.description}</p>
@@ -539,6 +548,7 @@ function HotelDetailContent() {
                             <span>{room.bed_configuration}</span>
                           </div>
                         )}
+                        
                         {room.size_sqm && (
                           <div className="flex items-center text-sm text-cream-light/80 font-cormorant">
                             <Maximize className="w-4 h-4 mr-2 text-copper-accent" />

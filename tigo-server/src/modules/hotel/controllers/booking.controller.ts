@@ -105,11 +105,19 @@ export class BookingController {
 export class HotelBookingController {
   constructor(private readonly bookingService: BookingService) {}
 
-  // Get all bookings for a specific hotel (Owner/Admin)
+  // // Get all bookings for a specific hotel owner (Owner/Admin)
+  // @Get()
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles('HotelOwner', 'Admin')
+  // getHotelBookingsByOwner(@Param('hotelId') hotelId: string, @Request() req) {
+  //   return this.bookingService.findByHotelOwner(req.user.userId, hotelId);
+  // }
+
+  // Get all bookings for a specific hotel (Admin/owner)
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('HotelOwner', 'Admin')
-  getHotelBookings(@Param('hotelId') hotelId: string, @Request() req) {
-    return this.bookingService.findByHotelOwner(req.user.userId, hotelId);
+  getHotelBookingsByHotel(@Param('hotelId') hotelId: string, @Request() req) {
+    return this.bookingService.findByHotel(hotelId);
   }
 }

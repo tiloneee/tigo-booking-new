@@ -44,6 +44,7 @@ export declare class HotelSearchService {
     private readonly logger;
     constructor(searchService: SearchService, hotelRepository: Repository<Hotel>, roomRepository: Repository<Room>, roomAvailabilityRepository: Repository<RoomAvailability>);
     searchHotels(searchQuery: HotelSearchQuery): Promise<HotelSearchResult>;
+    private filterHotelsByAvailability;
     getAutocompleteSuggestions(query: string, limit?: number): Promise<AutocompleteResult>;
     indexHotel(hotel: Hotel): Promise<void>;
     updateHotel(hotelId: string, updates: Partial<any>): Promise<void>;

@@ -1,12 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CreateBookingData, Hotel, Room } from '@/types/hotel';
 import { HotelApiService } from '@/lib/api/hotels';
-import { User, Phone, Mail, MessageSquare, CreditCard, Shield } from 'lucide-react';
+import { User, Phone, Mail, MessageSquare, CreditCard, Shield, Calendar } from 'lucide-react';
 
 interface BookingFormProps {
   hotel: Hotel;
@@ -29,6 +29,12 @@ export default function BookingForm({
 }: BookingFormProps) {
   const { data: session } = useSession();
   const [loading, setLoading] = useState(false);
+  const [loadingPricing, setLoadingPricing] = useState(true);
+  const [pricingBreakdown, setPricingBreakdown] = useState<{
+    nights: Array<{ date: string; dayName: string; price: number }>;
+    subtotal: number;
+    numberOfNights: number;
+  } | null>(null);
   const [formData, setFormData] = useState({
     guestName: session?.user?.name || '',
     guestEmail: session?.user?.email || '',
@@ -37,18 +43,41 @@ export default function BookingForm({
     agreedToTerms: false,
   });
 
-  // Calculate booking details
-  const calculateNights = () => {
-    const checkIn = new Date(checkInDate);
-    const checkOut = new Date(checkOutDate);
-    const diffTime = Math.abs(checkOut.getTime() - checkIn.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  };
+  // Fetch pricing breakdown on component mount
+  useEffect(() => {
+    const fetchPricingBreakdown = async () => {
+      try {
+        setLoadingPricing(true);
+        const breakdown = await HotelApiService.getRoomPricingBreakdown(
+          room.id,
+          checkInDate,
+          checkOutDate
+        );
+        setPricingBreakdown(breakdown);
+      } catch (error) {
+        console.error('Failed to fetch pricing breakdown:', error);
+        // Fallback to simple calculation
+        const nights = Math.ceil(
+          (new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / (1000 * 60 * 60 * 24)
+        );
+        const pricePerNight = room.pricing?.price_per_night || 100;
+        setPricingBreakdown({
+          nights: [],
+          subtotal: pricePerNight * nights,
+          numberOfNights: nights,
+        });
+      } finally {
+        setLoadingPricing(false);
+      }
+    };
 
-  const nights = calculateNights();
-  const pricePerNight = room.pricing?.price_per_night || 100;
-  const subtotal = pricePerNight * nights;
-  const taxes = subtotal * 0.12; // 12% tax rate
+    fetchPricingBreakdown();
+  }, [room.id, checkInDate, checkOutDate]);
+
+  // Calculate booking details
+  const subtotal = pricingBreakdown?.subtotal || 0;
+  const nights = pricingBreakdown?.numberOfNights || 0;
+  const taxes = subtotal * 0.10; // 10% tax rate
   const total = subtotal + taxes;
 
   const handleInputChange = (field: string, value: string | boolean) => {
@@ -157,13 +186,40 @@ export default function BookingForm({
             </div>
           </div>
 
-          <div className="border-t pt-4 space-y-2">
-            <div className="flex justify-between">
-              <span>${pricePerNight} × {nights} nights</span>
-              <span>${subtotal.toFixed(2)}</span>
+          <div className="border-t pt-4 space-y-3">
+            {/* Nightly Breakdown */}
+            {loadingPricing ? (
+              <div className="text-center py-4 text-gray-500">
+                Loading pricing details...
+              </div>
+            ) : pricingBreakdown && pricingBreakdown.nights.length > 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Calendar className="w-4 h-4 mr-2" />
+                  Nightly Rate Breakdown
+                </div>
+                {pricingBreakdown.nights.map((night, index) => (
+                  <div key={index} className="flex justify-between text-sm pl-6">
+                    <span className="text-gray-600">
+                      {night.dayName} ({new Date(night.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })})
+                    </span>
+                    <span className="font-medium">${night.price.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex justify-between">
+                <span>{nights} night{nights > 1 ? 's' : ''}</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+            )}
+            
+            <div className="flex justify-between pt-2 border-t">
+              <span className="font-medium">Subtotal</span>
+              <span className="font-medium">${subtotal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between">
-              <span>Taxes & fees</span>
+              <span>Taxes & fees (10%)</span>
               <span>${taxes.toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-bold text-lg border-t pt-2">

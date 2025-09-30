@@ -10,6 +10,8 @@ import { HotelBooking } from '../../../hotel/entities/hotel-booking.entity';
 @Injectable()
 export class HotelDataSyncService implements OnModuleInit {
   private readonly logger = new Logger(HotelDataSyncService.name);
+  private pricingUpdateQueue: Map<string, NodeJS.Timeout> = new Map();
+  private readonly DEBOUNCE_MS = 500; // Wait 500ms before processing update
 
   constructor(
     private readonly hotelSearchService: HotelSearchService,
@@ -256,7 +258,7 @@ export class HotelDataSyncService implements OnModuleInit {
   }
 
   /**
-   * Handle room availability changed event
+   * Handle room availability changed event with debouncing
    */
   async onRoomAvailabilityChanged(roomId: string): Promise<void> {
     try {
@@ -265,8 +267,8 @@ export class HotelDataSyncService implements OnModuleInit {
       });
 
       if (room) {
-        await this.updateHotelPricing(room.hotel_id);
-        this.logger.debug(`Room availability change processed: ${roomId}`);
+        this.debouncePricingUpdate(room.hotel_id);
+        this.logger.debug(`Room availability change queued: ${roomId}`);
       }
     } catch (error) {
       this.logger.error(
@@ -274,6 +276,30 @@ export class HotelDataSyncService implements OnModuleInit {
         error,
       );
     }
+  }
+
+  /**
+   * Debounce pricing updates to prevent concurrent updates to the same hotel
+   */
+  private debouncePricingUpdate(hotelId: string): void {
+    // Clear existing timeout if there is one
+    if (this.pricingUpdateQueue.has(hotelId)) {
+      clearTimeout(this.pricingUpdateQueue.get(hotelId)!);
+    }
+
+    // Set new timeout
+    const timeout = setTimeout(async () => {
+      try {
+        await this.updateHotelPricing(hotelId);
+        this.pricingUpdateQueue.delete(hotelId);
+        this.logger.debug(`Hotel ${hotelId} pricing updated (debounced)`);
+      } catch (error) {
+        this.logger.error(`Failed to update hotel ${hotelId} pricing`, error);
+        this.pricingUpdateQueue.delete(hotelId);
+      }
+    }, this.DEBOUNCE_MS);
+
+    this.pricingUpdateQueue.set(hotelId, timeout);
   }
 
   /**

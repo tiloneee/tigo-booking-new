@@ -102,23 +102,67 @@ export class SearchService {
   }
 
   /**
-   * Generic update document method
+   * Generic update document method with retry logic for version conflicts
    */
-  async updateDocument(index: string, id: string, document: any): Promise<any> {
-    try {
-      const result = await this.elasticsearchService.update({
-        index: this.getIndexName(index),
-        id,
-        body: {
-          doc: document,
-        },
-      });
-      this.logger.debug(`Document updated in ${index}`, { id });
-      return result;
-    } catch (error) {
-      this.logger.error(`Failed to update document in ${index}`, error);
-      throw error;
+  async updateDocument(
+    index: string,
+    id: string,
+    document: any,
+    maxRetries: number = 5,
+  ): Promise<any> {
+    let lastError: any;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        const result = await this.elasticsearchService.update({
+          index: this.getIndexName(index),
+          id,
+          body: {
+            doc: document,
+          },
+          retry_on_conflict: 3, // Elasticsearch built-in retry
+        });
+        this.logger.debug(`Document updated in ${index}`, { id });
+        return result;
+      } catch (error: any) {
+        lastError = error;
+
+        // Check if it's a version conflict error
+        const isVersionConflict =
+          error?.meta?.statusCode === 409 ||
+          error?.message?.includes('version_conflict_engine_exception');
+
+        if (isVersionConflict && attempt < maxRetries) {
+          // Exponential backoff: 50ms, 100ms, 200ms, 400ms, 800ms
+          const backoffMs = Math.min(50 * Math.pow(2, attempt), 1000);
+          this.logger.warn(
+            `Version conflict updating ${index}/${id}, retrying in ${backoffMs}ms (attempt ${attempt + 1}/${maxRetries})`,
+          );
+          await this.sleep(backoffMs);
+          continue;
+        }
+
+        // If it's not a version conflict or we've exhausted retries, throw
+        if (attempt === maxRetries) {
+          this.logger.error(
+            `Failed to update document in ${index} after ${maxRetries} retries`,
+            error,
+          );
+        } else {
+          this.logger.error(`Failed to update document in ${index}`, error);
+        }
+        throw error;
+      }
     }
+
+    throw lastError;
+  }
+
+  /**
+   * Sleep utility for retry backoff
+   */
+  private sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**

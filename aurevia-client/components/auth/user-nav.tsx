@@ -7,7 +7,7 @@ import { User, LogOut, MessageCircle } from "lucide-react"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 
 export default function UserNav() {
-  const { data: session, status } = useSession()
+  const { data: session } = useSession()
 
   // if (status === "loading") {
   //   return (
@@ -65,15 +65,18 @@ export default function UserNav() {
         </div>
       </div>
 
-      <Link href="/dashboard">
-        <Button
-          size="sm"
-          variant="outline"
-          className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10 hover:text-copper-accent transition-all duration-300"
-        >
-          Dashboard
-        </Button>
-      </Link>
+      {/* Show dashboard button only for Admin and HotelOwner */}
+      {session.roles && (session.roles.includes('Admin') || session.roles.includes('HotelOwner')) && (
+        <Link href="/admin/dashboard">
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10 hover:text-copper-accent transition-all duration-300"
+          >
+            Dashboard
+          </Button>
+        </Link>
+      )}
 
       <Link href="/chat">
         <Button

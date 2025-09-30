@@ -263,6 +263,23 @@ export class BookingService {
     return bookings;
   }
 
+  async findByHotel(
+    hotelId: string,
+  ): Promise<HotelBooking[]> {
+    const queryBuilder = this.bookingRepository
+      .createQueryBuilder('booking')
+      .leftJoinAndSelect('booking.hotel', 'hotel')
+      .leftJoinAndSelect('booking.room', 'room')
+      .leftJoinAndSelect('booking.user', 'user')
+      .where('booking.hotel_id = :hotelId', { hotelId });
+
+    const bookings = await queryBuilder
+      .orderBy('booking.created_at', 'DESC')
+      .getMany();
+    this.sanitizeBookingsOwnerData(bookings);
+    return bookings;
+  }
+
   async findAll(): Promise<HotelBooking[]> {
     const bookings = await this.bookingRepository.find({
       relations: ['hotel', 'room', 'user'],

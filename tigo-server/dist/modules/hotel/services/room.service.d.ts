@@ -19,6 +19,9 @@ export declare class RoomService {
     private sanitizeRoomOwnerData;
     private sanitizeRoomsOwnerData;
     create(createRoomDto: CreateRoomDto, userId: string, userRoles: string[]): Promise<Room>;
+    findPublicRoomsByHotel(hotelId: string, checkInDate?: string, checkOutDate?: string, numberOfGuests?: number): Promise<{
+        data: any[];
+    }>;
     findByHotel(hotelId: string, userId: string, userRoles: string[]): Promise<Room[]>;
     findOne(id: string): Promise<Room>;
     update(id: string, updateRoomDto: UpdateRoomDto, userId: string, userRoles: string[]): Promise<Room>;
@@ -31,5 +34,14 @@ export declare class RoomService {
         available: boolean;
         totalPrice?: number;
         unavailableDates?: string[];
+    }>;
+    getPricingBreakdown(roomId: string, checkInDate: string, checkOutDate: string): Promise<{
+        nights: Array<{
+            date: string;
+            dayName: string;
+            price: number;
+        }>;
+        subtotal: number;
+        numberOfNights: number;
     }>;
 }

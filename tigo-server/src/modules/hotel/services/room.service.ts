@@ -62,11 +62,15 @@ export class RoomService {
   }
 
   private sanitizeRoomOwnerData(room: Room): void {
-    this.sanitizeUserObject(room.hotel.owner, this.SENSITIVE_OWNER_FIELDS);
+    // Only sanitize if room, hotel and owner are loaded
+    if (room && room.hotel && room.hotel.owner) {
+      this.sanitizeUserObject(room.hotel.owner, this.SENSITIVE_OWNER_FIELDS);
+    }
   }
 
   private sanitizeRoomsOwnerData(rooms: Room[]): void {
-    rooms.forEach((room) => this.sanitizeRoomOwnerData(room));
+    // Filter out any undefined/null rooms before sanitizing
+    rooms.filter(room => room).forEach((room) => this.sanitizeRoomOwnerData(room));
   }
 
   async create(
@@ -107,6 +111,97 @@ export class RoomService {
     return savedRoom;
   }
 
+  async findPublicRoomsByHotel(
+    hotelId: string,
+    checkInDate?: string,
+    checkOutDate?: string,
+    numberOfGuests?: number,
+  ): Promise<{ data: any[] }> {
+    // Verify hotel exists
+    const hotel = await this.hotelRepository.findOne({
+      where: { id: hotelId },
+    });
+    
+    if (!hotel) {
+      throw new NotFoundException('Hotel not found');
+    }
+
+    // Get active rooms
+    const rooms = await this.roomRepository.find({
+      where: { hotel_id: hotelId, is_active: true },
+      order: { room_number: 'ASC' },
+    });
+
+    // If no date range provided, return basic room info
+    if (!checkInDate || !checkOutDate) {
+      return {
+        data: rooms.map(room => ({
+          id: room.id,
+          room_number: room.room_number,
+          room_type: room.room_type,
+          description: room.description,
+          max_occupancy: room.max_occupancy,
+          bed_configuration: room.bed_configuration,
+          size_sqm: room.size_sqm,
+        })),
+      };
+    }
+
+    // Get availability for each room in the date range
+    const roomsWithPricing = await Promise.all(
+      rooms.map(async (room) => {
+        // Check if room meets guest requirements
+        if (numberOfGuests && room.max_occupancy < numberOfGuests) {
+          return null; // Skip rooms that can't accommodate guests
+        }
+
+        // Get availability for this room in the date range
+        const availability = await this.roomAvailabilityRepository
+          .createQueryBuilder('avail')
+          .where('avail.room_id = :roomId', { roomId: room.id })
+          .andWhere('avail.date >= :checkIn', { checkIn: checkInDate })
+          .andWhere('avail.date < :checkOut', { checkOut: checkOutDate })
+          .andWhere('avail.status = :status', { status: 'Available' })
+          .andWhere('avail.available_units > 0')
+          .getMany();
+
+        // Calculate required nights
+        const startDate = new Date(checkInDate);
+        const endDate = new Date(checkOutDate);
+        const nights = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+
+        // Check if all nights are available
+        if (availability.length < nights) {
+          return null; // Not all nights available
+        }
+
+        // Calculate average price per night
+        const avgPricePerNight = availability.reduce((sum, avail) => {
+          return sum + parseFloat(avail.price_per_night.toString());
+        }, 0) / availability.length;
+
+        return {
+          id: room.id,
+          room_number: room.room_number,
+          room_type: room.room_type,
+          description: room.description,
+          max_occupancy: room.max_occupancy,
+          bed_configuration: room.bed_configuration,
+          size_sqm: room.size_sqm,
+          pricing: {
+            price_per_night: avgPricePerNight.toFixed(2),
+            available_units: Math.min(...availability.map(a => a.available_units)),
+          },
+        };
+      }),
+    );
+
+    // Filter out null entries (rooms without availability)
+    const availableRooms = roomsWithPricing.filter(room => room !== null);
+
+    return { data: availableRooms };
+  }
+
   async findByHotel(
     hotelId: string,
     userId: string,
@@ -116,11 +211,11 @@ export class RoomService {
     const hotel = await this.hotelRepository.findOne({
       where: { id: hotelId },
     });
-    console.log(hotel);
+    
     if (!hotel) {
       throw new NotFoundException('Hotel not found');
     }
-    console.log(hotel.owner_id);
+    
     // Check ownership or admin role
     if (hotel.owner_id !== userId && !userRoles.includes('Admin')) {
       throw new ForbiddenException(
@@ -462,6 +557,68 @@ export class RoomService {
     return {
       available: true,
       totalPrice,
+    };
+  }
+
+  async getPricingBreakdown(
+    roomId: string,
+    checkInDate: string,
+    checkOutDate: string,
+  ): Promise<{
+    nights: Array<{ date: string; dayName: string; price: number }>;
+    subtotal: number;
+    numberOfNights: number;
+  }> {
+    // Validate room exists
+    const room = await this.roomRepository.findOne({
+      where: { id: roomId },
+    });
+
+    if (!room) {
+      throw new NotFoundException('Room not found');
+    }
+
+    // Get availability for the date range
+    const availability = await this.roomAvailabilityRepository
+      .createQueryBuilder('avail')
+      .where('avail.room_id = :roomId', { roomId })
+      .andWhere('avail.date >= :checkIn', { checkIn: checkInDate })
+      .andWhere('avail.date < :checkOut', { checkOut: checkOutDate })
+      .orderBy('avail.date', 'ASC')
+      .getMany();
+
+    // Generate all required dates
+    const startDate = new Date(checkInDate);
+    const endDate = new Date(checkOutDate);
+    const nights: Array<{ date: string; dayName: string; price: number }> = [];
+    let subtotal = 0;
+
+    for (let d = new Date(startDate); d < endDate; d.setDate(d.getDate() + 1)) {
+      const dateStr = d.toISOString().split('T')[0];
+      const availRecord = availability.find((a) => a.date === dateStr);
+
+      if (availRecord) {
+        const price = parseFloat(availRecord.price_per_night.toString());
+        nights.push({
+          date: dateStr,
+          dayName: d.toLocaleDateString('en-US', { weekday: 'long' }),
+          price,
+        });
+        subtotal += price;
+      } else {
+        // Date not available
+        nights.push({
+          date: dateStr,
+          dayName: d.toLocaleDateString('en-US', { weekday: 'long' }),
+          price: 0,
+        });
+      }
+    }
+
+    return {
+      nights,
+      subtotal,
+      numberOfNights: nights.length,
     };
   }
 }

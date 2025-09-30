@@ -29,6 +29,8 @@ let HotelDataSyncService = HotelDataSyncService_1 = class HotelDataSyncService {
     reviewRepository;
     bookingRepository;
     logger = new common_1.Logger(HotelDataSyncService_1.name);
+    pricingUpdateQueue = new Map();
+    DEBOUNCE_MS = 500;
     constructor(hotelSearchService, hotelRepository, roomRepository, reviewRepository, bookingRepository) {
         this.hotelSearchService = hotelSearchService;
         this.hotelRepository = hotelRepository;
@@ -211,13 +213,30 @@ let HotelDataSyncService = HotelDataSyncService_1 = class HotelDataSyncService {
                 where: { id: roomId },
             });
             if (room) {
-                await this.updateHotelPricing(room.hotel_id);
-                this.logger.debug(`Room availability change processed: ${roomId}`);
+                this.debouncePricingUpdate(room.hotel_id);
+                this.logger.debug(`Room availability change queued: ${roomId}`);
             }
         }
         catch (error) {
             this.logger.error(`Failed to process room availability change: ${roomId}`, error);
         }
+    }
+    debouncePricingUpdate(hotelId) {
+        if (this.pricingUpdateQueue.has(hotelId)) {
+            clearTimeout(this.pricingUpdateQueue.get(hotelId));
+        }
+        const timeout = setTimeout(async () => {
+            try {
+                await this.updateHotelPricing(hotelId);
+                this.pricingUpdateQueue.delete(hotelId);
+                this.logger.debug(`Hotel ${hotelId} pricing updated (debounced)`);
+            }
+            catch (error) {
+                this.logger.error(`Failed to update hotel ${hotelId} pricing`, error);
+                this.pricingUpdateQueue.delete(hotelId);
+            }
+        }, this.DEBOUNCE_MS);
+        this.pricingUpdateQueue.set(hotelId, timeout);
     }
     async onBookingStatusChanged(booking) {
         try {

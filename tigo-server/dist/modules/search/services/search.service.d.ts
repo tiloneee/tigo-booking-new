@@ -15,7 +15,8 @@ export declare class SearchService {
     indexExists(indexName: string): Promise<boolean>;
     search(params: any): Promise<any>;
     indexDocument(index: string, document: any, id?: string): Promise<any>;
-    updateDocument(index: string, id: string, document: any): Promise<any>;
+    updateDocument(index: string, id: string, document: any, maxRetries?: number): Promise<any>;
+    private sleep;
     deleteDocument(index: string, id: string): Promise<any>;
     bulk(operations: any[]): Promise<any>;
 }

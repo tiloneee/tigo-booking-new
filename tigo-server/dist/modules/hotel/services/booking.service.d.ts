@@ -24,6 +24,7 @@ export declare class BookingService {
     create(createBookingDto: CreateBookingDto, userId: string): Promise<HotelBooking>;
     findByUser(userId: string): Promise<HotelBooking[]>;
     findByHotelOwner(ownerId: string, hotelId?: string): Promise<HotelBooking[]>;
+    findByHotel(hotelId: string): Promise<HotelBooking[]>;
     findAll(): Promise<HotelBooking[]>;
     findOne(id: string): Promise<HotelBooking>;
     updateStatus(id: string, updateBookingDto: UpdateBookingDto, userId: string, userRoles: string[]): Promise<HotelBooking>;

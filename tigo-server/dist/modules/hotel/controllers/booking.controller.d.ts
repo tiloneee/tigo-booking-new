@@ -21,5 +21,5 @@ export declare class BookingController {
 export declare class HotelBookingController {
     private readonly bookingService;
     constructor(bookingService: BookingService);
-    getHotelBookings(hotelId: string, req: any): Promise<import("../entities/hotel-booking.entity").HotelBooking[]>;
+    getHotelBookingsByHotel(hotelId: string, req: any): Promise<import("../entities/hotel-booking.entity").HotelBooking[]>;
 }

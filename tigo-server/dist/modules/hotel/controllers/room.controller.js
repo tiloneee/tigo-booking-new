@@ -55,6 +55,9 @@ let RoomController = class RoomController {
     checkAvailability(roomId, checkInDate, checkOutDate, units = '1') {
         return this.roomService.checkAvailability(roomId, checkInDate, checkOutDate, parseInt(units));
     }
+    getPricingBreakdown(roomId, checkInDate, checkOutDate) {
+        return this.roomService.getPricingBreakdown(roomId, checkInDate, checkOutDate);
+    }
 };
 exports.RoomController = RoomController;
 __decorate([
@@ -150,6 +153,15 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], RoomController.prototype, "checkAvailability", null);
+__decorate([
+    (0, common_1.Get)(':id/pricing-breakdown'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Query)('check_in_date')),
+    __param(2, (0, common_1.Query)('check_out_date')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String]),
+    __metadata("design:returntype", void 0)
+], RoomController.prototype, "getPricingBreakdown", null);
 exports.RoomController = RoomController = __decorate([
     (0, common_1.Controller)('rooms'),
     __metadata("design:paramtypes", [room_service_1.RoomService])
@@ -158,6 +170,9 @@ let HotelRoomController = class HotelRoomController {
     roomService;
     constructor(roomService) {
         this.roomService = roomService;
+    }
+    async findPublicRoomsByHotel(hotelId, checkInDate, checkOutDate, numberOfGuests) {
+        return this.roomService.findPublicRoomsByHotel(hotelId, checkInDate, checkOutDate, numberOfGuests ? parseInt(numberOfGuests) : undefined);
     }
     findAllByHotel(hotelId, req) {
         return this.roomService.findByHotel(hotelId, req.user.userId, req.user.roles);
@@ -172,6 +187,16 @@ let HotelRoomController = class HotelRoomController {
     }
 };
 exports.HotelRoomController = HotelRoomController;
+__decorate([
+    (0, common_1.Get)('public'),
+    __param(0, (0, common_1.Param)('hotelId')),
+    __param(1, (0, common_1.Query)('check_in_date')),
+    __param(2, (0, common_1.Query)('check_out_date')),
+    __param(3, (0, common_1.Query)('number_of_guests')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, String, String]),
+    __metadata("design:returntype", Promise)
+], HotelRoomController.prototype, "findPublicRoomsByHotel", null);
 __decorate([
     (0, common_1.Get)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

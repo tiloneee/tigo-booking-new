@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { SearchService } from './search.service';
 import { Hotel } from '../../hotel/entities/hotel.entity';
 import { Room } from '../../hotel/entities/room.entity';
@@ -137,6 +137,12 @@ export class HotelSearchService {
             minimum_should_match: 1,
           }
         });
+      } else {
+        // When no text query is provided, match all hotels
+        // This allows filtering by dates, price, rating, etc. to work
+        must.push({
+          match_all: {}
+        });
       }
 
       // Specific city filter (only use if explicitly different from query)
@@ -205,33 +211,13 @@ export class HotelSearchService {
         });
       }
 
-      // Availability filter
-      if (check_in_date && check_out_date && number_of_guests) {
-        must.push({
-          nested: {
-            path: 'availability',
-            query: {
-              bool: {
-                must: [
-                  {
-                    range: {
-                      'availability.date': {
-                        gte: check_in_date,
-                        lte: check_out_date,
-                      },
-                    },
-                  },
-                  {
-                    range: {
-                      'availability.available_rooms': { gt: 0 },
-                    },
-                  },
-                ],
-              },
-            },
-          },
-        });
-      }
+      // NOTE: Availability filtering is NOT done in Elasticsearch because:
+      // 1. Availability data is not indexed (changes too frequently)
+      // 2. It's handled in PostgreSQL for accuracy
+      // 3. Frontend/backend will filter by availability separately
+      
+      // If dates are provided, we still return all matching hotels
+      // The actual availability check happens when fetching room details
 
       // Build sort
       const sort = this.buildSort(sort_by, sort_order, latitude, longitude);
@@ -306,13 +292,25 @@ export class HotelSearchService {
       console.log(result.hits.hits, "HOTEL SEARCH HITS Hit: ");
       console.log(result.hits, "HOTEL SEARCH HITS: ");
 
+      let hotels = result.hits.hits.map((hit: any) => ({
+        id: hit._id,
+        score: hit._score,
+        ...hit._source,
+      }));
+
+      // Filter by availability if dates are provided (query PostgreSQL)
+      if (check_in_date && check_out_date) {
+        hotels = await this.filterHotelsByAvailability(
+          hotels,
+          check_in_date,
+          check_out_date,
+          number_of_guests,
+        );
+      }
+
       return {
-        hotels: result.hits.hits.map((hit: any) => ({
-          id: hit._id,
-          score: hit._score,
-          ...hit._source,
-        })),
-        total: result.hits.total.value,
+        hotels,
+        total: hotels.length,
         page,
         limit,
         aggregations: result.aggregations,
@@ -320,6 +318,58 @@ export class HotelSearchService {
     } catch (error) {
       this.logger.error('Hotel search failed', error);
       throw error;
+    }
+  }
+
+  /**
+   * Filter hotels by availability using PostgreSQL
+   */
+  private async filterHotelsByAvailability(
+    hotels: any[],
+    checkInDate: string,
+    checkOutDate: string,
+    numberOfGuests?: number,
+  ): Promise<any[]> {
+    if (hotels.length === 0) {
+      return hotels;
+    }
+
+    try {
+      const hotelIds = hotels.map(h => h.id);
+
+      // Generate required date range
+      const startDate = new Date(checkInDate);
+      const endDate = new Date(checkOutDate);
+      const requiredDates: string[] = [];
+      
+      for (let d = new Date(startDate); d < endDate; d.setDate(d.getDate() + 1)) {
+        requiredDates.push(d.toISOString().split('T')[0]);
+      }
+
+      // Find hotels that have rooms with availability for all required dates
+      const availableRooms = await this.roomAvailabilityRepository
+        .createQueryBuilder('avail')
+        .innerJoin('avail.room', 'room')
+        .where('room.hotel_id IN (:...hotelIds)', { hotelIds })
+        .andWhere('room.is_active = :isActive', { isActive: true })
+        .andWhere('avail.date IN (:...dates)', { dates: requiredDates })
+        .andWhere('avail.status = :status', { status: 'Available' })
+        .andWhere('avail.available_units > 0')
+        .andWhere(numberOfGuests ? 'room.max_occupancy >= :guests' : '1=1', { guests: numberOfGuests })
+        .select('room.hotel_id', 'hotelId')
+        .addSelect('COUNT(DISTINCT avail.date)', 'availableDates')
+        .groupBy('room.hotel_id')
+        .having('COUNT(DISTINCT avail.date) >= :requiredNights', { requiredNights: requiredDates.length })
+        .getRawMany();
+
+      const availableHotelIds = new Set(availableRooms.map(r => r.hotelId));
+
+      // Filter hotels to only those with availability
+      return hotels.filter(hotel => availableHotelIds.has(hotel.id));
+    } catch (error) {
+      this.logger.error('Failed to filter hotels by availability', error);
+      // Return all hotels if filtering fails (graceful degradation)
+      return hotels;
     }
   }
 

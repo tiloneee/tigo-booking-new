@@ -85,22 +85,44 @@ let SearchService = SearchService_1 = class SearchService {
             throw error;
         }
     }
-    async updateDocument(index, id, document) {
-        try {
-            const result = await this.elasticsearchService.update({
-                index: this.getIndexName(index),
-                id,
-                body: {
-                    doc: document,
-                },
-            });
-            this.logger.debug(`Document updated in ${index}`, { id });
-            return result;
+    async updateDocument(index, id, document, maxRetries = 5) {
+        let lastError;
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                const result = await this.elasticsearchService.update({
+                    index: this.getIndexName(index),
+                    id,
+                    body: {
+                        doc: document,
+                    },
+                    retry_on_conflict: 3,
+                });
+                this.logger.debug(`Document updated in ${index}`, { id });
+                return result;
+            }
+            catch (error) {
+                lastError = error;
+                const isVersionConflict = error?.meta?.statusCode === 409 ||
+                    error?.message?.includes('version_conflict_engine_exception');
+                if (isVersionConflict && attempt < maxRetries) {
+                    const backoffMs = Math.min(50 * Math.pow(2, attempt), 1000);
+                    this.logger.warn(`Version conflict updating ${index}/${id}, retrying in ${backoffMs}ms (attempt ${attempt + 1}/${maxRetries})`);
+                    await this.sleep(backoffMs);
+                    continue;
+                }
+                if (attempt === maxRetries) {
+                    this.logger.error(`Failed to update document in ${index} after ${maxRetries} retries`, error);
+                }
+                else {
+                    this.logger.error(`Failed to update document in ${index}`, error);
+                }
+                throw error;
+            }
         }
-        catch (error) {
-            this.logger.error(`Failed to update document in ${index}`, error);
-            throw error;
-        }
+        throw lastError;
+    }
+    sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
     }
     async deleteDocument(index, id) {
         try {

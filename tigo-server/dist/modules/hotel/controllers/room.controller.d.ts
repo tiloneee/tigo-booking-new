@@ -18,10 +18,22 @@ export declare class RoomController {
         totalPrice?: number;
         unavailableDates?: string[];
     }>;
+    getPricingBreakdown(roomId: string, checkInDate: string, checkOutDate: string): Promise<{
+        nights: Array<{
+            date: string;
+            dayName: string;
+            price: number;
+        }>;
+        subtotal: number;
+        numberOfNights: number;
+    }>;
 }
 export declare class HotelRoomController {
     private readonly roomService;
     constructor(roomService: RoomService);
+    findPublicRoomsByHotel(hotelId: string, checkInDate?: string, checkOutDate?: string, numberOfGuests?: string): Promise<{
+        data: any[];
+    }>;
     findAllByHotel(hotelId: string, req: any): Promise<import("../entities/room.entity").Room[]>;
     createForHotel(hotelId: string, createRoomDto: CreateRoomDto, req: any): Promise<import("../entities/room.entity").Room>;
 }

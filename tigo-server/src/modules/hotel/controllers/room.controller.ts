@@ -152,11 +152,37 @@ export class RoomController {
       parseInt(units),
     );
   }
+
+  // Get nightly price breakdown (Public)
+  @Get(':id/pricing-breakdown')
+  getPricingBreakdown(
+    @Param('id') roomId: string,
+    @Query('check_in_date') checkInDate: string,
+    @Query('check_out_date') checkOutDate: string,
+  ) {
+    return this.roomService.getPricingBreakdown(roomId, checkInDate, checkOutDate);
+  }
 }
 
 @Controller('hotels/:hotelId/rooms')
 export class HotelRoomController {
   constructor(private readonly roomService: RoomService) {}
+
+  // Get all rooms for a hotel with availability (Public)
+  @Get('public')
+  async findPublicRoomsByHotel(
+    @Param('hotelId') hotelId: string,
+    @Query('check_in_date') checkInDate?: string,
+    @Query('check_out_date') checkOutDate?: string,
+    @Query('number_of_guests') numberOfGuests?: string,
+  ) {
+    return this.roomService.findPublicRoomsByHotel(
+      hotelId,
+      checkInDate,
+      checkOutDate,
+      numberOfGuests ? parseInt(numberOfGuests) : undefined,
+    );
+  }
 
   // Get all rooms for a hotel (Owner/Admin)
   @Get()

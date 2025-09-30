@@ -130,8 +130,8 @@ let HotelBookingController = class HotelBookingController {
     constructor(bookingService) {
         this.bookingService = bookingService;
     }
-    getHotelBookings(hotelId, req) {
-        return this.bookingService.findByHotelOwner(req.user.userId, hotelId);
+    getHotelBookingsByHotel(hotelId, req) {
+        return this.bookingService.findByHotel(hotelId);
     }
 };
 exports.HotelBookingController = HotelBookingController;
@@ -144,7 +144,7 @@ __decorate([
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
-], HotelBookingController.prototype, "getHotelBookings", null);
+], HotelBookingController.prototype, "getHotelBookingsByHotel", null);
 exports.HotelBookingController = HotelBookingController = __decorate([
     (0, common_1.Controller)('hotels/:hotelId/bookings'),
     __metadata("design:paramtypes", [booking_service_1.BookingService])

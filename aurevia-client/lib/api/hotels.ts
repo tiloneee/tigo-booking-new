@@ -99,7 +99,7 @@ export class HotelApiService {
   }
 
   /**
-   * Get hotel rooms with availability
+   * Get hotel rooms with availability (public endpoint)
    */
   static async getHotelRooms(
     hotelId: string, 
@@ -113,7 +113,7 @@ export class HotelApiService {
     if (numberOfGuests) searchParams.set('number_of_guests', numberOfGuests.toString());
 
     const response = await fetch(
-      `${API_BASE_URL}/hotels/${hotelId}/rooms?${searchParams.toString()}`
+      `${API_BASE_URL}/hotels/${hotelId}/rooms/public?${searchParams.toString()}`
     );
     
     if (!response.ok) {
@@ -122,6 +122,33 @@ export class HotelApiService {
 
     const data = await response.json();
     return data.data;
+  }
+
+  /**
+   * Get nightly price breakdown for a room
+   */
+  static async getRoomPricingBreakdown(
+    roomId: string,
+    checkInDate: string,
+    checkOutDate: string
+  ): Promise<{
+    nights: Array<{ date: string; dayName: string; price: number }>;
+    subtotal: number;
+    numberOfNights: number;
+  }> {
+    const searchParams = new URLSearchParams();
+    searchParams.set('check_in_date', checkInDate);
+    searchParams.set('check_out_date', checkOutDate);
+
+    const response = await fetch(
+      `${API_BASE_URL}/rooms/${roomId}/pricing-breakdown?${searchParams.toString()}`
+    );
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch pricing breakdown: ${response.statusText}`);
+    }
+
+    return await response.json();
   }
 
   /**

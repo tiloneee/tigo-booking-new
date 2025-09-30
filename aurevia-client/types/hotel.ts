@@ -145,6 +145,8 @@ export interface CreateBookingData {
   guest_phone?: string;
   guest_email?: string;
   units_requested?: number;
+  total_price?: number;
+  status?: 'Pending' | 'Confirmed' | 'Cancelled' | 'Completed';
 }
 
 export interface Booking {

@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Hotel, HotelSearchQuery, HotelSearchResult } from '@/types/hotel';
 import { HotelApiService } from '@/lib/api/hotels';
-import { Search, Filter, SortAsc, MapPin, Calendar, Users, Home, Plus, Minus, Navigation, Sparkles } from 'lucide-react';
+import { Search, Filter, SortAsc, MapPin, Calendar, Users, Home, Plus, Minus, Navigation, Sparkles, X } from 'lucide-react';
 import AutocompleteSearch from '@/components/hotels/autocomplete-search';
 import SearchAggregations from '@/components/hotels/search-aggregations';
 import Header from '@/components/header';
@@ -86,6 +86,8 @@ function HotelsPageContent() {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       };
+
+
       
       setUserLocation(newLocation);
       setFilters(prev => ({ ...prev, sortBy: 'distance' }));
@@ -108,14 +110,12 @@ function HotelsPageContent() {
 
   // Build search query
   const buildSearchQuery = (): HotelSearchQuery => {
-    return {
+    const searchQuery: HotelSearchQuery = {
       query: searchForm.destination || undefined, // General search term (searches hotel names, cities, descriptions)
       // Don't send city separately since query already handles city search
       latitude: userLocation?.latitude,
       longitude: userLocation?.longitude,
       radius_km: userLocation ? 50 : undefined, // 50km radius when using geolocation
-      check_in_date: searchForm.checkInDate || undefined,
-      check_out_date: searchForm.checkOutDate || undefined,
       number_of_guests: searchForm.numberOfGuests,
       number_of_rooms: searchForm.numberOfRooms,
       amenity_ids: filters.selectedAmenities.length > 0 ? filters.selectedAmenities : undefined,
@@ -127,6 +127,14 @@ function HotelsPageContent() {
       page: currentPage,
       limit: 12,
     };
+
+    // Only include dates if both are provided (prevent partial date searches)
+    if (searchForm.checkInDate && searchForm.checkOutDate) {
+      searchQuery.check_in_date = searchForm.checkInDate;
+      searchQuery.check_out_date = searchForm.checkOutDate;
+    }
+
+    return searchQuery;
   };
 
   // Fetch all hotels or search with filters
@@ -215,6 +223,28 @@ function HotelsPageContent() {
     await fetchHotels(true, true);
   };
 
+  const handleClearSearch = async () => {
+    setSearchForm({
+      destination: '',
+      checkInDate: '',
+      checkOutDate: '',
+      numberOfGuests: 2,
+      numberOfRooms: 1,
+    });
+    setFilters({
+      sortBy: 'relevance',
+      sortOrder: 'DESC',
+      minPrice: undefined,
+      maxPrice: undefined,
+      minRating: undefined,
+      selectedAmenities: [],
+    });
+    setUserLocation(null);
+    setCurrentPage(1);
+    // Reload all hotels without search criteria
+    await fetchHotels(false);
+  };
+
   const handleSortChange = (newSortBy: 'price' | 'rating' | 'name' | 'relevance' | 'distance') => {
     setFilters(prev => ({
       ...prev,
@@ -273,7 +303,7 @@ function HotelsPageContent() {
             <h2 className="text-vintage-xl font-playfair font-semibold text-cream-light mb-2">Oops! Something went wrong</h2>
             <p className="text-cream-light/70 font-cormorant mb-4">{error}</p>
             <Button 
-              onClick={fetchHotels}
+              onClick={() => fetchHotels()}
               className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold"
             >
               Try Again
@@ -326,9 +356,7 @@ function HotelsPageContent() {
                     <Search className="w-4 h-4 mr-2 text-copper-accent" />
                     Search Hotels
                   </label>
-                  <div className="text-vintage-xs text-cream-light/60 font-cormorant mb-2">
-                    Find by hotel name or city • Get smart suggestions as you type
-                  </div>
+          
                   <div className="flex gap-2">
                     <div className="flex-1">
                       <AutocompleteSearch
@@ -338,6 +366,7 @@ function HotelsPageContent() {
                         className=""
                       />
                     </div>
+                    
                     <Button
                       type="button"
                       onClick={getUserLocation}
@@ -449,8 +478,18 @@ function HotelsPageContent() {
                 </div>
               </div>
 
-              {/* Search Button */}
-              <div className="flex justify-center pt-4">
+              {/* Search & Clear Buttons */}
+              <div className="flex justify-center gap-4 pt-4">
+                <Button
+                  type="button"
+                  onClick={handleClearSearch}
+                  disabled={searching || loading}
+                  className="px-6 py-4 bg-walnut-darkest/80 border-2 border-copper-accent/30 text-copper-accent font-cinzel font-bold rounded-lg hover:bg-copper-accent/10 hover:border-copper-accent transition-all duration-300 hover:scale-105 disabled:opacity-50 text-vintage-base tracking-wider uppercase"
+                  size="lg"
+                >
+                  <X className="mr-2 h-5 w-5" />
+                  Clear
+                </Button>
                 <Button
                   type="submit"
                   disabled={searching || loading}
@@ -643,13 +682,24 @@ function HotelsPageContent() {
                       </div>
                       <p className="text-cream-light/60 font-cormorant text-vintage-base mb-4">
                         {searchForm.destination ? 
-                          `No hotels found in "${searchForm.destination}". Try searching for a different city.` : 
+                          `No hotels found matching "${searchForm.destination}".` : 
+                          searchForm.checkInDate && searchForm.checkOutDate ?
+                          'No hotels have availability for these dates.' :
                           'Try adjusting your search criteria or filters.'
                         }
                       </p>
-                      <div className="text-cream-light/50 font-cormorant text-vintage-sm">
-                        Available cities: Ho Chi Minh City, Hanoi, Da Nang
+                      <div className="text-cream-light/50 font-cormorant text-vintage-sm space-y-2">
+                        <div>💡 Try:</div>
+                        <div>• Different dates</div>
+                        <div>• Removing some filters</div>
+                        <div>• Searching by city: Ho Chi Minh City, Hanoi, Da Nang</div>
                       </div>
+                      <Button
+                        onClick={handleClearSearch}
+                        className="mt-6 bg-copper-accent/20 text-copper-accent border border-copper-accent/30 hover:bg-copper-accent/30"
+                      >
+                        Clear All Filters
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -714,6 +764,7 @@ function HotelsPageContent() {
                             minPrice: undefined,
                             maxPrice: undefined,
                             minRating: undefined,
+                            selectedAmenities: [],
                           });
                           setCurrentPage(1);
                         }}

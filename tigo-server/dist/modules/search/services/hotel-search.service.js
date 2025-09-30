@@ -84,6 +84,11 @@ let HotelSearchService = HotelSearchService_1 = class HotelSearchService {
                     }
                 });
             }
+            else {
+                must.push({
+                    match_all: {}
+                });
+            }
             if (city && city !== query) {
                 must.push({
                     match: {
@@ -134,32 +139,6 @@ let HotelSearchService = HotelSearchService_1 = class HotelSearchService {
                         query: {
                             terms: {
                                 'amenities.id': amenity_ids,
-                            },
-                        },
-                    },
-                });
-            }
-            if (check_in_date && check_out_date && number_of_guests) {
-                must.push({
-                    nested: {
-                        path: 'availability',
-                        query: {
-                            bool: {
-                                must: [
-                                    {
-                                        range: {
-                                            'availability.date': {
-                                                gte: check_in_date,
-                                                lte: check_out_date,
-                                            },
-                                        },
-                                    },
-                                    {
-                                        range: {
-                                            'availability.available_rooms': { gt: 0 },
-                                        },
-                                    },
-                                ],
                             },
                         },
                     },
@@ -230,13 +209,17 @@ let HotelSearchService = HotelSearchService_1 = class HotelSearchService {
             console.log(result, "HOTEL SEARCH RESULT: ");
             console.log(result.hits.hits, "HOTEL SEARCH HITS Hit: ");
             console.log(result.hits, "HOTEL SEARCH HITS: ");
+            let hotels = result.hits.hits.map((hit) => ({
+                id: hit._id,
+                score: hit._score,
+                ...hit._source,
+            }));
+            if (check_in_date && check_out_date) {
+                hotels = await this.filterHotelsByAvailability(hotels, check_in_date, check_out_date, number_of_guests);
+            }
             return {
-                hotels: result.hits.hits.map((hit) => ({
-                    id: hit._id,
-                    score: hit._score,
-                    ...hit._source,
-                })),
-                total: result.hits.total.value,
+                hotels,
+                total: hotels.length,
                 page,
                 limit,
                 aggregations: result.aggregations,
@@ -245,6 +228,40 @@ let HotelSearchService = HotelSearchService_1 = class HotelSearchService {
         catch (error) {
             this.logger.error('Hotel search failed', error);
             throw error;
+        }
+    }
+    async filterHotelsByAvailability(hotels, checkInDate, checkOutDate, numberOfGuests) {
+        if (hotels.length === 0) {
+            return hotels;
+        }
+        try {
+            const hotelIds = hotels.map(h => h.id);
+            const startDate = new Date(checkInDate);
+            const endDate = new Date(checkOutDate);
+            const requiredDates = [];
+            for (let d = new Date(startDate); d < endDate; d.setDate(d.getDate() + 1)) {
+                requiredDates.push(d.toISOString().split('T')[0]);
+            }
+            const availableRooms = await this.roomAvailabilityRepository
+                .createQueryBuilder('avail')
+                .innerJoin('avail.room', 'room')
+                .where('room.hotel_id IN (:...hotelIds)', { hotelIds })
+                .andWhere('room.is_active = :isActive', { isActive: true })
+                .andWhere('avail.date IN (:...dates)', { dates: requiredDates })
+                .andWhere('avail.status = :status', { status: 'Available' })
+                .andWhere('avail.available_units > 0')
+                .andWhere(numberOfGuests ? 'room.max_occupancy >= :guests' : '1=1', { guests: numberOfGuests })
+                .select('room.hotel_id', 'hotelId')
+                .addSelect('COUNT(DISTINCT avail.date)', 'availableDates')
+                .groupBy('room.hotel_id')
+                .having('COUNT(DISTINCT avail.date) >= :requiredNights', { requiredNights: requiredDates.length })
+                .getRawMany();
+            const availableHotelIds = new Set(availableRooms.map(r => r.hotelId));
+            return hotels.filter(hotel => availableHotelIds.has(hotel.id));
+        }
+        catch (error) {
+            this.logger.error('Failed to filter hotels by availability', error);
+            return hotels;
         }
     }
     async getAutocompleteSuggestions(query, limit = 10) {
