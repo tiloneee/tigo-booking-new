@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Notification, NotificationType, NotificationStatus } from '../entities/notification.entity';
@@ -12,6 +12,8 @@ import { EmailService } from '../../../common/services/email.service';
 
 @Injectable()
 export class NotificationService {
+  private readonly logger = new Logger(NotificationService.name);
+
   constructor(
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
@@ -248,6 +250,19 @@ export class NotificationService {
 
     // Update real-time notification count
     await this.redisNotificationService.updateUnreadCount(userId);
+  }
+
+  async deleteAllNotifications(userId: string): Promise<void> {
+    // Delete all notifications for the specific user
+    const result = await this.notificationRepository.delete({
+      user_id: userId,
+    });
+
+    // Update real-time notification count to 0
+    await this.redisNotificationService.updateUnreadCount(userId);
+
+    // Log the number of notifications deleted for monitoring purposes
+    this.logger.log(`Deleted ${result.affected} notifications for user ${userId}`);
   }
 
   // Template management methods

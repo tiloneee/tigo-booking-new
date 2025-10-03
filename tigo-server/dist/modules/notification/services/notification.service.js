@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 var __param = (this && this.__param) || function (paramIndex, decorator) {
     return function (target, key) { decorator(target, key, paramIndex); }
 };
+var NotificationService_1;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.NotificationService = void 0;
 const common_1 = require("@nestjs/common");
@@ -21,12 +22,13 @@ const notification_template_entity_1 = require("../entities/notification-templat
 const notification_preference_entity_1 = require("../entities/notification-preference.entity");
 const redis_notification_service_1 = require("./redis-notification.service");
 const email_service_1 = require("../../../common/services/email.service");
-let NotificationService = class NotificationService {
+let NotificationService = NotificationService_1 = class NotificationService {
     notificationRepository;
     templateRepository;
     preferenceRepository;
     redisNotificationService;
     emailService;
+    logger = new common_1.Logger(NotificationService_1.name);
     constructor(notificationRepository, templateRepository, preferenceRepository, redisNotificationService, emailService) {
         this.notificationRepository = notificationRepository;
         this.templateRepository = templateRepository;
@@ -201,6 +203,13 @@ let NotificationService = class NotificationService {
         }
         await this.redisNotificationService.updateUnreadCount(userId);
     }
+    async deleteAllNotifications(userId) {
+        const result = await this.notificationRepository.delete({
+            user_id: userId,
+        });
+        await this.redisNotificationService.updateUnreadCount(userId);
+        this.logger.log(`Deleted ${result.affected} notifications for user ${userId}`);
+    }
     async createTemplate(type, titleTemplate, messageTemplate) {
         const template = this.templateRepository.create({
             type,
@@ -276,7 +285,7 @@ let NotificationService = class NotificationService {
     }
 };
 exports.NotificationService = NotificationService;
-exports.NotificationService = NotificationService = __decorate([
+exports.NotificationService = NotificationService = NotificationService_1 = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(notification_entity_1.Notification)),
     __param(1, (0, typeorm_1.InjectRepository)(notification_template_entity_1.NotificationTemplate)),

@@ -112,6 +112,17 @@ export class NotificationController {
     return { message: 'Notifications marked successfully' };
   }
 
+  @Delete('delete-all')
+  @HttpCode(HttpStatus.OK)
+  async deleteAllNotifications(@Request() req: any) {
+    const userId = req.user?.id || req.user?.userId || req.user?.sub;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    await this.notificationService.deleteAllNotifications(userId);
+    return { message: 'All notifications deleted successfully' };
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
   async deleteNotification(

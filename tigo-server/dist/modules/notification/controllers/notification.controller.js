@@ -75,6 +75,14 @@ let NotificationController = class NotificationController {
         await this.notificationService.bulkMarkNotifications(userId, bulkMarkDto);
         return { message: 'Notifications marked successfully' };
     }
+    async deleteAllNotifications(req) {
+        const userId = req.user?.id || req.user?.userId || req.user?.sub;
+        if (!userId) {
+            throw new common_1.BadRequestException('User ID not found in request');
+        }
+        await this.notificationService.deleteAllNotifications(userId);
+        return { message: 'All notifications deleted successfully' };
+    }
     async deleteNotification(req, notificationId) {
         const userId = req.user?.id || req.user?.userId || req.user?.sub;
         if (!userId) {
@@ -170,6 +178,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, notification_query_dto_1.BulkMarkNotificationDto]),
     __metadata("design:returntype", Promise)
 ], NotificationController.prototype, "bulkMarkNotifications", null);
+__decorate([
+    (0, common_1.Delete)('delete-all'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], NotificationController.prototype, "deleteAllNotifications", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),

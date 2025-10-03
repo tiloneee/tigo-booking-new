@@ -187,6 +187,11 @@ export const availabilityApi = {
 // Booking Management APIs
 export const bookingsApi = {
   
+  // Get user's own bookings
+  getByUser: async (accessToken: string): Promise<Booking[]> => {
+    return fetchWithAuth(`${API_BASE_URL}/bookings/mine`, accessToken)
+  },
+  
   // Get all bookings for a hotel
   getByHotel: async (accessToken: string, hotelId: string): Promise<Booking[]> => {
     return fetchWithAuth(`${API_BASE_URL}/hotels/${hotelId}/bookings`, accessToken)
@@ -218,6 +223,22 @@ export const bookingsApi = {
     return fetchWithAuth(`${API_BASE_URL}/bookings/${bookingId}/cancel`, accessToken, {
       method: 'POST',
       body: JSON.stringify({ cancellation_reason: reason }),
+    })
+  },
+
+  // Update booking status (confirm/cancel)
+  updateStatus: async (
+    accessToken: string,
+    bookingId: string,
+    status: string,
+    adminNotes?: string
+  ): Promise<Booking> => {
+    return fetchWithAuth(`${API_BASE_URL}/bookings/${bookingId}/status`, accessToken, {
+      method: 'PATCH',
+      body: JSON.stringify({ 
+        status,
+        admin_notes: adminNotes 
+      }),
     })
   },
 }

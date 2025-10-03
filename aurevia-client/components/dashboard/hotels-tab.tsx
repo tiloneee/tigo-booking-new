@@ -18,6 +18,10 @@ import {
   Edit,
   Plus,
   Settings,
+  ChevronRight,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
 } from "lucide-react"
 import type { Hotel, Room, Booking, RoomAvailability } from "@/types/dashboard"
 import { roomsApi, bookingsApi, availabilityApi } from "@/lib/api/dashboard"
@@ -33,6 +37,8 @@ interface HotelsTabProps {
   onRefresh: () => void
 }
 
+type HotelSubTab = 'rooms' | 'bookings'
+
 export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: HotelsTabProps) {
   const [expandedHotels, setExpandedHotels] = useState<Set<string>>(new Set())
   const [hotelRooms, setHotelRooms] = useState<Record<string, Room[]>>({})
@@ -40,6 +46,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set())
   const [roomAvailability, setRoomAvailability] = useState<Record<string, RoomAvailability[]>>({})
   const [loading, setLoading] = useState<Record<string, boolean>>({})
+  const [hotelSubTabs, setHotelSubTabs] = useState<Record<string, HotelSubTab>>({})
   
   // Modal states
   const [editHotelModal, setEditHotelModal] = useState<{ isOpen: boolean; hotel: Hotel | null }>({ 
@@ -70,12 +77,60 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
       newExpanded.delete(hotelId)
     } else {
       newExpanded.add(hotelId)
+      // Set default sub-tab to 'rooms' when expanding
+      setHotelSubTabs(prev => ({ ...prev, [hotelId]: 'rooms' }))
       // Load rooms and bookings for this hotel
       if (!hotelRooms[hotelId]) {
         await loadHotelData(hotelId)
       }
     }
     setExpandedHotels(newExpanded)
+  }
+
+  const setHotelSubTab = (hotelId: string, subTab: HotelSubTab) => {
+    setHotelSubTabs(prev => ({ ...prev, [hotelId]: subTab }))
+  }
+
+  const getHotelSubTab = (hotelId: string): HotelSubTab => {
+    return hotelSubTabs[hotelId] || 'rooms'
+  }
+
+  // Booking management functions
+  const confirmBooking = async (bookingId: string, hotelId: string) => {
+    if (!confirm('Are you sure you want to confirm this booking?')) {
+      return
+    }
+
+    try {
+      await bookingsApi.updateStatus(accessToken, bookingId, 'Confirmed', 'Booking confirmed by hotel management')
+      // Reload hotel data to show updated booking status
+      await loadHotelData(hotelId)
+      console.log('Booking confirmed successfully')
+    } catch (error) {
+      console.error('Failed to confirm booking:', error)
+      alert('Failed to confirm booking: ' + (error instanceof Error ? error.message : 'Unknown error'))
+    }
+  }
+
+  const cancelBooking = async (bookingId: string, hotelId: string) => {
+    const reason = prompt('Please provide a reason for cancellation:')
+    if (!reason) {
+      return
+    }
+
+    if (!confirm(`Are you sure you want to cancel this booking?\nReason: ${reason}`)) {
+      return
+    }
+
+    try {
+      await bookingsApi.updateStatus(accessToken, bookingId, 'Cancelled', reason)
+      // Reload hotel data to show updated booking status
+      await loadHotelData(hotelId)
+      console.log('Booking cancelled successfully')
+    } catch (error) {
+      console.error('Failed to cancel booking:', error)
+      alert('Failed to cancel booking: ' + (error instanceof Error ? error.message : 'Unknown error'))
+    }
   }
 
   const toggleRoom = async (roomId: string) => {
@@ -124,17 +179,19 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'Confirmed':
-        return 'bg-green-900/50 text-green-300 border-green-400/70'
+        return 'bg-green-900/60 text-green-300 border-green-400/70'
+      case 'Paid':
+        return 'bg-green-900/60 text-green-300 border-green-400/70'
       case 'Pending':
-        return 'bg-yellow-900/50 text-yellow-300 border-yellow-400/70'
+        return 'bg-yellow-900/60 text-yellow-300 border-yellow-400/70'
       case 'Cancelled':
-        return 'bg-red-900/50 text-red-300 border-red-400/70'
+        return 'bg-red-900/60 text-red-300 border-red-400/70'
       case 'Completed':
-        return 'bg-blue-900/50 text-blue-300 border-blue-400/70'
+        return 'bg-blue-900/60 text-blue-300 border-blue-400/70'
       case 'CheckedIn':
-        return 'bg-purple-900/50 text-purple-300 border-purple-400/70'
+        return 'bg-purple-900/60 text-purple-300 border-purple-400/70'
       case 'CheckedOut':
-        return 'bg-gray-900/50 text-gray-300 border-gray-400/70'
+        return 'bg-gray-900/60 text-gray-300 border-gray-400/70'
       default:
         return 'bg-gray-900/50 text-gray-300 border-gray-400/70'
     }
@@ -274,11 +331,35 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                         </div>
                       </div>
 
-                      {/* Rooms Section */}
-                      <div className="space-y-4">
-                        <h4 className="text-cream-light font-playfair text-vintage-lg font-bold">
+                      {/* Sub-tabs Navigation */}
+                      <div className="flex gap-4 border-b border-copper-accent/30">
+                        <button
+                          onClick={() => setHotelSubTab(hotel.id, 'rooms')}
+                          className={`flex items-center gap-2 px-4 py-2 font-cormorant text-vintage-base font-medium transition-all duration-300 ${
+                            getHotelSubTab(hotel.id) === 'rooms'
+                              ? 'text-copper-accent border-b-2 border-copper-accent'
+                              : 'text-cream-light/60 hover:text-cream-light'
+                          }`}
+                        >
+                          <Bed className="h-4 w-4" />
                           Rooms ({hotelRooms[hotel.id]?.length || 0})
-                        </h4>
+                        </button>
+                        <button
+                          onClick={() => setHotelSubTab(hotel.id, 'bookings')}
+                          className={`flex items-center gap-2 px-4 py-2 font-cormorant text-vintage-base font-medium transition-all duration-300 ${
+                            getHotelSubTab(hotel.id) === 'bookings'
+                              ? 'text-copper-accent border-b-2 border-copper-accent'
+                              : 'text-cream-light/60 hover:text-cream-light'
+                          }`}
+                        >
+                          <Calendar className="h-4 w-4" />
+                          Bookings ({hotelBookings[hotel.id]?.length || 0})
+                        </button>
+                      </div>
+
+                      {/* Sub-tab Content */}
+                      {getHotelSubTab(hotel.id) === 'rooms' && (
+                        <div className="space-y-4">
                         {hotelRooms[hotel.id]?.length === 0 ? (
                           <p className="text-cream-light/60 font-cormorant text-vintage-base">
                             No rooms available
@@ -409,13 +490,11 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                             ))}
                           </div>
                         )}
-                      </div>
+                        </div>
+                      )}
 
-                      {/* Bookings Section */}
-                      <div className="space-y-4">
-                        <h4 className="text-cream-light font-playfair text-vintage-lg font-bold">
-                          Bookings ({hotelBookings[hotel.id]?.length || 0})
-                        </h4>
+                      {getHotelSubTab(hotel.id) === 'bookings' && (
+                        <div className="space-y-4">
                         {hotelBookings[hotel.id]?.length === 0 ? (
                           <p className="text-cream-light/60 font-cormorant text-vintage-base">
                             No bookings yet
@@ -452,7 +531,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                       <div className="flex items-center gap-3">
                                         <DollarSign className="h-4 w-4 text-copper-accent" />
                                         <span className="text-cream-light font-cormorant text-vintage-sm">
-                                          ${booking.total_price ? Number(booking.total_price).toFixed(2) : '0.00'} (Paid: ${booking.paid_amount ? Number(booking.paid_amount).toFixed(2) : '0.00'})
+                                          ${booking.total_price ? Number(booking.total_price).toFixed(2) : '0.00'} (Paid: ${booking.paid_amount})
                                         </span>
                                       </div>
                                       {booking.special_requests && (
@@ -461,17 +540,63 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                         </p>
                                       )}
                                     </div>
-                                    <div className="flex flex-col gap-2 items-end">
+                                    <div className="flex flex-col gap-2 mt-2 items-end">
                                       <Badge
-                                        className={`${getStatusBadgeColor(booking.status)} font-cinzel text text-vintage-xs uppercase tracking-wider`}
+                                        className={`${getStatusBadgeColor(booking.status)} font-cinzel uppercase tracking-wider`}
                                       >
                                         {booking.status}
                                       </Badge>
                                       <Badge
-                                        className={`${getStatusBadgeColor(booking.payment_status)} font-cinzel text-vintage-xs uppercase tracking-wider`}
+                                        className={`${getStatusBadgeColor(booking.payment_status)} font-cinzel uppercase tracking-wider`}
                                       >
                                         {booking.payment_status}
                                       </Badge>
+                                      
+                                      {/* Booking Action Buttons */}
+                                      {booking.status === 'Pending' && (
+                                        <div className="flex gap-2 mt-2 flex-wrap">
+                                          <Button
+                                            onClick={() => confirmBooking(booking.id, hotel.id)}
+                                            size="sm"
+                                            className="bg-green-600 hover:bg-green-700 text-white font-cinzel text-vintage-xs"
+                                          >
+                                            <CheckCircle className="h-3 w-3 mr-1" />
+                                            Confirm
+                                          </Button>
+                                          <Button
+                                            onClick={() => cancelBooking(booking.id, hotel.id)}
+                                            size="sm"
+                                            variant="outline"
+                                            className="border-red-500 text-red-400 hover:bg-red-500/10 font-cinzel text-vintage-xs"
+                                          >
+                                            <XCircle className="h-3 w-3 mr-1" />
+                                            Cancel
+                                          </Button>
+                                        </div>
+                                      )}
+                                      
+                                      {booking.status === 'Confirmed' && (
+                                        <div className="flex gap-2 mt-2 flex-wrap">
+                                          <Button
+                                            onClick={() => cancelBooking(booking.id, hotel.id)}
+                                            size="sm"
+                                            variant="outline"
+                                            className="border-red-500 text-red-400 hover:bg-red-500/10 font-cinzel text-vintage-xs"
+                                          >
+                                            <XCircle className="h-3 w-3 mr-1" />
+                                            Cancel
+                                          </Button>
+                                        </div>
+                                      )}
+                                      
+                                      {booking.status === 'Cancelled' && (
+                                        <div className="mt-3">
+                                          <span className="text-red-400 font-cinzel text-vintage-xs uppercase tracking-wider">
+                                            <AlertTriangle className="h-3 w-3 inline mr-1" />
+                                            Cancelled
+                                          </span>
+                                        </div>
+                                      )}
                                     </div>
                                   </div>
                                 </CardContent>
@@ -479,7 +604,8 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                             ))}
                           </div>
                         )}
-                      </div>
+                        </div>
+                      )}
                     </>
                   )}
                 </CardContent>

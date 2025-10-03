@@ -199,7 +199,7 @@ export class BookingService {
         guest_email: createBookingDto.guest_email,
         special_requests: createBookingDto.special_requests,
         status: 'Pending',
-        payment_status: 'Pending',
+        payment_status: 'Paid',
       };
 
       const booking = manager.create(HotelBooking, bookingData);
@@ -335,6 +335,7 @@ export class BookingService {
           if (booking.status === 'Cancelled') {
             throw new BadRequestException('Booking is already cancelled');
           }
+          updateBookingDto.cancellation_reason = updateBookingDto.admin_notes || 'No reason provided';
           updateBookingDto.cancelled_at = now;
           updateBookingDto.confirmed_at = undefined;
           // Restore availability when booking is cancelled

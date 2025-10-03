@@ -111,4 +111,21 @@ export const authApi = {
 
     return response.json()
   },
+
+  updateProfile: async (accessToken: string, data: { first_name: string; last_name: string; phone_number: string }): Promise<User> => {
+    const response = await fetch(`${API_BASE_URL}/users/profile`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to update profile')
+    }
+
+    return response.json()
+  },
 } 

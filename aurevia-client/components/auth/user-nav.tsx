@@ -48,12 +48,12 @@ export default function UserNav() {
   return (
     <div className="flex items-center space-x-4">
       <div className="flex items-center space-x-3">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center">
+        <Link href="/profile" className="flex items-center space-x-2 group">
+          <div className="w-8 h-8 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center group-hover:shadow-lg group-hover:shadow-copper-accent/30 transition-all duration-300">
             <User className="h-4 w-4 text-walnut-dark" />
           </div>
           <div className="hidden md:block">
-            <p className="text-cream-light font-cormorant text-vintage-sm font-medium">
+            <p className="text-cream-light font-cormorant text-vintage-sm font-medium group-hover:text-copper-accent transition-colors duration-300">
               {session.user?.name || session.user?.email}
             </p>
             {session.roles && session.roles.length > 0 && (
@@ -62,7 +62,7 @@ export default function UserNav() {
               </p>
             )}
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Show dashboard button only for Admin and HotelOwner */}
@@ -70,8 +70,7 @@ export default function UserNav() {
         <Link href="/admin/dashboard">
           <Button
             size="sm"
-            variant="outline"
-            className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10 hover:text-copper-accent transition-all duration-300"
+            className="px-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
           >
             Dashboard
           </Button>
@@ -81,8 +80,7 @@ export default function UserNav() {
       <Link href="/chat">
         <Button
           size="sm"
-          variant="outline"
-          className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10 hover:text-copper-accent transition-all duration-300"
+          className="px-8 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
         >
           <MessageCircle className="h-4 w-4 mr-1" />
           Chat
@@ -94,7 +92,7 @@ export default function UserNav() {
       <Button
         onClick={handleLogout}
         size="sm"
-        className="bg-gradient-to-r from-copper-accent to-copper-light border-copper-accent/30 text-walnut-dark font-medium hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 text-vintage-base tracking-wider"
+        className="bg-gradient-to-r from-copper-accent to-copper-light border-copper-accent/30 text-walnut-dark font-bold font-cinzel hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 text-vintage-base tracking-wider"
       >
         <LogOut className="h-4 w-4 mr-2" />
         Sign Out

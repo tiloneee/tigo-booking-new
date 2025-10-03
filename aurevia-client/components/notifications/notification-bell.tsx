@@ -35,10 +35,9 @@ export function NotificationBell() {
   return (
     <div className="relative" ref={dropdownRef}>
       <Button
-        variant="outline"
+        className="px-8 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="relative text-cream-light border-copper-accent/30 hover:bg-copper-accent/10 hover:text-copper-accent transition-all duration-300"
       >
         {hasUnread ? (
           <BellRing className="h-4 w-4" />
@@ -48,7 +47,7 @@ export function NotificationBell() {
         
         {/* Notification Badge */}
         {state.unreadCount > 0 && (
-          <span className="absolute -top-2 -right-2 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark text-vintage-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 shadow-lg">
+          <span className="absolute -top-2 -right-2 bg-gradient-to-r from-copper-dark to-copper-light text-walnut-dark shadow-2xl text-vintage-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
             {state.unreadCount > 99 ? '99+' : state.unreadCount}
           </span>
         )}
@@ -66,16 +65,16 @@ export function NotificationBell() {
                   <div className={`w-2 h-2 rounded-full ${
                     state.isConnected ? 'bg-green-400' : 'bg-red-400'
                   }`} title={state.isConnected ? 'Connected' : 'Disconnected'} />
-                  <span className="text-copper-accent text-vintage-sm">
+                  <span className="text-copper-accent text-vintage-base pr-2 pb-1">
                     {state.unreadCount > 0 ? `${state.unreadCount} new` : 'All read'}
                   </span>
                   {/* Delete all button */}
                   {state.notifications.length > 0 && (
                     <Button
-                      variant="ghost"
+                      className="px-8 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
                       size="sm"
                       onClick={handleDeleteAll}
-                      className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 h-6 w-6"
+                      // className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 h-6 w-6"
                       title="Delete all notifications"
                     >
                       <Trash2 className="h-3 w-3" />

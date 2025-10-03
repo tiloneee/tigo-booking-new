@@ -35,6 +35,9 @@ let UserController = class UserController {
         console.log(req.user);
         return this.userService.findOne(req.user.userId);
     }
+    updateProfile(req, updateUserDto) {
+        return this.userService.update(req.user.userId, updateUserDto);
+    }
     findOne(id) {
         return this.userService.findOne(id);
     }
@@ -75,6 +78,15 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", void 0)
 ], UserController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.Patch)('profile'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, update_user_dto_1.UpdateUserDto]),
+    __metadata("design:returntype", void 0)
+], UserController.prototype, "updateProfile", null);
 __decorate([
     (0, common_1.Get)(':id'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

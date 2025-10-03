@@ -33,6 +33,9 @@ export declare class NotificationController {
     bulkMarkNotifications(req: any, bulkMarkDto: BulkMarkNotificationDto): Promise<{
         message: string;
     }>;
+    deleteAllNotifications(req: any): Promise<{
+        message: string;
+    }>;
     deleteNotification(req: any, notificationId: string): Promise<{
         message: string;
     }>;

@@ -132,10 +132,10 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
       {state.unreadCount > 0 && (
         <div className="px-3 pb-3 border-b border-copper-accent/10">
           <Button
-            variant="ghost"
+            className="px-8 py-4 w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
             size="sm"
             onClick={handleMarkAllRead}
-            className="w-full text-vintage-md bg-walnut-medium border border-copper-accent/30 text-copper-accent hover:text-cream-light hover:bg-copper-accent/20 font-cormorant"
+            // className="w-full text-vintage-md bg-walnut-medium border border-copper-accent/30 text-copper-accent hover:text-cream-light hover:bg-copper-accent/20 font-cormorant"
           >
             <Check className="h-4 w-4 mr-2" />
             Mark all as read

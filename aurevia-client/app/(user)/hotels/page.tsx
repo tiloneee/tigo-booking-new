@@ -341,7 +341,7 @@ function HotelsPageContent() {
         </div>
 
         {/* Search Form */}
-        <Card className="mb-8 bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30 shadow-2xl max-w-6xl mx-auto">
+        <Card className="mb-8 bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30 shadow-2xl max-w-6xl mx-auto relative z-10">
           <CardHeader className="pb-4">
             <CardTitle className="text-vintage-xl font-playfair font-bold text-center text-cream-light">
               Find Your Perfect Stay
@@ -507,7 +507,7 @@ function HotelsPageContent() {
         {/* Results Section */}
         <div className="flex gap-8">
           {/* Filters Sidebar */}
-          <div className="w-80 flex-shrink-0">
+          <div className="w-80 flex-shrink-0 z-0">
             <Card className="bg-walnut-dark/60 border border-copper-accent/20 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="text-vintage-lg font-playfair text-cream-light">
@@ -708,10 +708,9 @@ function HotelsPageContent() {
                 {results && results.total > results.limit && (
                   <div className="flex justify-center mt-8 gap-2">
                     <Button
-                      variant="outline"
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(currentPage - 1)}
-                      className="border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 font-cormorant"
+                      className="px-6 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
                     >
                       Previous
                     </Button>
@@ -723,7 +722,7 @@ function HotelsPageContent() {
                         onClick={() => setCurrentPage(i + 1)}
                         className={currentPage === i + 1 
                           ? "bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold" 
-                          : "border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 font-cormorant"
+                          : "border-copper-accent/30 text-cream-light/80 hover:bg-copper-accent/10 font-cormorant"
                         }
                       >
                         {i + 1}
@@ -731,10 +730,10 @@ function HotelsPageContent() {
                     ))}
                     
                     <Button
-                      variant="outline"
+
                       disabled={currentPage >= Math.ceil(results.total / results.limit)}
                       onClick={() => setCurrentPage(currentPage + 1)}
-                      className="border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 font-cormorant"
+                      className="px-6 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
                     >
                       Next
                     </Button>

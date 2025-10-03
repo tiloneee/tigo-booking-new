@@ -126,7 +126,7 @@ export default function AutocompleteSearch({
 
       {showSuggestions && suggestions.length > 0 && (
         <div 
-          className="absolute w-full bg-walnut-dark/95 backdrop-blur-md border border-copper-accent/50 rounded-lg mt-2 shadow-2xl shadow-walnut-darkest/50 max-h-64 overflow-y-auto z-50"
+          className="absolute w-full bg-walnut-dark/95 backdrop-blur-md border border-copper-accent/50 rounded-lg mt-2 shadow-2xl shadow-walnut-darkest/50 max-h-64 overflow-y-auto z-[9999]"
           style={{ top: '100%' }}
         >
           {suggestions.map((suggestion, index) => (

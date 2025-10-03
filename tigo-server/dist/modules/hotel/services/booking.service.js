@@ -137,7 +137,7 @@ let BookingService = BookingService_1 = class BookingService {
                 guest_email: createBookingDto.guest_email,
                 special_requests: createBookingDto.special_requests,
                 status: 'Pending',
-                payment_status: 'Pending',
+                payment_status: 'Paid',
             };
             const booking = manager.create(hotel_booking_entity_1.HotelBooking, bookingData);
             const savedBooking = await manager.save(booking);
@@ -234,6 +234,7 @@ let BookingService = BookingService_1 = class BookingService {
                     if (booking.status === 'Cancelled') {
                         throw new common_1.BadRequestException('Booking is already cancelled');
                     }
+                    updateBookingDto.cancellation_reason = updateBookingDto.admin_notes || 'No reason provided';
                     updateBookingDto.cancelled_at = now;
                     updateBookingDto.confirmed_at = undefined;
                     await this.restoreAvailability(booking);
