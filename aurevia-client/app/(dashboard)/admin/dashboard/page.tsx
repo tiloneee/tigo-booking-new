@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import ProtectedRoute from "@/components/auth/protected-route"
 import Header from "@/components/header"
 import { Card, CardContent } from "@/components/ui/card"
-import { Users, Building2, AlertCircle } from "lucide-react"
+import { Users, Building2, AlertCircle, Search, X } from "lucide-react"
 import { usersApi, hotelsApi } from "@/lib/api/dashboard"
 import type { DashboardUser, Hotel } from "@/types/dashboard"
 import UsersTab from "@/components/dashboard/users-tab"
@@ -22,6 +22,7 @@ export default function AdminDashboard() {
   const [hotels, setHotels] = useState<Hotel[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   const isAdmin = session?.roles?.includes('Admin')
   const isHotelOwner = session?.roles?.includes('HotelOwner')
@@ -73,6 +74,47 @@ export default function AdminDashboard() {
     loadDashboardData()
   }
 
+  // Search filtering logic
+  const filteredUsers = users.filter(user => {
+    if (!searchQuery.trim()) return true
+    
+    const query = searchQuery.toLowerCase()
+    return (
+      user.first_name.toLowerCase().includes(query) ||
+      user.last_name.toLowerCase().includes(query) ||
+      user.email.toLowerCase().includes(query) ||
+      user.phone_number?.toLowerCase().includes(query) ||
+      user.roles.some(role => role.name.toLowerCase().includes(query))
+    )
+  })
+
+  const filteredHotels = hotels.filter(hotel => {
+    if (!searchQuery.trim()) return true
+    
+    const query = searchQuery.toLowerCase()
+    return (
+      hotel.name.toLowerCase().includes(query) ||
+      hotel.description.toLowerCase().includes(query) ||
+      hotel.address.toLowerCase().includes(query) ||
+      hotel.city.toLowerCase().includes(query) ||
+      hotel.state.toLowerCase().includes(query) ||
+      hotel.country.toLowerCase().includes(query) ||
+      hotel.phone_number.toLowerCase().includes(query) ||
+      hotel.owner?.first_name.toLowerCase().includes(query) ||
+      hotel.owner?.last_name.toLowerCase().includes(query) ||
+      hotel.owner?.email.toLowerCase().includes(query)
+    )
+  })
+
+  const clearSearch = () => {
+    setSearchQuery('')
+  }
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab)
+    setSearchQuery('') // Clear search when switching tabs
+  }
+
   if (status === 'loading' || loading) {
     return (
       <ProtectedRoute allowedRoles={['Admin', 'HotelOwner']}>
@@ -107,6 +149,38 @@ export default function AdminDashboard() {
               </p>
             </div>
 
+            {/* Search Bar */}
+            <div className="mb-8">
+              <div className="relative max-w-2xl">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-cream-light/60" />
+                </div>
+                <input
+                  type="text"
+                  placeholder={`Search ${activeTab === 'users' ? 'users' : 'hotels'}...`}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-10 py-3 bg-walnut-dark/50 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/60 focus:outline-none focus:ring-2 focus:ring-copper-accent/50 focus:border-copper-accent/50 font-cormorant text-vintage-base"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-cream-light/60 hover:text-cream-light transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+              {searchQuery && (
+                <div className="mt-2 text-vintage-sm text-cream-light/70 font-cormorant">
+                  {activeTab === 'users' 
+                    ? `Found ${filteredUsers.length} user${filteredUsers.length !== 1 ? 's' : ''}`
+                    : `Found ${filteredHotels.length} hotel${filteredHotels.length !== 1 ? 's' : ''}`
+                  }
+                </div>
+              )}
+            </div>
+
             {/* Error Display */}
             {error && (
               <Card className="bg-red-900/20 border-red-500/50 mb-6">
@@ -123,7 +197,7 @@ export default function AdminDashboard() {
             <div className="flex gap-4 mb-8 border-b border-copper-accent/30">
               {isAdmin && (
                 <button
-                  onClick={() => setActiveTab('users')}
+                  onClick={() => handleTabChange('users')}
                   className={`flex items-center gap-2 px-6 py-3 font-cormorant text-vintage-lg font-medium transition-all duration-300 ${
                     activeTab === 'users'
                       ? 'text-copper-accent border-b-2 border-copper-accent'
@@ -135,7 +209,7 @@ export default function AdminDashboard() {
                 </button>
               )}
               <button
-                onClick={() => setActiveTab('hotels')}
+                onClick={() => handleTabChange('hotels')}
                 className={`flex items-center gap-2 px-6 py-3 font-cormorant text-vintage-lg font-medium transition-all duration-300 ${
                   activeTab === 'hotels'
                     ? 'text-copper-accent border-b-2 border-copper-accent'
@@ -149,16 +223,39 @@ export default function AdminDashboard() {
 
             {/* Tab Content */}
             <div className="mt-8">
+              {searchQuery && (
+                (activeTab === 'users' && filteredUsers.length === 0) ||
+                (activeTab === 'hotels' && filteredHotels.length === 0)
+              ) && (
+                <Card className="bg-walnut-dark/50 border-copper-accent/20">
+                  <CardContent className="py-8 text-center">
+                    <Search className="h-12 w-12 text-cream-light/40 mx-auto mb-4" />
+                    <h3 className="text-vintage-lg font-cormorant text-cream-light mb-2">
+                      No results found
+                    </h3>
+                    <p className="text-vintage-base text-cream-light/60 font-cormorant">
+                      Try adjusting your search terms or clear the search to see all {activeTab}.
+                    </p>
+                    <button
+                      onClick={clearSearch}
+                      className="mt-4 px-4 py-2 bg-copper-accent/20 text-copper-accent border border-copper-accent/30 rounded-lg hover:bg-copper-accent/30 transition-colors font-cormorant text-vintage-sm"
+                    >
+                      Clear Search
+                    </button>
+                  </CardContent>
+                </Card>
+              )}
+              
               {activeTab === 'users' && isAdmin && (
                 <UsersTab 
-                  users={users} 
+                  users={filteredUsers} 
                   accessToken={session?.accessToken || ''}
                   onRefresh={refreshData}
                 />
               )}
               {activeTab === 'hotels' && (
                 <HotelsTab 
-                  hotels={hotels}
+                  hotels={filteredHotels}
                   accessToken={session?.accessToken || ''}
                   isAdmin={isAdmin || false}
                   onRefresh={refreshData}

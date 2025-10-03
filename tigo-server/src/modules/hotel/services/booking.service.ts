@@ -226,7 +226,6 @@ export class BookingService {
       }
 
       this.sanitizeBookingOwnerData(bookingWithRelations);
-
       return bookingWithRelations;
     });
   }

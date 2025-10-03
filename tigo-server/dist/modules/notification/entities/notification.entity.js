@@ -15,6 +15,7 @@ const user_entity_1 = require("../../user/entities/user.entity");
 var NotificationType;
 (function (NotificationType) {
     NotificationType["CHAT_MESSAGE"] = "CHAT_MESSAGE";
+    NotificationType["NEW_BOOKING"] = "NEW_BOOKING";
     NotificationType["BOOKING_CONFIRMATION"] = "BOOKING_CONFIRMATION";
     NotificationType["BOOKING_CANCELLED"] = "BOOKING_CANCELLED";
     NotificationType["BOOKING_REMINDER"] = "BOOKING_REMINDER";

@@ -4,7 +4,6 @@ import { useState, useEffect, Suspense } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import BookingForm from '@/components/hotels/booking-form';
 import { Hotel, Room } from '@/types/hotel';
 import { HotelApiService } from '@/lib/api/hotels';
 import { 
@@ -32,8 +31,6 @@ function HotelDetailContent() {
   
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
-  const [showBookingForm, setShowBookingForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -104,8 +101,26 @@ function HotelDetailContent() {
   }, [hotelId]); // Only depend on hotelId - dates won't trigger reload
 
   const handleBookRoom = (room: Room) => {
-    setSelectedRoom(room);
-    setShowBookingForm(true);
+    // Navigate to booking summary page with selected room
+    const params = new URLSearchParams({
+      hotel_id: hotelId,
+      room_ids: room.id,
+      check_in_date: checkInDate,
+      check_out_date: checkOutDate,
+      number_of_guests: numberOfGuests.toString(),
+      // Pass room data as JSON string to avoid API calls
+      room_data: JSON.stringify({
+        id: room.id,
+        room_type: room.room_type,
+        description: room.description,
+        max_occupancy: room.max_occupancy,
+        bed_configuration: room.bed_configuration,
+        size_sqm: room.size_sqm,
+        pricing: room.pricing
+      })
+    });
+    
+    router.push(`/booking/summary?${params.toString()}`);
   };
 
   const handleBookingComplete = (bookingId: string) => {
@@ -174,33 +189,6 @@ function HotelDetailContent() {
     );
   }
 
-  if (showBookingForm && selectedRoom) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
-        <div className="container mx-auto px-4 py-6">
-          <div className="mb-6">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowBookingForm(false)}
-              className="border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 font-cormorant bg-walnut-dark/60"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Hotel Details
-            </Button>
-          </div>
-          <BookingForm
-            hotel={hotel}
-            room={selectedRoom}
-            checkInDate={checkInDate}
-            checkOutDate={checkOutDate}
-            numberOfGuests={numberOfGuests}
-            onBookingComplete={handleBookingComplete}
-            onCancel={() => setShowBookingForm(false)}
-          />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">

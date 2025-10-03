@@ -1,6 +1,7 @@
 "use client"
 
 import React from 'react'
+import { useRouter } from 'next/navigation'
 import { formatDistanceToNow } from 'date-fns'
 import { 
   MessageCircle, 
@@ -23,6 +24,7 @@ interface NotificationListProps {
 
 export function NotificationList({ maxHeight = '600px', onClose, notifications }: NotificationListProps) {
   const { state, markAsRead, markAllAsRead, deleteNotification } = useNotifications()
+  const router = useRouter()
   
   // Use provided notifications or fall back to state notifications
   const displayNotifications = notifications || state.notifications
@@ -34,6 +36,7 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
       case 'BOOKING_CONFIRMATION':
       case 'BOOKING_CANCELLED':
       case 'BOOKING_REMINDER':
+      case 'NEW_BOOKING':
         return <Calendar className="h-4 w-4 text-copper-accent" />
       case 'REVIEW_RECEIVED':
         return <Star className="h-4 w-4 text-copper-accent" />
@@ -59,7 +62,7 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
         : 'border-l-4 border-red-500/20 bg-red-500/2'
     }
     
-    if (type === 'BOOKING_CONFIRMATION' || type === 'PAYMENT_SUCCESS' || type === 'HOTEL_APPROVED') {
+    if (type === 'BOOKING_CONFIRMATION' || type === 'NEW_BOOKING' || type === 'PAYMENT_SUCCESS' || type === 'HOTEL_APPROVED') {
       return isUnread 
         ? 'border-l-4 border-green-500/50 bg-green-500/5' 
         : 'border-l-4 border-green-500/20 bg-green-500/2'
@@ -78,10 +81,19 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
     // Handle navigation based on notification type
     if (notification.type === 'CHAT_MESSAGE' && notification.metadata?.chat_room_id) {
       // Navigate to chat room
-      window.location.href = `/chat?room=${notification.metadata.chat_room_id}`
-    } else if (notification.related_entity_type && notification.related_entity_id) {
-      // Navigate to related entity (booking, hotel, etc.)
-      // This would depend on your routing structure
+      router.push(`/chat?room=${notification.metadata.chat_room_id}`)
+    } else if (notification.type === 'BOOKING_CONFIRMATION' && notification.related_entity_id) {
+      // Navigate to booking success page with booking ID
+      router.push(`/booking/success?booking_id=${notification.related_entity_id}`)
+    } else if (notification.type === 'NEW_BOOKING' && notification.related_entity_id) {
+      // Navigate to booking details page
+      router.push(`/bookings/${notification.related_entity_id}`)
+    } else if (notification.related_entity_type === 'booking' && notification.related_entity_id) {
+      // Generic booking navigation
+      router.push(`/bookings/${notification.related_entity_id}`)
+    } else if (notification.related_entity_type === 'hotel' && notification.related_entity_id) {
+      // Navigate to hotel details
+      router.push(`/hotels/${notification.related_entity_id}`)
     }
     
     if (onClose) {
@@ -210,7 +222,7 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
           size="sm"
           className="text-copper-accent hover:text-cream-light font-cormorant text-vintage-sm"
           onClick={() => {
-            window.location.href = '/notifications'
+            router.push('/notifications')
             if (onClose) onClose()
           }}
         >

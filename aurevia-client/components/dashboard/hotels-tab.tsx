@@ -427,7 +427,13 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                 key={booking.id}
                                 className="bg-walnut-medium/50 border border-copper-accent/20"
                               >
-                                <CardContent className="py-3">
+                                <CardContent className="pb-3 pt-0">
+                                  {/* Booking Card Title */}
+                                  <div className="mb-2">
+                                    <span className="text-copper-light font-cormorant text-vintage-xl font-bold">
+                                      Booking: {booking.id} - {booking.guest_name || 'N/A'}
+                                    </span>
+                                  </div>
                                   <div className="flex items-start justify-between">
                                     <div className="space-y-2">
                                       <div className="flex items-center gap-3">
@@ -457,7 +463,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                     </div>
                                     <div className="flex flex-col gap-2 items-end">
                                       <Badge
-                                        className={`${getStatusBadgeColor(booking.status)} font-cinzel text-vintage-xs uppercase tracking-wider`}
+                                        className={`${getStatusBadgeColor(booking.status)} font-cinzel text text-vintage-xs uppercase tracking-wider`}
                                       >
                                         {booking.status}
                                       </Badge>

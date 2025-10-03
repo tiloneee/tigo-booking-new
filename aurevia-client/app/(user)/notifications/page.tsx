@@ -11,7 +11,7 @@ import { NotificationTest } from '@/components/notifications/notification-test'
 import ProtectedRoute from '@/components/auth/protected-route'
 
 type TabType = 'all' | 'unread' | 'settings' | 'test'
-type FilterType = 'all' | 'CHAT_MESSAGE' | 'BOOKING_CONFIRMATION' | 'BOOKING_CANCELLED' | 'REVIEW_RECEIVED' | 'SYSTEM_ANNOUNCEMENT'
+type FilterType = 'all' | 'CHAT_MESSAGE' | 'BOOKING_CONFIRMATION' | 'NEW_BOOKING' | 'BOOKING_CANCELLED' | 'REVIEW_RECEIVED' | 'SYSTEM_ANNOUNCEMENT'
 
 export default function NotificationsPage() {
   const { state, fetchNotifications, markAllAsRead } = useNotifications()
@@ -210,7 +210,8 @@ export default function NotificationsPage() {
                   >
                     <option value="all">All Types</option>
                     <option value="CHAT_MESSAGE">Chat Messages</option>
-                    <option value="BOOKING_CONFIRMATION">Bookings</option>
+                    <option value="BOOKING_CONFIRMATION">Booking Confirmations</option>
+                    <option value="NEW_BOOKING">New Bookings</option>
                     <option value="REVIEW_RECEIVED">Reviews</option>
                     <option value="SYSTEM_ANNOUNCEMENT">Announcements</option>
                   </select>

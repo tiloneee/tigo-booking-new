@@ -51,6 +51,9 @@ let NotificationEventService = class NotificationEventService {
             case 'BOOKING_CANCELLED':
                 notificationType = notification_entity_1.NotificationType.BOOKING_CANCELLED;
                 break;
+            case 'NEW_BOOKING':
+                notificationType = notification_entity_1.NotificationType.NEW_BOOKING;
+                break;
             case 'BOOKING_REMINDER':
                 notificationType = notification_entity_1.NotificationType.BOOKING_REMINDER;
                 break;

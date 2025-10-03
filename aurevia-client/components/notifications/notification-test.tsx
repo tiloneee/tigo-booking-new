@@ -28,6 +28,12 @@ const testNotifications: TestNotification[] = [
     icon: <Calendar className="h-4 w-4" />
   },
   {
+    type: 'NEW_BOOKING',
+    title: 'Test New Booking',
+    message: 'You have received a new booking at your hotel from John Doe.',
+    icon: <Calendar className="h-4 w-4" />
+  },
+  {
     type: 'REVIEW_RECEIVED',
     title: 'Test Review Received',
     message: 'You have received a new 5-star review for your hotel service.',
@@ -73,6 +79,8 @@ export function NotificationTest() {
             test: true,
             timestamp: new Date().toISOString(),
           },
+          related_entity_type: testNotif.type === 'BOOKING_CONFIRMATION' ? 'booking' : undefined,
+          related_entity_id: testNotif.type === 'BOOKING_CONFIRMATION' ? 'test-booking-123' : undefined,
         }),
       })
 

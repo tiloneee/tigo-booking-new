@@ -86,8 +86,7 @@ export class BookingController {
 
   // Get specific booking details
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('Customer', 'HotelOwner', 'Admin')
+  @UseGuards(JwtAuthGuard)
   findOne(@Param('id') id: string, @Request() req) {
     return this.bookingService.findOne(id);
   }

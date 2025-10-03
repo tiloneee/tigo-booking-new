@@ -46,6 +46,9 @@ export class NotificationEventService implements OnModuleInit {
       case 'BOOKING_CANCELLED':
         notificationType = NotificationType.BOOKING_CANCELLED;
         break;
+      case 'NEW_BOOKING':
+        notificationType = NotificationType.NEW_BOOKING;
+        break;
       case 'BOOKING_REMINDER':
         notificationType = NotificationType.BOOKING_REMINDER;
         break;

@@ -168,9 +168,20 @@ export class HotelApiService {
       const errorData = await response.json().catch(() => null);
       throw new Error(errorData?.message || `Booking creation failed: ${response.statusText}`);
     }
-
+    
     const data = await response.json();
-    return data.data;
+    console.log('Backend response:', data);
+    
+    // Handle different response structures
+    if (data.data) {
+      // If response has nested data property
+      return data.data;
+    } else if (data.id) {
+      // If response is the booking object directly
+      return data;
+    } else {
+      throw new Error('Invalid booking response structure');
+    }
   }
 
   /**
@@ -301,6 +312,51 @@ export class HotelApiService {
       'Nha Trang', 'Can Tho', 'Dalat', 'Vung Tau', 'Phan Thiet',
       'Ha Long', 'Sapa', 'Ninh Binh', 'Quy Nhon', 'Mui Ne'
     ];
+  }
+
+  /**
+   * Get room details by ID
+   */
+  static async getRoomById(roomId: string) {
+    const response = await fetch(`${API_BASE_URL}/rooms/${roomId}`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch room details: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.data;
+  }
+
+  /**
+   * Get booking details by ID
+   */
+  static async getBookingById(bookingId: string, token?: string): Promise<Booking> {
+    const headers: HeadersInit = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
+      headers,
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch booking details: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    // Handle different response structures
+    if (data.data) {
+      // If response has nested data property
+      return data.data;
+    } else if (data.id) {
+      // If response is the booking object directly
+      return data;
+    } else {
+      throw new Error('Invalid booking response structure');
+    }
   }
 
   /**

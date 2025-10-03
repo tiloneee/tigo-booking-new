@@ -41,8 +41,6 @@ export class RoomController {
 
   // Get room details
   @Get(':id')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('HotelOwner', 'Admin')
   findOne(@Param('id') id: string) {
     return this.roomService.findOne(id);
   }

@@ -37,6 +37,10 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
       title: 'Booking Confirmations',
       description: 'Receive notifications when your bookings are confirmed'
     },
+    NEW_BOOKING: {
+      title: 'New Bookings',
+      description: 'Get notified when you receive new bookings for your hotels'
+    },
     BOOKING_CANCELLED: {
       title: 'Booking Cancellations',
       description: 'Get notified when bookings are cancelled'
