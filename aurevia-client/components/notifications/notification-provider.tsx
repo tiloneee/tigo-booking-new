@@ -33,6 +33,8 @@ type NotificationAction =
   | { type: 'UPDATE_UNREAD_COUNT'; count: number }
   | { type: 'MARK_AS_READ'; notificationId: string }
   | { type: 'MARK_ALL_AS_READ' }
+  | { type: 'DELETE_NOTIFICATION'; notificationId: string }
+  | { type: 'DELETE_ALL_NOTIFICATIONS' }
   | { type: 'SET_CONNECTION_STATUS'; isConnected: boolean }
   | { type: 'SET_SOCKET'; socket: Socket | null }
 
@@ -73,6 +75,20 @@ function notificationReducer(state: NotificationState, action: NotificationActio
         notifications: state.notifications.map(n => ({ ...n, status: 'READ' as const })),
         unreadCount: 0,
       }
+    case 'DELETE_NOTIFICATION':
+      const notificationToDelete = state.notifications.find(n => n.id === action.notificationId)
+      const wasUnread = notificationToDelete?.status === 'UNREAD'
+      return {
+        ...state,
+        notifications: state.notifications.filter(n => n.id !== action.notificationId),
+        unreadCount: wasUnread ? Math.max(0, state.unreadCount - 1) : state.unreadCount,
+      }
+    case 'DELETE_ALL_NOTIFICATIONS':
+      return {
+        ...state,
+        notifications: [],
+        unreadCount: 0,
+      }
     case 'SET_CONNECTION_STATUS':
       return { ...state, isConnected: action.isConnected }
     case 'SET_SOCKET':
@@ -89,12 +105,16 @@ const NotificationContext = createContext<{
   fetchNotifications: () => Promise<void>
   markAsRead: (notificationId: string) => Promise<void>
   markAllAsRead: () => Promise<void>
+  deleteNotification: (notificationId: string) => Promise<void>
+  deleteAllNotifications: () => Promise<void>
 }>({
   state: initialState,
   dispatch: () => null,
   fetchNotifications: async () => {},
   markAsRead: async () => {},
   markAllAsRead: async () => {},
+  deleteNotification: async () => {},
+  deleteAllNotifications: async () => {},
 })
 
 // Provider component
@@ -174,6 +194,48 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       }
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error)
+    }
+  }
+
+  // Delete a specific notification
+  const deleteNotification = async (notificationId: string) => {
+    if (!session?.accessToken) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        dispatch({ type: 'DELETE_NOTIFICATION', notificationId })
+      }
+    } catch (error) {
+      console.error('Failed to delete notification:', error)
+    }
+  }
+
+  // Delete all notifications
+  const deleteAllNotifications = async () => {
+    if (!session?.accessToken) return
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/notifications/delete-all`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (response.ok) {
+        dispatch({ type: 'DELETE_ALL_NOTIFICATIONS' })
+      }
+    } catch (error) {
+      console.error('Failed to delete all notifications:', error)
     }
   }
 
@@ -358,6 +420,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
         fetchNotifications,
         markAsRead,
         markAllAsRead,
+        deleteNotification,
+        deleteAllNotifications,
       }}
     >
       {children}

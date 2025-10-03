@@ -282,7 +282,7 @@ function HotelDetailContent() {
                     <h1 className="text-vintage-3xl font-playfair font-bold text-cream-light mb-4">{hotel.name}</h1>
                     <div className="flex items-center text-cream-light/80 mb-3 font-cormorant text-vintage-base">
                       <MapPin className="w-5 h-5 mr-2 text-copper-accent" />
-                      <span>{hotel.address}, {hotel.city}, {hotel.state}</span>
+                      <span>{hotel.address}, {hotel.location?.city || hotel.city}, {hotel.location?.state || hotel.state}</span>
                     </div>
                     <div className="flex items-center text-cream-light/80 font-cormorant text-vintage-base">
                       <Phone className="w-5 h-5 mr-2 text-copper-accent" />

@@ -77,7 +77,9 @@ export default function HotelCard({
               </CardTitle>
               <div className="flex items-center text-cream-light/70 mt-1">
                 <MapPin className="w-4 h-4 mr-1 text-copper-accent" />
-                <span className="text-vintage-sm font-cormorant">{hotel.city}, {hotel.country}</span>
+                <span className="text-vintage-sm font-cormorant">
+                  {hotel.location?.city || hotel.city}, {hotel.location?.country || hotel.country}
+                </span>
               </div>
             </div>
             

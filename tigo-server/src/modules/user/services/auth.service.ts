@@ -119,9 +119,11 @@ export class AuthService {
       const payload = this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
-
+      console.log('refreshToken: ', refreshToken);  
+      console.log('payload: ', payload);
       const user = await this.userService.findOne(payload.sub);
-
+      console.log('user: ', user);
+      console.log('user.refresh_token: ', user.refresh_token);
       if (!user.refresh_token) {
         throw new UnauthorizedException('Invalid refresh token');
       }
@@ -131,7 +133,7 @@ export class AuthService {
         refreshToken,
         user.refresh_token,
       );
-
+      console.log('isRefreshTokenValid: ', isRefreshTokenValid);
       if (!isRefreshTokenValid) {
         throw new UnauthorizedException('Invalid refresh token');
       }
@@ -143,7 +145,7 @@ export class AuthService {
       };
 
       const newAccessToken = this.jwtService.sign(newPayload);
-
+      console.log('newAccessToken: ', newAccessToken);
       return {
         access_token: newAccessToken,
       };

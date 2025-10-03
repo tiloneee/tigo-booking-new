@@ -184,7 +184,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                         <div className="flex items-center gap-2 mt-1">
                           <MapPin className="h-4 w-4 text-copper-accent" />
                         <span className="text-cream-light/80 font-cormorant text-vintage-base">
-                          {hotel.city || 'Unknown'}, {hotel.state || 'Unknown'}
+                          {hotel.location?.city || hotel.city || 'Unknown'}, {hotel.location?.state || hotel.state || 'Unknown'}
                         </span>
                         </div>
                       </div>
@@ -246,7 +246,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                           {hotel.description || 'No description available'}
                         </p>
                         <p className="text-cream-light/60 font-cormorant text-vintage-sm">
-                          {hotel.address || 'Address not available'}, {hotel.city || 'Unknown'}, {hotel.state || 'Unknown'} {hotel.zip_code || ''}
+                          {hotel.address || 'Address not available'}, {hotel.location?.city || hotel.city || 'Unknown'}, {hotel.location?.state || hotel.state || 'Unknown'} {hotel.zip_code || ''}
                         </p>
                         {isAdmin && hotel.owner && (
                           <p className="text-cream-light/60 font-cormorant text-vintage-sm">

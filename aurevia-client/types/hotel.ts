@@ -26,6 +26,17 @@ export interface Hotel {
     max_price: number;
     currency: string;
   };
+  // Optional location object for search results (Elasticsearch format)
+  location?: {
+    city: string;
+    country: string;
+    state?: string;
+    address?: string;
+    coordinates?: {
+      lat: number;
+      lon: number;
+    };
+  };
 }
 
 export interface Room {

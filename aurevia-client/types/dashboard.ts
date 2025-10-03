@@ -38,6 +38,17 @@ export interface Hotel {
   bookings?: Booking[]
   created_at: string
   updated_at: string
+  // Optional location object for search results (Elasticsearch format) - supports both flat and nested location data
+  location?: {
+    city: string;
+    country: string;
+    state?: string;
+    address?: string;
+    coordinates?: {
+      lat: number;
+      lon: number;
+    };
+  };
 }
 
 // Room types

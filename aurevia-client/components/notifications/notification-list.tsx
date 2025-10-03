@@ -9,7 +9,8 @@ import {
   Check, 
   Bell,
   CreditCard,
-  Building2
+  Building2,
+  Trash2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useNotifications, type Notification } from './notification-provider'
@@ -21,7 +22,7 @@ interface NotificationListProps {
 }
 
 export function NotificationList({ maxHeight = '600px', onClose, notifications }: NotificationListProps) {
-  const { state, markAsRead, markAllAsRead } = useNotifications()
+  const { state, markAsRead, markAllAsRead, deleteNotification } = useNotifications()
   
   // Use provided notifications or fall back to state notifications
   const displayNotifications = notifications || state.notifications
@@ -92,6 +93,13 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
     await markAllAsRead()
   }
 
+  const handleDeleteNotification = async (notificationId: string, event: React.MouseEvent) => {
+    event.stopPropagation() // Prevent triggering the notification click
+    if (window.confirm('Are you sure you want to delete this notification?')) {
+      await deleteNotification(notificationId)
+    }
+  }
+
   if (displayNotifications.length === 0) {
     return (
       <div className="p-6 text-center">
@@ -110,12 +118,12 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
     <div style={{ maxHeight }} className="overflow-y-auto">
       {/* Header with mark all read button */}
       {state.unreadCount > 0 && (
-        <div className="p-3 border-b border-copper-accent/10">
+        <div className="px-3 pb-3 border-b border-copper-accent/10">
           <Button
             variant="ghost"
             size="sm"
             onClick={handleMarkAllRead}
-            className="w-full text-copper-accent hover:text-cream-light hover:bg-copper-accent/20 font-cormorant text-vintage-sm"
+            className="w-full text-vintage-md bg-walnut-medium border border-copper-accent/30 text-copper-accent hover:text-cream-light hover:bg-copper-accent/20 font-cormorant"
           >
             <Check className="h-4 w-4 mr-2" />
             Mark all as read
@@ -129,7 +137,7 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
           <div
             key={notification.id}
             onClick={() => handleNotificationClick(notification)}
-            className={`p-4 cursor-pointer hover:bg-copper-accent/10 transition-all duration-200 ${getNotificationColor(
+            className={`group p-4 cursor-pointer hover:bg-copper-accent/10 transition-all duration-200 ${getNotificationColor(
               notification.type,
               notification.status
             )} ${notification.status === 'UNREAD' ? 'font-medium' : 'opacity-75'}`}
@@ -164,9 +172,21 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
                           }
                         })()}
                       </span>
-                      {notification.status === 'UNREAD' && (
-                        <div className="w-2 h-2 bg-copper-accent rounded-full animate-pulse" />
-                      )}
+                      <div className="flex items-center space-x-2">
+                        {notification.status === 'UNREAD' && (
+                          <div className="w-2 h-2 bg-copper-accent rounded-full animate-pulse" />
+                        )}
+                        {/* Delete button */}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => handleDeleteNotification(notification.id, e)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                          title="Delete notification"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>

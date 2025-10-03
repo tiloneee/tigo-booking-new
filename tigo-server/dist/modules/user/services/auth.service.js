@@ -103,11 +103,16 @@ let AuthService = class AuthService {
             const payload = this.jwtService.verify(refreshToken, {
                 secret: this.configService.get('JWT_REFRESH_SECRET'),
             });
+            console.log('refreshToken: ', refreshToken);
+            console.log('payload: ', payload);
             const user = await this.userService.findOne(payload.sub);
+            console.log('user: ', user);
+            console.log('user.refresh_token: ', user.refresh_token);
             if (!user.refresh_token) {
                 throw new common_1.UnauthorizedException('Invalid refresh token');
             }
             const isRefreshTokenValid = await bcrypt.compare(refreshToken, user.refresh_token);
+            console.log('isRefreshTokenValid: ', isRefreshTokenValid);
             if (!isRefreshTokenValid) {
                 throw new common_1.UnauthorizedException('Invalid refresh token');
             }
@@ -117,6 +122,7 @@ let AuthService = class AuthService {
                 roles: user.roles?.map((role) => role.name) || [],
             };
             const newAccessToken = this.jwtService.sign(newPayload);
+            console.log('newAccessToken: ', newAccessToken);
             return {
                 access_token: newAccessToken,
             };

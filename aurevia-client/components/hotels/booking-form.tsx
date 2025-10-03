@@ -150,7 +150,7 @@ export default function BookingForm({
         <CardContent className="space-y-4">
           <div>
             <h3 className="font-semibold text-lg">{hotel.name}</h3>
-            <p className="text-gray-600">{hotel.city}, {hotel.state}</p>
+            <p className="text-gray-600">{hotel.location?.city || hotel.city}, {hotel.location?.state || hotel.state}</p>
           </div>
           
           <div className="border-t pt-4">
