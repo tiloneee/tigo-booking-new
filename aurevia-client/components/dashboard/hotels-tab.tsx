@@ -22,6 +22,7 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
+  IdCard
 } from "lucide-react"
 import type { Hotel, Room, Booking, RoomAvailability } from "@/types/dashboard"
 import { roomsApi, bookingsApi, availabilityApi } from "@/lib/api/dashboard"
@@ -510,11 +511,17 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                   {/* Booking Card Title */}
                                   <div className="mb-2">
                                     <span className="text-copper-light font-cormorant text-vintage-xl font-bold">
-                                      Booking: {booking.id} - {booking.guest_name || 'N/A'}
+                                      Booking of: Mr/Mrs {booking.guest_name || 'N/A'} - {booking.room ? `Room ${booking.room.room_number}` : 'No room assigned'}
                                     </span>
                                   </div>
                                   <div className="flex items-start justify-between">
                                     <div className="space-y-2">
+                                      <div className="flex items-center gap-3">
+                                        <IdCard className="h-5 w-5 text-copper-accent" />
+                                        <span className="text-cream-light font-cormorant text-vintage-base">
+                                          Booking ID: {booking.id}
+                                        </span>
+                                      </div>
                                       <div className="flex items-center gap-3">
                                         <Calendar className="h-5 w-5 text-copper-accent" />
                                         <span className="text-cream-light font-cormorant text-vintage-base">

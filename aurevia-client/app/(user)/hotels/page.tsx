@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import HotelCard from '@/components/hotels/hotel-card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +51,9 @@ function HotelsPageContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
   const [popularCities, setPopularCities] = useState<string[]>([]);
+  const initialFetchHandledRef = useRef(false);
+  const filtersEffectInitRef = useRef(false);
+  const advancedFiltersEffectInitRef = useRef(false);
 
   // Load popular cities
   useEffect(() => {
@@ -186,12 +189,53 @@ function HotelsPageContent() {
   };
 
   useEffect(() => {
-    // Load all hotels by default on component mount and filter changes
+    if (initialFetchHandledRef.current) {
+      return;
+    }
+    initialFetchHandledRef.current = true;
+
+    const hasSearchParams = Boolean(
+      searchParams.get('city') ||
+      searchParams.get('check_in_date') ||
+      searchParams.get('check_out_date')
+    );
+
+    const latParam = searchParams.get('latitude');
+    const lngParam = searchParams.get('longitude');
+    const hasLocationParams = latParam !== null && lngParam !== null;
+
+    if (hasLocationParams) {
+      const latitude = parseFloat(latParam as string);
+      const longitude = parseFloat(lngParam as string);
+      if (!Number.isNaN(latitude) && !Number.isNaN(longitude)) {
+        setUserLocation({ latitude, longitude });
+        setFilters(prev => ({ ...prev, sortBy: 'distance' }));
+      }
+    }
+
+    if (!hasLocationParams) {
+      if (hasSearchParams) {
+        fetchHotels(true, true);
+      } else {
+        fetchHotels(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!filtersEffectInitRef.current) {
+      filtersEffectInitRef.current = true;
+      return;
+    }
     fetchHotels(false);
   }, [filters.sortBy, filters.sortOrder, currentPage]);
 
   // Reload when price/rating/amenity filters change (these will trigger advanced search)
   useEffect(() => {
+    if (!advancedFiltersEffectInitRef.current) {
+      advancedFiltersEffectInitRef.current = true;
+      return;
+    }
     const hasFilters = filters.minPrice !== undefined || filters.maxPrice !== undefined || filters.minRating !== undefined || filters.selectedAmenities.length > 0;
     if (hasFilters) {
       fetchHotels(true, true); // Use advanced search for filtered results
@@ -352,7 +396,7 @@ function HotelsPageContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 {/* Search by Hotel Name or City */}
                 <div className="lg:col-span-2">
-                  <label className="block text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
+                  <label className="text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
                     <Search className="w-4 h-4 mr-2 text-copper-accent" />
                     Search Hotels
                   </label>
@@ -394,7 +438,7 @@ function HotelsPageContent() {
 
                 {/* Check-in Date */}
                 <div>
-                  <label className="block text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
+                  <label className="text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
                     <Calendar className="w-4 h-4 mr-2 text-copper-accent" />
                     Check-in
                   </label>
@@ -409,7 +453,7 @@ function HotelsPageContent() {
 
                 {/* Check-out Date */}
                 <div>
-                  <label className="block text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
+                  <label className="text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
                     <Calendar className="w-4 h-4 mr-2 text-copper-accent" />
                     Check-out
                   </label>
@@ -425,7 +469,7 @@ function HotelsPageContent() {
                 {/* Guests and Rooms */}
                 <div className="flex gap-2">
                   <div className="flex-1">
-                    <label className="block text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
+                    <label className="text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
                       <Users className="w-4 h-4 mr-2 text-copper-accent" />
                       Guests
                     </label>
@@ -451,7 +495,7 @@ function HotelsPageContent() {
                   </div>
                   
                   <div className="flex-1">
-                    <label className="block text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
+                    <label className="text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
                       <Home className="w-4 h-4 mr-2 text-copper-accent" />
                       Rooms
                     </label>

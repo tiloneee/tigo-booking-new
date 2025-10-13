@@ -118,8 +118,8 @@ function BookingSummaryContent() {
             // Create a complete Room object from the passed data
             const room: Room = {
               id: roomData.id,
-              room_number: `Room ${roomIds.indexOf(roomData.id) + 1}`,
               room_type: roomData.room_type,
+              room_number: roomData.room_number,
               description: roomData.description,
               max_occupancy: roomData.max_occupancy,
               bed_configuration: roomData.bed_configuration,
@@ -416,7 +416,7 @@ function BookingSummaryContent() {
                   <div key={room.id} className="border border-copper-accent/20 rounded-lg p-4 bg-walnut-darkest/20">
                     <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h3 className="font-playfair font-semibold text-vintage-lg text-cream-light">{room.room_type}</h3>
+                        <h3 className="font-playfair font-semibold text-vintage-lg text-cream-light">{room.room_type} - Room {room.room_number}</h3>
                         <p className="text-cream-light/80 text-sm font-cormorant">{room.description}</p>
                       </div>
                       <div className="text-right">

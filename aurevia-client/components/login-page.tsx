@@ -50,7 +50,7 @@ export default function LoginPage() {
         // Get the session to check user data
         const session = await getSession()
         if (session) {
-          router.push("/dashboard") // Redirect to dashboard
+          router.push("/") // Redirect to dashboard
         }
       } else {
         // This shouldn't happen, but just in case

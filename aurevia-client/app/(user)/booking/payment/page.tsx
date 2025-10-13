@@ -42,6 +42,7 @@ function PaymentContent() {
     cvv: '',
     cardholderName: '',
   });
+  const [paypalStatus, setPaypalStatus] = useState<'idle' | 'processing' | 'completed'>('idle');
 
   // Get parameters from URL
   const hotelId = searchParams.get('hotel_id');
@@ -233,6 +234,11 @@ function PaymentContent() {
         alert('Please fill in all card details');
         return;
       }
+    }
+
+    if (paymentMethod === 'paypal' && paypalStatus !== 'completed') {
+      setError('Please complete the PayPal authorization.');
+      return;
     }
 
     setProcessing(true);
@@ -462,7 +468,10 @@ function PaymentContent() {
                 {/* Payment Method Options */}
                 <div className="grid md:grid-cols-2 gap-4">
                   <button
-                    onClick={() => setPaymentMethod('card')}
+                    onClick={() => {
+                      setPaymentMethod('card');
+                      setPaypalStatus('idle');
+                    }}
                     className={`p-4 rounded-lg border-2 transition-all duration-300 ${
                       paymentMethod === 'card'
                         ? 'border-copper-accent bg-copper-accent/10'
@@ -479,7 +488,10 @@ function PaymentContent() {
                   </button>
 
                   <button
-                    onClick={() => setPaymentMethod('paypal')}
+                    onClick={() => {
+                      setPaymentMethod('paypal');
+                      setPaypalStatus('idle');
+                    }}
                     className={`p-4 rounded-lg border-2 transition-all duration-300 ${
                       paymentMethod === 'paypal'
                         ? 'border-copper-accent bg-copper-accent/10'
@@ -563,13 +575,38 @@ function PaymentContent() {
                 {/* PayPal Option */}
                 {paymentMethod === 'paypal' && (
                   <div className="text-center py-8">
-                    <Shield className="w-16 h-16 mx-auto text-copper-accent mb-4" />
+                    {paypalStatus === 'completed' ? (
+                      <CheckCircle className="w-16 h-16 mx-auto text-green-400 mb-4" />
+                    ) : (
+                      <Shield className="w-16 h-16 mx-auto text-copper-accent mb-4" />
+                    )}
                     <h3 className="font-playfair font-semibold text-cream-light text-lg mb-2">PayPal Payment</h3>
                     <p className="text-cream-light/70 font-cormorant mb-4">
                       You will be redirected to PayPal to complete your payment securely.
                     </p>
-                    <Button className="bg-blue-600 hover:bg-blue-700 text-white font-cinzel font-bold">
-                      Pay with PayPal
+                    <Button
+                      onClick={async () => {
+                        if (paypalStatus === 'processing' || paypalStatus === 'completed' || processing) return;
+                        setPaypalStatus('processing');
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        setPaypalStatus('completed');
+                      }}
+                      disabled={paypalStatus === 'processing' || paypalStatus === 'completed' || processing}
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800/60 disabled:cursor-not-allowed text-white font-cinzel font-bold"
+                    >
+                      {paypalStatus === 'processing' ? (
+                        <span className="flex items-center justify-center">
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </span>
+                      ) : paypalStatus === 'completed' ? (
+                        <span className="flex items-center justify-center">
+                          <CheckCircle className="w-4 h-4 mr-2" />
+                          Payment Complete
+                        </span>
+                      ) : (
+                        'Pay with PayPal'
+                      )}
                     </Button>
                   </div>
                 )}
@@ -654,7 +691,11 @@ function PaymentContent() {
 
                 <Button
                   onClick={handlePayment}
-                  disabled={processing || (paymentMethod === 'card' && (!cardDetails.cardNumber.replace(/\s/g, '') || !cardDetails.expiryDate || !cardDetails.cvv || !cardDetails.cardholderName))}
+                  disabled={
+                    processing ||
+                    (paymentMethod === 'card' && (!cardDetails.cardNumber.replace(/\s/g, '') || !cardDetails.expiryDate || !cardDetails.cvv || !cardDetails.cardholderName)) ||
+                    (paymentMethod === 'paypal' && paypalStatus !== 'completed')
+                  }
                   className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300"
                 >
                   {processing ? (

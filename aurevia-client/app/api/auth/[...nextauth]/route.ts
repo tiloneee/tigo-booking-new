@@ -47,6 +47,7 @@ const authOptions: AuthOptions = {
               id: data.user.id,
               email: data.user.email,
               name: `${data.user.first_name} ${data.user.last_name}`,
+              phone_number: data.user.phone_number,
               accessToken: data.access_token,
               refreshToken: data.refresh_token,
               roles: data.user.roles || [],

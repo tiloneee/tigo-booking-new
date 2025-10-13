@@ -112,6 +112,7 @@ function HotelDetailContent() {
       room_data: JSON.stringify({
         id: room.id,
         room_type: room.room_type,
+        room_number: room.room_number,
         description: room.description,
         max_occupancy: room.max_occupancy,
         bed_configuration: room.bed_configuration,
@@ -522,7 +523,7 @@ function HotelDetailContent() {
                     return priceA - priceB;
                   }). map((room) => (
                     <div key={room.id} className="border border-copper-accent/20 rounded-lg p-4 bg-walnut-darkest/20 hover:bg-copper-accent/10 transition-colors">
-                      <h3 className="font-playfair font-semibold text-vintage-lg mb-2 text-cream-light">{room.room_type}</h3>
+                      <h3 className="font-playfair font-semibold text-vintage-lg mb-2 text-cream-light">{room.room_type} - Room {room.room_number} </h3>
                       <p className="text-cream-light/80 text-sm mb-3 font-cormorant">{room.description}</p>
                       
                       <div className="space-y-2 mb-4">

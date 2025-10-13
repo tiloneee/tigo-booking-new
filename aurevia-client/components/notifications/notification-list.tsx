@@ -101,6 +101,7 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
     }
   }
 
+
   const handleMarkAllRead = async () => {
     await markAllAsRead()
   }
