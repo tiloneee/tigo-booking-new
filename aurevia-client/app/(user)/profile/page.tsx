@@ -35,6 +35,7 @@ export default function ProfilePage() {
     phone_number: ''
   })
   const [editLoading, setEditLoading] = useState(false)
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null)
   const hasFetchedData = useRef(false) // Track if we've already fetched data
 
   useEffect(() => {
@@ -54,8 +55,9 @@ export default function ProfilePage() {
         const profileData = await authApi.getProfile()
         console.log(profileData)
         setProfile(profileData)
+        
 
-        // Fetch user bookings
+        // Fetch user bookingss
         const bookingsData = await bookingsApi.getByUser()
         setBookings(bookingsData)
         
@@ -190,6 +192,56 @@ export default function ProfilePage() {
     }
   }
 
+  const handleCancelBooking = async (bookingId: string) => {
+    if (!accessToken) return
+
+    const cancellationReason = prompt('Please provide a reason for cancellation:')
+    if (!cancellationReason) {
+      return // User cancelled the prompt
+    }
+
+    if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      setCancellingBookingId(bookingId)
+      setError(null)
+
+      // Cancel booking via API
+      await bookingsApi.cancel(bookingId, cancellationReason)
+
+      // Refresh bookings list
+      const bookingsData = await bookingsApi.getByUser()
+      setBookings(bookingsData)
+
+      // If the cancelled booking was being viewed in details modal, close it
+      if (selectedBooking?.id === bookingId) {
+        closeBookingDetails()
+      }
+
+      alert('Booking cancelled successfully!')
+    } catch (err: any) {
+      console.error('Error cancelling booking:', err)
+      
+      // Extract error message from API response
+      let errorMessage = 'Failed to cancel booking'
+      
+      if (err?.response?.data?.message) {
+        // Axios error with response
+        errorMessage = err.response.data.message
+      } else if (err?.message) {
+        // Standard Error object
+        errorMessage = err.message
+      }
+      
+      setError(errorMessage)
+      alert(errorMessage)
+    } finally {
+      setCancellingBookingId(null)
+    }
+  }
+
   if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
@@ -267,7 +319,9 @@ export default function ProfilePage() {
                   {profile?.first_name} {profile?.last_name}
                 </h2>
                 <p className="text-vintage-sm text-copper-accent font-cinzel uppercase tracking-wider">
-                  {profile?.roles?.join(", ") || "User"}
+                  {Array.isArray(profile?.roles) && profile.roles.length > 0
+                    ? (profile.roles as any[]).map(role => typeof role === 'string' ? role : role.name).join(", ")
+                    : "User"}
                 </p>
               </div>
 
@@ -465,14 +519,36 @@ export default function ProfilePage() {
                               Booked on {formatDate(booking.created_at)}
                             </span>
                           </div>
-                          <Button
-                            size="sm"
-                            className="px-8 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
-                            onClick={() => handleViewDetails(booking)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Details
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="px-8 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                              onClick={() => handleViewDetails(booking)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Details
+                            </Button>
+                            {(booking.status === 'Pending' || booking.status === 'Confirmed') && (
+                              <Button
+                                size="sm"
+                                className="px-8 py-4 text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                                onClick={() => handleCancelBooking(booking.id)}
+                                disabled={cancellingBookingId === booking.id}
+                              >
+                                {cancellingBookingId === booking.id ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin mr-1"></div>
+                                    Cancelling...
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    Cancel Booking
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -594,7 +670,26 @@ export default function ProfilePage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="flex justify-end mt-6 pt-4 border-t border-copper-accent/20">
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-copper-accent/20">
+                {(selectedBooking.status === 'Pending' || selectedBooking.status === 'Confirmed') && (
+                  <Button
+                    onClick={() => handleCancelBooking(selectedBooking.id)}
+                    disabled={cancellingBookingId === selectedBooking.id}
+                    className="px-8 py-4 text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                  >
+                    {cancellingBookingId === selectedBooking.id ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin mr-2"></div>
+                        Cancelling...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Cancel Booking
+                      </>
+                    )}
+                  </Button>
+                )}
                 <Button
                   onClick={closeBookingDetails}
                   className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-playfair border-copper-accent/30 font-semibold hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105"

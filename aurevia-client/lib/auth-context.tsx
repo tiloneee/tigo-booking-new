@@ -214,9 +214,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setAccessToken(access_token)
       // No need to set refresh token - it's in httpOnly cookie
     } catch (error: any) {
-      // Extract error message from axios error
-      const errorMessage = error.response?.data?.message || error.message || 'Login failed'
-      throw new Error(errorMessage)
+      // Re-throw the original axios error so the response data is preserved
+      if (error.response?.data?.message) {
+        const err = new Error(error.response.data.message) as any
+        err.response = error.response
+        throw err
+      }
+      throw error
     }
   }, [])
 

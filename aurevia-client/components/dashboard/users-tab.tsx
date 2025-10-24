@@ -25,7 +25,7 @@ export default function UsersTab({ users, accessToken, onRefresh }: UsersTabProp
 
     try {
       setIsDeleting(true)
-      await usersApi.delete(accessToken, userId)
+      await usersApi.delete(userId)
       onRefresh()
       setSelectedUser(null)
     } catch (error) {

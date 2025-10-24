@@ -51,7 +51,7 @@ export function ManageAvailabilityModal({
   // Fetch fresh availability data
   const refreshAvailability = async () => {
     try {
-      const availability = await availabilityApi.getByRoom(accessToken, roomId)
+      const availability = await availabilityApi.getByRoom(roomId)
       setAvailabilityList(availability)
       onSuccess() // Also notify parent to update its state
     } catch (err) {
@@ -77,7 +77,7 @@ export function ManageAvailabilityModal({
       // Create availability for each date
       await Promise.all(
         dates.map(date =>
-          availabilityApi.create(accessToken, roomId, {
+          availabilityApi.create(roomId, {
             room_id: roomId,
             date: date.toISOString().split('T')[0],
             available_units: parseInt(newAvailability.available_units),
@@ -108,7 +108,7 @@ export function ManageAvailabilityModal({
     if (!confirm('Delete this availability entry?')) return
 
     try {
-      await availabilityApi.delete(accessToken, availId)
+      await availabilityApi.delete(availId)
       // Refresh the availability list to show updated entries
       await refreshAvailability()
     } catch (err) {
@@ -141,7 +141,7 @@ export function ManageAvailabilityModal({
       // Extract date in YYYY-MM-DD format for the API
       const dateStr = new Date(avail.date).toISOString().split('T')[0]
       
-      await availabilityApi.update(accessToken, roomId, dateStr, {
+      await availabilityApi.update(roomId, dateStr, {
         available_units: parseInt(editForm.available_units),
         price_per_night: parseFloat(editForm.price_per_night),
       })

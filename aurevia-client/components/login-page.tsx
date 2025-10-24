@@ -19,9 +19,11 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
+    
     if (!email || !password) {
       setError("Please fill in all fields")
-      return
+      return false
     }
 
     setIsLoading(true)
@@ -31,17 +33,31 @@ export default function LoginPage() {
       await login(email, password)
       router.push("/") // Redirect to home page after successful login
     } catch (error: any) {
+      console.error('Login error:', error)
+      
+      // Extract error message from various error formats
+      let errorMessage = "Login failed. Please try again."
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
       // Handle specific backend errors with user-friendly messages
-      if (error.message.includes("Invalid credentials")) {
+      if (errorMessage.toLowerCase().includes("invalid credentials") || 
+          errorMessage.toLowerCase().includes("invalid email or password")) {
         setError("Invalid email or password. Please check your credentials and try again.")
-      } else if (error.message.includes("activate your account")) {
+      } else if (errorMessage.toLowerCase().includes("activate your account")) {
         setError("Please activate your account first. Check your email for activation instructions.")
       } else {
-        setError(error.message || "Login failed. Please try again.")
+        setError(errorMessage)
       }
     } finally {
       setIsLoading(false)
     }
+    
+    return false
   }
 
   return (
@@ -126,7 +142,7 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <form onSubmit={handleLogin} className="space-y-6">
+              <form onSubmit={handleLogin} className="space-y-6" autoComplete="off" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleLogin(e as any) } }}>
                 {/* Email Field */}
                 <div className="space-y-2">
                   <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
@@ -140,6 +156,7 @@ export default function LoginPage() {
                     placeholder="Enter your email address"
                     className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
                     required
+                    autoComplete="email"
                   />
                 </div>
 
@@ -157,6 +174,7 @@ export default function LoginPage() {
                       placeholder="Enter your password"
                       className="w-full px-4 py-3 pr-12 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
                       required
+                      autoComplete="current-password"
                     />
                     <button
                       type="button"

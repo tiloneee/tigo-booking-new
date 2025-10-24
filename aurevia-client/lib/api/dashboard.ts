@@ -157,6 +157,12 @@ export const bookingsApi = {
     return response.data;
   },
   
+  // Get all bookings for hotel owner's hotels
+  getByHotelOwner: async (): Promise<Booking[]> => {
+    const response = await axiosInstance.get('/bookings/search');
+    return response.data;
+  },
+  
   // Get all bookings for a hotel
   getByHotel: async (hotelId: string): Promise<Booking[]> => {
     const response = await axiosInstance.get(`/hotels/${hotelId}/bookings`);
@@ -183,7 +189,7 @@ export const bookingsApi = {
     bookingId: string,
     reason?: string
   ): Promise<Booking> => {
-    const response = await axiosInstance.post(`/bookings/${bookingId}/cancel`, {
+    const response = await axiosInstance.patch(`/bookings/${bookingId}/cancel`, {
       cancellation_reason: reason
     });
     return response.data;
