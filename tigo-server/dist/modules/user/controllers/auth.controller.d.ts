@@ -1,3 +1,4 @@
+import { Response as ExpressResponse } from 'express';
 import { AuthService } from '../services/auth.service';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
@@ -8,9 +9,8 @@ export declare class AuthController {
         message: string;
         userId: string;
     }>;
-    login(loginDto: LoginDto): Promise<{
+    login(loginDto: LoginDto, res: ExpressResponse): Promise<{
         access_token: string;
-        refresh_token: string;
         user: {
             id: string;
             email: string;
@@ -30,10 +30,10 @@ export declare class AuthController {
             last_name: string;
         };
     }>;
-    refreshToken(refreshToken: string): Promise<{
+    refreshToken(req: any, res: ExpressResponse): Promise<{
         access_token: string;
     }>;
-    logout(req: any): Promise<{
+    logout(req: any, res: ExpressResponse): Promise<{
         message: string;
     }>;
 }

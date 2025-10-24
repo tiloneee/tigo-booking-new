@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
@@ -35,10 +35,16 @@ export default function ProfilePage() {
     phone_number: ''
   })
   const [editLoading, setEditLoading] = useState(false)
+  const hasFetchedData = useRef(false) // Track if we've already fetched data
 
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!accessToken) return
+      
+      // Prevent refetching on token refresh
+      if (hasFetchedData.current) {
+        return
+      }
 
       try {
         setLoading(true)
@@ -52,6 +58,9 @@ export default function ProfilePage() {
         // Fetch user bookings
         const bookingsData = await bookingsApi.getByUser()
         setBookings(bookingsData)
+        
+        // Mark as fetched
+        hasFetchedData.current = true
       } catch (err) {
         console.error('Error fetching profile data:', err)
         setError('Failed to load profile data')

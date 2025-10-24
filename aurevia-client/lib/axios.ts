@@ -8,6 +8,7 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // ✅ Enable sending cookies with requests
   timeout: 30000, // 30 seconds
 })
 
@@ -128,34 +129,30 @@ axiosInstance.interceptors.response.use(
     originalRequest._retry = true
     isRefreshing = true
 
-    const authData = getAuthData()
-
-    if (!authData?.refreshToken) {
-      clearAuthData()
-      if (typeof window !== 'undefined') {
-        window.location.href = '/auth/login'
-      }
-      return Promise.reject(error)
-    }
-
     try {
-      // Attempt to refresh the token
+      // Attempt to refresh the token using cookie-based refresh
+      // Refresh token is automatically sent via httpOnly cookie
       const response = await axios.post(
         `${API_BASE_URL}/auth/refresh`,
-        { refresh_token: authData.refreshToken },
+        {}, // Empty body - token is in cookie
         {
           headers: {
             'Content-Type': 'application/json',
           },
+          withCredentials: true, // Send cookies
         }
       )
 
       const { access_token } = response.data
 
+      // Get current auth data (without refresh token now)
+      const authData = getAuthData()
+
       // Update the stored auth data with new access token
       const updatedAuthData = {
-        ...authData,
+        user: authData?.user,
         accessToken: access_token,
+        // No refreshToken in localStorage anymore - it's in httpOnly cookie
       }
 
       updateAuthData(updatedAuthData)

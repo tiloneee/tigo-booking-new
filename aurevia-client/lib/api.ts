@@ -12,8 +12,8 @@ export interface User {
 
 export interface AuthResponse {
   access_token: string
-  refresh_token: string
   user: User
+  // refresh_token is now in httpOnly cookie, not in response
 }
 
 export interface RegisterData {

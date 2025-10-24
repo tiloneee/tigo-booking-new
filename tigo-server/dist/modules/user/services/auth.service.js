@@ -130,6 +130,37 @@ let AuthService = class AuthService {
             throw new common_1.UnauthorizedException('Invalid refresh token');
         }
     }
+    async refreshTokenFromCookie(userId, refreshToken) {
+        try {
+            const user = await this.userService.findOne(userId);
+            if (!user.refresh_token) {
+                throw new common_1.UnauthorizedException('Invalid refresh token');
+            }
+            const isRefreshTokenValid = await bcrypt.compare(refreshToken, user.refresh_token);
+            if (!isRefreshTokenValid) {
+                throw new common_1.UnauthorizedException('Invalid refresh token');
+            }
+            const payload = {
+                email: user.email,
+                sub: user.id,
+                roles: user.roles?.map((role) => role.name) || [],
+            };
+            const newAccessToken = this.jwtService.sign(payload);
+            const newRefreshToken = this.jwtService.sign(payload, {
+                secret: this.configService.get('JWT_REFRESH_SECRET'),
+                expiresIn: this.configService.get('JWT_REFRESH_EXPIRES_IN'),
+            });
+            await this.userService.updateRefreshToken(user.id, newRefreshToken);
+            common_1.Logger.log(`User ${user.id} refreshed token from cookie!`);
+            return {
+                access_token: newAccessToken,
+                refresh_token: newRefreshToken,
+            };
+        }
+        catch (error) {
+            throw new common_1.UnauthorizedException('Invalid refresh token');
+        }
+    }
     async logout(userId) {
         await this.userService.updateRefreshToken(userId, null);
         return { message: 'Logged out successfully' };

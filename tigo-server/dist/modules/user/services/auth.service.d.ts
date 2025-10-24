@@ -40,6 +40,10 @@ export declare class AuthService {
     refreshToken(refreshToken: string): Promise<{
         access_token: string;
     }>;
+    refreshTokenFromCookie(userId: string, refreshToken: string): Promise<{
+        access_token: string;
+        refresh_token: string;
+    }>;
     logout(userId: string): Promise<{
         message: string;
     }>;

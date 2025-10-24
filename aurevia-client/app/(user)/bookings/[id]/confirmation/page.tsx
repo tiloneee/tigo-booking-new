@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,7 @@ export default function BookingConfirmationPage() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedData = useRef(false); // Track if we've already fetched data
 
   const bookingId = params.id as string;
 
@@ -24,6 +25,11 @@ export default function BookingConfirmationPage() {
       if (!accessToken) {
         setError('Please sign in to view booking details');
         setLoading(false);
+        return;
+      }
+
+      // Prevent refetching on token refresh
+      if (hasFetchedData.current) {
         return;
       }
 
@@ -63,6 +69,7 @@ export default function BookingConfirmationPage() {
         };
 
         setBooking(mockBooking);
+        hasFetchedData.current = true; // Mark as fetched
       } catch (err) {
         setError('Failed to load booking details');
         console.error('Error fetching booking:', err);

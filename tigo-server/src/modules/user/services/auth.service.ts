@@ -153,6 +153,52 @@ export class AuthService {
     }
   }
 
+  async refreshTokenFromCookie(userId: string, refreshToken: string) {
+    try {
+      const user = await this.userService.findOne(userId);
+      
+      if (!user.refresh_token) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      // Verify refresh token matches stored one
+      const isRefreshTokenValid = await bcrypt.compare(
+        refreshToken,
+        user.refresh_token,
+      );
+
+      if (!isRefreshTokenValid) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const payload = {
+        email: user.email,
+        sub: user.id,
+        roles: user.roles?.map((role) => role.name) || [],
+      };
+
+      const newAccessToken = this.jwtService.sign(payload);
+      
+      // Optionally generate a new refresh token (token rotation)
+      const newRefreshToken = this.jwtService.sign(payload, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
+      });
+
+      // Update stored refresh token
+      await this.userService.updateRefreshToken(user.id, newRefreshToken);
+
+      Logger.log(`User ${user.id} refreshed token from cookie!`);
+      
+      return {
+        access_token: newAccessToken,
+        refresh_token: newRefreshToken,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
   async logout(userId: string) {
     await this.userService.updateRefreshToken(userId, null);
     return { message: 'Logged out successfully' };

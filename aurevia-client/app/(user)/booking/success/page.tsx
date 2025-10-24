@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
@@ -32,6 +32,7 @@ function BookingSuccessContent() {
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedData = useRef(false); // Track if we've already fetched data
 
   const bookingId = searchParams.get('booking_id');
 
@@ -47,6 +48,11 @@ function BookingSuccessContent() {
       // Don't fetch if access token is not available yet
       if (!accessToken) {
         console.log('Access token not available yet, waiting...');
+        return;
+      }
+
+      // Prevent refetching on token refresh
+      if (hasFetchedData.current) {
         return;
       }
 
@@ -79,6 +85,9 @@ function BookingSuccessContent() {
           const roomData = await HotelApiService.getRoomById(bookingData.room_id);
           setRoom(roomData);
         }
+        
+        // Mark as fetched
+        hasFetchedData.current = true;
       } catch (err) {
         console.error('Error fetching booking details:', err);
         setError('Failed to load booking details. Please try again.');

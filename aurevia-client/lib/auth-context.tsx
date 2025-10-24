@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo, useRef } from 'react'
 import axiosInstance, { getAuthData, updateAuthData, clearAuthData } from './axios'
 import { User } from './api'
 
@@ -13,7 +13,6 @@ interface AuthResponse {
 interface AuthContextType {
   user: User | null
   accessToken: string | null
-  refreshToken: string | null
   isLoading: boolean
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<void>
@@ -28,11 +27,81 @@ interface AuthProviderProps {
   children: ReactNode
 }
 
+// Helper function to decode JWT token
+const decodeToken = (token: string): { exp: number; iat: number } | null => {
+  try {
+    const base64Url = token.split('.')[1]
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    )
+    return JSON.parse(jsonPayload)
+  } catch (error) {
+    console.error('Failed to decode token:', error)
+    return null
+  }
+}
+
+// Helper function to check if token will expire soon
+// Refresh when less than 50% of token lifetime remains
+const shouldRefreshToken = (token: string): boolean => {
+  const decoded = decodeToken(token)
+  if (!decoded?.exp || !decoded?.iat) return false
+  
+  const currentTime = Math.floor(Date.now() / 1000)
+  const tokenLifetime = decoded.exp - decoded.iat
+  const timeUntilExpiry = decoded.exp - currentTime
+  
+  // Refresh if less than 50% of token lifetime remains (or less than 10 seconds)
+  const refreshThreshold = Math.max(Math.floor(tokenLifetime * 0.5), 10)
+  
+  return timeUntilExpiry < refreshThreshold
+}
+
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
-  const [refreshToken, setRefreshToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const isRefreshing = useRef(false) // Track if we're currently refreshing to prevent multiple simultaneous refreshes
+
+  // Define refreshAccessToken early with useCallback
+  const refreshAccessToken = useCallback(async (): Promise<string | null> => {
+    // Prevent multiple simultaneous refresh attempts
+    if (isRefreshing.current) {
+      console.log('⏸️ Token refresh already in progress, skipping...')
+      return null
+    }
+
+    isRefreshing.current = true
+    
+    try {
+      // Refresh token is now in httpOnly cookie, no need to send it
+      const response = await axiosInstance.post<{ access_token: string }>('/auth/refresh')
+
+      const newAccessToken = response.data.access_token
+      setAccessToken(newAccessToken)
+      console.log('✅ Token refreshed successfully')
+      
+      // Get current user from state
+      const currentAuthData = getAuthData()
+      // Update localStorage (no refresh token stored anymore)
+      updateAuthData({ user: currentAuthData?.user, accessToken: newAccessToken })
+      
+      return newAccessToken
+    } catch (error) {
+      console.error('❌ Token refresh failed:', error)
+      // Clear auth and logout user
+      setUser(null)
+      setAccessToken(null)
+      clearAuthData()
+      return null
+    } finally {
+      isRefreshing.current = false
+    }
+  }, []) // Remove 'user' dependency to prevent unnecessary recreations
 
   // Load auth data from localStorage on mount
   useEffect(() => {
@@ -42,7 +111,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (storedData) {
           setUser(storedData.user)
           setAccessToken(storedData.accessToken)
-          setRefreshToken(storedData.refreshToken)
+          // No refresh token in localStorage anymore
         }
       } catch (error) {
         console.error('Failed to load auth data:', error)
@@ -57,12 +126,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Save auth data to localStorage whenever it changes
   useEffect(() => {
-    if (user && accessToken && refreshToken) {
-      updateAuthData({ user, accessToken, refreshToken })
+    if (user && accessToken) {
+      updateAuthData({ user, accessToken })
     } else {
       clearAuthData()
     }
-  }, [user, accessToken, refreshToken])
+  }, [user, accessToken])
 
   // Listen for storage changes from axios interceptor (token refresh)
   useEffect(() => {
@@ -71,57 +140,90 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       if (storedData) {
         // Check if the access token has changed (refreshed by axios interceptor)
-        if (storedData.accessToken !== accessToken) {
+        if (storedData.accessToken && storedData.accessToken !== accessToken) {
           console.log('🔄 Access token updated from axios interceptor, syncing auth context...')
           setAccessToken(storedData.accessToken)
           
-          // Also update user and refresh token if they changed
+          // Also update user if it changed (deep comparison)
           if (storedData.user && JSON.stringify(storedData.user) !== JSON.stringify(user)) {
             setUser(storedData.user)
-          }
-          if (storedData.refreshToken !== refreshToken) {
-            setRefreshToken(storedData.refreshToken)
           }
         }
       } else {
         // Auth data was cleared
-        if (user || accessToken || refreshToken) {
+        if (user || accessToken) {
           console.log('🔄 Auth data cleared from storage, logging out...')
           setUser(null)
           setAccessToken(null)
-          setRefreshToken(null)
         }
       }
     }
 
     // Check for changes periodically (since localStorage events don't fire in same tab)
-    const interval = setInterval(handleStorageChange, 1000)
+    // Reduced frequency to avoid excessive checking
+    const interval = setInterval(handleStorageChange, 2000) // Changed from 1000ms to 2000ms
 
     return () => clearInterval(interval)
-  }, [user, accessToken, refreshToken])
+  }, [user, accessToken])
 
-  const login = async (email: string, password: string) => {
+  // Proactive token refresh - refresh before token expires
+  // This effect only runs once on mount and checks localStorage for the current token
+  useEffect(() => {
+    const checkAndRefreshToken = async () => {
+      // Always get the latest token from localStorage
+      const currentAuthData = getAuthData()
+      const currentToken = currentAuthData?.accessToken
+      
+      if (!currentToken) return
+
+      try {
+        if (shouldRefreshToken(currentToken)) {
+          console.log('⏰ Access token expiring soon, proactively refreshing...')
+          await refreshAccessToken()
+        }
+      } catch (error) {
+        console.error('Proactive token refresh failed:', error)
+      }
+    }
+
+    // Check every 7.5 seconds (for a 30 second token, this checks at 25% intervals)
+    // This is a fixed interval that doesn't depend on token changes
+    const checkInterval = 7500
+    
+    console.log(`⏱️ Setting up proactive token refresh checker (every ${checkInterval / 1000}s)`)
+
+    // Set up the interval - it will check localStorage each time
+    const refreshInterval = setInterval(checkAndRefreshToken, checkInterval)
+
+    return () => {
+      clearInterval(refreshInterval)
+    }
+  }, [refreshAccessToken]) // Only depends on refreshAccessToken (which is now stable)
+
+  const login = useCallback(async (email: string, password: string) => {
     try {
       const response = await axiosInstance.post<AuthResponse>('/auth/login', {
         email,
         password,
       })
       
-      const { user, access_token, refresh_token } = response.data
+      // Refresh token is now in httpOnly cookie, not in response
+      const { user, access_token } = response.data
       
       setUser(user)
       setAccessToken(access_token)
-      setRefreshToken(refresh_token)
+      // No need to set refresh token - it's in httpOnly cookie
     } catch (error: any) {
       // Extract error message from axios error
       const errorMessage = error.response?.data?.message || error.message || 'Login failed'
       throw new Error(errorMessage)
     }
-  }
+  }, [])
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       if (accessToken) {
+        // Backend will clear the refresh token cookie
         await axiosInstance.post('/auth/logout')
       }
     } catch (error) {
@@ -129,59 +231,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setUser(null)
       setAccessToken(null)
-      setRefreshToken(null)
       clearAuthData()
     }
-  }
+  }, [accessToken])
 
-  const refreshAccessToken = async (): Promise<string | null> => {
-    try {
-      if (!refreshToken) {
-        throw new Error('No refresh token available')
-      }
-
-      const response = await axiosInstance.post<{ access_token: string }>('/auth/refresh', {
-        refresh_token: refreshToken,
-      })
-
-      const newAccessToken = response.data.access_token
-      setAccessToken(newAccessToken)
-      console.log('Token refreshed successfully')
-      // Update localStorage
-      updateAuthData({ user, accessToken: newAccessToken, refreshToken })
-      
-      
-      return newAccessToken
-    } catch (error) {
-      console.error('Token refresh failed:', error)
-      // Clear auth and logout user
-      setUser(null)
-      setAccessToken(null)
-      setRefreshToken(null)
-      clearAuthData()
-      return null
-    }
-  }
-
-  const updateUser = (updatedUser: User) => {
+  const updateUser = useCallback((updatedUser: User) => {
     setUser(updatedUser)
     // Update in localStorage as well
-    if (accessToken && refreshToken) {
-      updateAuthData({ user: updatedUser, accessToken, refreshToken })
+    if (accessToken) {
+      updateAuthData({ user: updatedUser, accessToken })
     }
-  }
+  }, [accessToken])
 
-  const value: AuthContextType = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const value: AuthContextType = useMemo(() => ({
     user,
     accessToken,
-    refreshToken,
     isLoading,
     isAuthenticated: !!user && !!accessToken,
     login,
     logout,
     updateUser,
     refreshAccessToken,
-  }
+  }), [user, accessToken, isLoading, login, logout, updateUser, refreshAccessToken])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

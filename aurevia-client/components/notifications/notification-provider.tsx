@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react'
+import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { io, Socket } from 'socket.io-client'
 
@@ -131,7 +131,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
   // Fetch notifications
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!accessToken) return
 
     try {
@@ -149,10 +149,10 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     } catch (error) {
       console.error('Failed to fetch notifications:', error)
     }
-  }
+  }, [accessToken, API_BASE_URL])
 
   // Mark notification as read
-  const markAsRead = async (notificationId: string) => {
+  const markAsRead = useCallback(async (notificationId: string) => {
     if (!accessToken) return
 
     try {
@@ -175,10 +175,10 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     } catch (error) {
       console.error('Failed to mark notification as read:', error)
     }
-  }
+  }, [accessToken, API_BASE_URL, state.socket])
 
   // Mark all notifications as read
-  const markAllAsRead = async () => {
+  const markAllAsRead = useCallback(async () => {
     if (!accessToken) return
 
     try {
@@ -196,10 +196,10 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error)
     }
-  }
+  }, [accessToken, API_BASE_URL])
 
   // Delete a specific notification
-  const deleteNotification = async (notificationId: string) => {
+  const deleteNotification = useCallback(async (notificationId: string) => {
     if (!accessToken) return
 
     try {
@@ -217,10 +217,10 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     } catch (error) {
       console.error('Failed to delete notification:', error)
     }
-  }
+  }, [accessToken, API_BASE_URL])
 
   // Delete all notifications
-  const deleteAllNotifications = async () => {
+  const deleteAllNotifications = useCallback(async () => {
     if (!accessToken) return
 
     try {
@@ -238,7 +238,7 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     } catch (error) {
       console.error('Failed to delete all notifications:', error)
     }
-  }
+  }, [accessToken, API_BASE_URL])
 
   // WebSocket connection with automatic reconnection on token refresh
   useEffect(() => {
@@ -257,7 +257,12 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     // Check if token has changed (refresh scenario)
     const tokenChanged = lastToken && lastToken !== accessToken
     
-    // Disconnect old socket if token changed
+    // If token hasn't changed and socket exists and is connected, don't recreate
+    if (!tokenChanged && state.socket && state.socket.connected) {
+      return
+    }
+    
+    // If token changed and socket exists, disconnect old one first
     if (tokenChanged && state.socket) {
       console.log('Access token refreshed, reconnecting WebSocket with new token...')
       state.socket.disconnect()
@@ -267,6 +272,8 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     setLastToken(accessToken)
 
     // Create new socket connection with fresh token
+    console.log('🔌 Creating new WebSocket connection...')
+    
     const socket = io(`${API_BASE_URL}/notifications`, {
       query: {
         token: accessToken,
@@ -451,20 +458,21 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     if (accessToken) {
       fetchNotifications()
     }
-  }, [accessToken])
+  }, [accessToken, fetchNotifications])
+
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    state,
+    dispatch,
+    fetchNotifications,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    deleteAllNotifications,
+  }), [state, fetchNotifications, markAsRead, markAllAsRead, deleteNotification, deleteAllNotifications])
 
   return (
-    <NotificationContext.Provider
-      value={{
-        state,
-        dispatch,
-        fetchNotifications,
-        markAsRead,
-        markAllAsRead,
-        deleteNotification,
-        deleteAllNotifications,
-      }}
-    >
+    <NotificationContext.Provider value={contextValue}>
       {children}
     </NotificationContext.Provider>
   )
