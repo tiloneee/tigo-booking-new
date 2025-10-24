@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Booking } from '@/types/hotel';
 import { HotelApiService } from '@/lib/api/hotels';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import { CheckCircle, Calendar, MapPin, Users, Phone, Mail, FileText, Home } from 'lucide-react';
 
 export default function BookingConfirmationPage() {
   const params = useParams();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { user, accessToken } = useAuth();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +21,7 @@ export default function BookingConfirmationPage() {
 
   useEffect(() => {
     const fetchBooking = async () => {
-      if (!session?.accessToken) {
+      if (!accessToken) {
         setError('Please sign in to view booking details');
         setLoading(false);
         return;
@@ -34,7 +34,7 @@ export default function BookingConfirmationPage() {
           id: bookingId,
           hotel_id: 'hotel-1',
           room_id: 'room-1',
-          user_id: session.user?.id || 'user-1',
+          user_id: user?.id || 'user-1',
           check_in_date: '2024-01-15',
           check_out_date: '2024-01-18',
           number_of_guests: 2,
@@ -74,7 +74,7 @@ export default function BookingConfirmationPage() {
     if (bookingId) {
       fetchBooking();
     }
-  }, [bookingId, session]);
+  }, [bookingId, accessToken, user]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

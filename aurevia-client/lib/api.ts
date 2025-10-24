@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
+import axiosInstance from './axios'
 
 export interface User {
   id: string
@@ -31,101 +31,62 @@ export interface LoginData {
 
 export const authApi = {
   register: async (data: RegisterData): Promise<{ message: string; userId: string }> => {
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Registration failed')
+    try {
+      const response = await axiosInstance.post('/auth/register', data)
+      return response.data
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Registration failed'
+      throw new Error(errorMessage)
     }
-
-    return response.json()
   },
 
   login: async (data: LoginData): Promise<AuthResponse> => {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.message || 'Login failed')
+    try {
+      const response = await axiosInstance.post('/auth/login', data)
+      return response.data
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Login failed'
+      throw new Error(errorMessage)
     }
-
-    return response.json()
   },
 
   refreshToken: async (refreshToken: string): Promise<{ access_token: string }> => {
-    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    })
-
-    if (!response.ok) {
-      throw new Error('Token refresh failed')
+    try {
+      const response = await axiosInstance.post('/auth/refresh', { refresh_token: refreshToken })
+      return response.data
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Token refresh failed'
+      throw new Error(errorMessage)
     }
-
-    return response.json()
   },
 
-  logout: async (accessToken: string): Promise<{ message: string }> => {
-    const response = await fetch(`${API_BASE_URL}/auth/logout`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('Logout failed')
+  logout: async (): Promise<{ message: string }> => {
+    try {
+      const response = await axiosInstance.post('/auth/logout')
+      return response.data
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Logout failed'
+      throw new Error(errorMessage)
     }
-
-    return response.json()
   },
 
-  getProfile: async (accessToken: string): Promise<User> => {
-    const response = await fetch(`${API_BASE_URL}/users/profile`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch profile')
+  getProfile: async (): Promise<User> => {
+    try {
+      const response = await axiosInstance.get('/users/profile')
+      return response.data
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to fetch profile'
+      throw new Error(errorMessage)
     }
-
-    return response.json()
   },
 
-  updateProfile: async (accessToken: string, data: { first_name: string; last_name: string; phone_number: string }): Promise<User> => {
-    const response = await fetch(`${API_BASE_URL}/users/profile`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data),
-    })
-
-    if (!response.ok) {
-      throw new Error('Failed to update profile')
+  updateProfile: async (data: { first_name: string; last_name: string; phone_number: string }): Promise<User> => {
+    try {
+      const response = await axiosInstance.patch('/users/profile', data)
+      return response.data
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to update profile'
+      throw new Error(errorMessage)
     }
-
-    return response.json()
   },
 } 

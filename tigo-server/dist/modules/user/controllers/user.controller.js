@@ -32,7 +32,6 @@ let UserController = class UserController {
         return this.userService.findAll();
     }
     getProfile(req) {
-        console.log(req.user);
         return this.userService.findOne(req.user.userId);
     }
     updateProfile(req, updateUserDto) {

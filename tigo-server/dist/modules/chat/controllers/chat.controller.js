@@ -29,7 +29,6 @@ let ChatController = class ChatController {
         this.redisService = redisService;
     }
     async createOrGetChatRoom(createChatRoomDto, req) {
-        console.log("req", req.user);
         return this.chatService.createOrGetChatRoom(createChatRoomDto, req.user.userId);
     }
     async getChatRooms(query, req) {

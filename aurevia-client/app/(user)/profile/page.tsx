@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,36 +10,17 @@ import { User, Mail, Phone, Calendar, MapPin, CreditCard, Clock, CheckCircle, XC
 import { authApi } from "@/lib/api"
 import { bookingsApi } from "@/lib/api/dashboard"
 import Header from "@/components/header"
+import type { User as ApiUser } from "@/lib/api"
+import type { Booking as DashboardBooking } from "@/types/dashboard"
 
-interface UserProfile {
-  id: string
-  email: string
-  first_name: string
-  last_name: string
-  phone_number?: string
-  roles: { name: string }[]
-  is_active: boolean
-}
+// Use User type directly from API
+type UserProfile = ApiUser
 
-interface Booking {
-  id: string
-  hotel: {
-    name: string
-    address: string
-  }
-  room: {
-    room_number: string
-    room_type: string   
-  }
-  check_in_date: string
-  check_out_date: string
-  total_price: number
-  status: string
-  created_at: string
-}
+// Use Booking type from dashboard
+type Booking = DashboardBooking
 
 export default function ProfilePage() {
-  const { data: session, status, update } = useSession()
+  const { user, accessToken, isLoading } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -57,19 +38,19 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      if (!session?.accessToken) return
+      if (!accessToken) return
 
       try {
         setLoading(true)
         setError(null)
 
         // Fetch user profile
-        const profileData = await authApi.getProfile(session.accessToken)
+        const profileData = await authApi.getProfile()
         console.log(profileData)
         setProfile(profileData)
 
         // Fetch user bookings
-        const bookingsData = await bookingsApi.getByUser(session.accessToken)
+        const bookingsData = await bookingsApi.getByUser()
         setBookings(bookingsData)
       } catch (err) {
         console.error('Error fetching profile data:', err)
@@ -79,10 +60,10 @@ export default function ProfilePage() {
       }
     }
 
-    if (session?.accessToken) {
+    if (accessToken) {
       fetchProfileData()
     }
-  }, [session?.accessToken])
+  }, [accessToken])
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
@@ -128,11 +109,12 @@ export default function ProfilePage() {
     })
   }
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | string) => {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
-    }).format(amount)
+    }).format(numAmount)
   }
 
   const handleViewDetails = (booking: Booking) => {
@@ -173,14 +155,14 @@ export default function ProfilePage() {
   }
 
   const saveProfileChanges = async () => {
-    if (!session?.accessToken || !profile) return
+    if (!accessToken || !profile) return
 
     try {
       setEditLoading(true)
       setError(null)
 
       // Update profile via API
-      const updatedProfile = await authApi.updateProfile(session.accessToken, {
+      const updatedProfile = await authApi.updateProfile({
         first_name: editForm.first_name,
         last_name: editForm.last_name,
         phone_number: editForm.phone_number
@@ -189,14 +171,8 @@ export default function ProfilePage() {
       setProfile(updatedProfile)
       setIsEditingProfile(false)
 
-      // Update the session to reflect the new name in the navbar
-      await update({
-        ...session,
-        user: {
-          ...session.user,
-          name: `${updatedProfile.first_name} ${updatedProfile.last_name}`.trim()
-        }
-      })
+      // Profile update will automatically refresh the user context
+      window.location.reload() // Refresh to update the navbar
     } catch (err) {
       console.error('Error updating profile:', err)
       setError('Failed to update profile')
@@ -205,7 +181,7 @@ export default function ProfilePage() {
     }
   }
 
-  if (status === "loading" || loading) {
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
         <Header />
@@ -236,7 +212,7 @@ export default function ProfilePage() {
     )
   }
 
-  if (!session) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
         <Header />
@@ -282,7 +258,7 @@ export default function ProfilePage() {
                   {profile?.first_name} {profile?.last_name}
                 </h2>
                 <p className="text-vintage-sm text-copper-accent font-cinzel uppercase tracking-wider">
-                  {profile?.roles?.map((role) => role.name).join(", ")}
+                  {profile?.roles?.join(", ") || "User"}
                 </p>
               </div>
 
@@ -437,14 +413,14 @@ export default function ProfilePage() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h4 className="text-vintage-lg font-playfair font-semibold text-cream-light mb-1">
-                            {booking.hotel.name}
+                            {booking.hotel?.name || 'Hotel Information Unavailable'}
                           </h4>
                           <div className="flex items-center text-vintage-sm text-copper-accent mb-2">
                             <MapPin className="h-4 w-4 mr-1" />
-                            {booking.hotel.address}
+                            {booking.hotel?.address || 'Address not available'}
                           </div>
                           <p className="text-vintage-sm text-cream-light/80">
-                            {booking.room.room_type} - Room {booking.room.room_number}
+                            {booking.room?.room_type || 'Room'} - Room {booking.room?.room_number || 'N/A'}
                           </p>
                         </div>
                         <div className="text-right flex flex-col gap-2 mt-2 items-end">
@@ -530,11 +506,11 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Hotel Name</p>
-                      <p className="text-vintage-base text-cream-light font-semibold">{selectedBooking.hotel.name}</p>
+                      <p className="text-vintage-base text-cream-light font-semibold">{selectedBooking.hotel?.name || 'Hotel Information Unavailable'}</p>
                     </div>
                     <div>
                       <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Address</p>
-                      <p className="text-vintage-base text-cream-light">{selectedBooking.hotel.address}</p>
+                      <p className="text-vintage-base text-cream-light">{selectedBooking.hotel?.address || 'Address not available'}</p>
                     </div>
                   </div>
                 </div>
@@ -548,11 +524,11 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Room Type</p>
-                      <p className="text-vintage-base text-cream-light font-semibold">{selectedBooking.room.room_type}</p>
+                      <p className="text-vintage-base text-cream-light font-semibold">{selectedBooking.room?.room_type || 'Room type not available'}</p>
                     </div>
                     <div>
                       <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Room Number</p>
-                      <p className="text-vintage-base text-cream-light">{selectedBooking.room.room_number}</p>
+                      <p className="text-vintage-base text-cream-light">{selectedBooking.room?.room_number || 'N/A'}</p>
                     </div>
                   </div>
                 </div>

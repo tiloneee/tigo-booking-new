@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Hotel, Room, CreateBookingData } from '@/types/hotel';
@@ -27,7 +27,7 @@ import Header from '@/components/header';
 function PaymentContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { user, accessToken } = useAuth();
   const { dispatch } = useNotifications();
   
   const [hotel, setHotel] = useState<Hotel | null>(null);
@@ -86,7 +86,7 @@ function PaymentContent() {
             // Create a complete Room object from the passed data
             const room: Room = {
               id: roomData.id,
-              room_number: `Room ${roomIds.indexOf(roomData.id) + 1}`,
+              room_number: roomData.room_number,
               room_type: roomData.room_type,
               description: roomData.description,
               max_occupancy: roomData.max_occupancy,
@@ -220,7 +220,7 @@ function PaymentContent() {
   };
 
   const handlePayment = async () => {
-    if (!session?.user) {
+    if (!user) {
       alert('Please sign in to complete your booking');
       return;
     }
@@ -272,7 +272,7 @@ function PaymentContent() {
 
       console.log('bookingData: ', bookingData);
 
-      const booking = await HotelApiService.createBooking(bookingData, session.accessToken as string);
+      const booking = await HotelApiService.createBooking(bookingData);
       
       console.log('booking: ', booking);
       console.log('booking.id: ', booking?.id);
@@ -291,10 +291,10 @@ function PaymentContent() {
       }
 
       // Create booking confirmation notification for current user (database)
-      if (session?.accessToken && session?.user?.id) {
+      if (accessToken && user?.id) {
         try {
           await NotificationApiService.createNotification({
-            user_id: session.user.id,
+            user_id: user.id,
             type: 'BOOKING_CONFIRMATION',
             title: 'Booking Confirmed!',
             message: `Your booking at ${hotel?.name} has been confirmed. Booking ID: ${booking.id}`,
@@ -307,7 +307,7 @@ function PaymentContent() {
             },
             related_entity_type: 'booking',
             related_entity_id: booking.id,
-          }, session.accessToken);
+          });
           
           console.log('Booking confirmation notification created successfully');
         } catch (error) {
@@ -317,7 +317,7 @@ function PaymentContent() {
       }
 
       // Create hotel owner notification via API
-      if (booking.hotel?.owner_id && session?.accessToken) {
+      if (booking.hotel?.owner_id && accessToken) {
         try {
           await NotificationApiService.createNotification({
             user_id: booking.hotel.owner_id,
@@ -335,7 +335,7 @@ function PaymentContent() {
             },
             related_entity_type: 'booking',
             related_entity_id: booking.id,
-          }, session.accessToken);
+          });
           
           console.log('Hotel owner notification created successfully');
         } catch (error) {
@@ -631,6 +631,10 @@ function PaymentContent() {
               <CardContent className="space-y-4">
                 {/* Dates and Guests */}
                 <div className="space-y-2 text-vintage-lg text-cream-light/80 font-cormorant">
+                <div className="flex justify-between">
+                    <span>Room Number</span>
+                    <span className="font-bold text-cream-light">{selectedRooms[0].room_number}</span>
+                  </div>
                   <div className="flex justify-between">
                     <span>Check-in:</span>
                     <span className="font-bold text-cream-light">{formatDate(checkInDate!)}</span>

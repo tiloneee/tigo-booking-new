@@ -45,7 +45,7 @@ export function EditRoomModal({ isOpen, onClose, room, accessToken, onSuccess }:
     setError(null)
 
     try {
-      await roomsApi.update(accessToken, room.id, {
+      await roomsApi.update(room.id, {
         room_number: formData.room_number,
         room_type: formData.room_type,
         description: formData.description || undefined,

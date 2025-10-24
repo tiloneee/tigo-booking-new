@@ -1,6 +1,7 @@
 // Hotel API service functions
 
 import { Hotel, HotelSearchQuery, HotelSearchResult, CreateBookingData, Booking, AutocompleteResult } from '@/types/hotel';
+import axiosInstance from '@/lib/axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
@@ -20,13 +21,9 @@ export class HotelApiService {
       searchParams.set('sort_order', sortOrder);
     }
 
-    const response = await fetch(`${API_BASE_URL}/hotels/all?${searchParams.toString()}`);
+    const response = await axiosInstance.get(`/hotels/all?${searchParams.toString()}`);
     
-    if (!response.ok) {
-      throw new Error(`Failed to fetch hotels: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const data = response.data;
     return {
       hotels: data.data || [],
       total: data.pagination?.total || 0,
@@ -52,13 +49,8 @@ export class HotelApiService {
       }
     });
 
-    const response = await fetch(`${API_BASE_URL}/hotels/search?${searchParams.toString()}`);
-    
-    if (!response.ok) {
-      throw new Error(`Hotel search failed: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const response = await axiosInstance.get(`/hotels/search?${searchParams.toString()}`);
+    const data = response.data;
     
     // Handle both old format (with pagination) and new Elasticsearch format
     if (data.hotels) {
@@ -87,41 +79,25 @@ export class HotelApiService {
    * Get hotel details by ID (using public endpoint)
    */
   static async getHotelById(hotelId: string): Promise<Hotel> {
-    const response = await fetch(`${API_BASE_URL}/hotels/${hotelId}/public`);
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch hotel details: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const response = await axiosInstance.get(`/hotels/${hotelId}/public`);
     // The public endpoint returns the hotel data directly, not wrapped in a data field
-    return data;
+    return response.data;
   }
 
   /**
-   * Get hotel rooms with availability (public endpoint)
+   * Get rooms for a hotel (public endpoint with availability info)
    */
-  static async getHotelRooms(
-    hotelId: string, 
-    checkInDate?: string, 
-    checkOutDate?: string,
-    numberOfGuests?: number
-  ) {
+  static async getHotelRooms(hotelId: string, checkInDate?: string, checkOutDate?: string, numberOfGuests?: number): Promise<any[]> {
     const searchParams = new URLSearchParams();
     if (checkInDate) searchParams.set('check_in_date', checkInDate);
     if (checkOutDate) searchParams.set('check_out_date', checkOutDate);
     if (numberOfGuests) searchParams.set('number_of_guests', numberOfGuests.toString());
 
-    const response = await fetch(
-      `${API_BASE_URL}/hotels/${hotelId}/rooms/public?${searchParams.toString()}`
+    const response = await axiosInstance.get(
+      `/hotels/${hotelId}/rooms/public?${searchParams.toString()}`
     );
     
-    if (!response.ok) {
-      throw new Error(`Failed to fetch hotel rooms: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.data;
+    return response.data.data;
   }
 
   /**
@@ -140,73 +116,43 @@ export class HotelApiService {
     searchParams.set('check_in_date', checkInDate);
     searchParams.set('check_out_date', checkOutDate);
 
-    const response = await fetch(
-      `${API_BASE_URL}/rooms/${roomId}/pricing-breakdown?${searchParams.toString()}`
+    const response = await axiosInstance.get(
+      `/rooms/${roomId}/pricing-breakdown?${searchParams.toString()}`
     );
     
-    if (!response.ok) {
-      throw new Error(`Failed to fetch pricing breakdown: ${response.statusText}`);
-    }
-
-    return await response.json();
+    return response.data;
   }
 
   /**
    * Create a new booking
    */
-  static async createBooking(bookingData: CreateBookingData, token: string): Promise<Booking> {
-    const response = await fetch(`${API_BASE_URL}/bookings`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(bookingData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || `Booking creation failed: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    console.log('Backend response:', data);
+  static async createBooking(bookingData: CreateBookingData): Promise<Booking> {
+    const response = await axiosInstance.post('/bookings', bookingData);
     
     // Handle different response structures
-    if (data.data) {
-      // If response has nested data property
-      return data.data;
-    } else if (data.id) {
-      // If response is the booking object directly
-      return data;
-    } else {
-      throw new Error('Invalid booking response structure');
+    if (response.data.data) {
+      return response.data.data;
+    } else if (response.data.id) {
+      return response.data;
     }
+    
+    throw new Error('Invalid booking response structure');
   }
 
   /**
    * Get user's bookings
    */
-  static async getUserBookings(token: string, page = 1, limit = 10): Promise<{
+  static async getUserBookings(page = 1, limit = 10): Promise<{
     bookings: Booking[];
     total: number;
     page: number;
     limit: number;
   }> {
-    const response = await fetch(
-      `${API_BASE_URL}/bookings/my-bookings?page=${page}&limit=${limit}`, 
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
+    const response = await axiosInstance.get(
+      `/bookings/my-bookings?page=${page}&limit=${limit}`
     );
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch bookings: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const data = response.data;
     return {
       bookings: data.data || [],
       total: data.pagination?.total || 0,
@@ -218,17 +164,8 @@ export class HotelApiService {
   /**
    * Cancel a booking
    */
-  static async cancelBooking(bookingId: string, token: string): Promise<void> {
-    const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}/cancel`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to cancel booking: ${response.statusText}`);
-    }
+  static async cancelBooking(bookingId: string): Promise<void> {
+    await axiosInstance.patch(`/bookings/${bookingId}/cancel`);
   }
 
   /**
@@ -244,14 +181,8 @@ export class HotelApiService {
       searchParams.set('q', query.trim());
       searchParams.set('limit', limit.toString());
 
-      const response = await fetch(`${API_BASE_URL}/search/hotels/autocomplete?${searchParams.toString()}`);
-      
-      if (!response.ok) {
-        throw new Error(`Autocomplete failed: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return data;
+      const response = await axiosInstance.get(`/search/hotels/autocomplete?${searchParams.toString()}`);
+      return response.data;
     } catch (error) {
       console.warn('Autocomplete failed, falling back to popular cities:', error);
       // Fallback to popular cities if autocomplete fails
@@ -331,32 +262,17 @@ export class HotelApiService {
   /**
    * Get booking details by ID
    */
-  static async getBookingById(bookingId: string, token?: string): Promise<Booking> {
-    const headers: HeadersInit = {};
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${API_BASE_URL}/bookings/${bookingId}`, {
-      headers,
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to fetch booking details: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+  static async getBookingById(bookingId: string): Promise<Booking> {
+    const response = await axiosInstance.get(`/bookings/${bookingId}`);
     
     // Handle different response structures
-    if (data.data) {
-      // If response has nested data property
-      return data.data;
-    } else if (data.id) {
-      // If response is the booking object directly
-      return data;
-    } else {
-      throw new Error('Invalid booking response structure');
+    if (response.data.data) {
+      return response.data.data;
+    } else if (response.data.id) {
+      return response.data;
     }
+    
+    throw new Error('Invalid booking response structure');
   }
 
   /**
@@ -364,25 +280,22 @@ export class HotelApiService {
    */
   static async getHotelAmenities() {
     try {
-      const response = await fetch(`${API_BASE_URL}/hotels/amenities`);
-      if (response.ok) {
-        const data = await response.json();
-        return data.data || [];
-      }
+      const response = await axiosInstance.get('/hotels/amenities');
+      return response.data.data || [];
     } catch (error) {
       console.warn('Failed to fetch amenities:', error);
+      
+      // Fallback amenities
+      return [
+        { id: '1', name: 'WiFi', category: 'connectivity' },
+        { id: '2', name: 'Pool', category: 'recreation' },
+        { id: '3', name: 'Gym', category: 'fitness' },
+        { id: '4', name: 'Spa', category: 'wellness' },
+        { id: '5', name: 'Restaurant', category: 'dining' },
+        { id: '6', name: 'Bar', category: 'dining' },
+        { id: '7', name: 'Parking', category: 'services' },
+        { id: '8', name: 'Pet Friendly', category: 'services' },
+      ];
     }
-    
-    // Fallback amenities
-    return [
-      { id: '1', name: 'WiFi', category: 'connectivity' },
-      { id: '2', name: 'Pool', category: 'recreation' },
-      { id: '3', name: 'Gym', category: 'fitness' },
-      { id: '4', name: 'Spa', category: 'wellness' },
-      { id: '5', name: 'Restaurant', category: 'dining' },
-      { id: '6', name: 'Bar', category: 'dining' },
-      { id: '7', name: 'Parking', category: 'services' },
-      { id: '8', name: 'Pet Friendly', category: 'services' },
-    ];
   }
 }

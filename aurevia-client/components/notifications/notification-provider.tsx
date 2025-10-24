@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useReducer, useEffect, ReactNode } from 'react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/lib/auth-context'
 import { io, Socket } from 'socket.io-client'
 
 // Notification types
@@ -124,19 +124,20 @@ interface NotificationProviderProps {
 
 export function NotificationProvider({ children }: NotificationProviderProps) {
   const [state, dispatch] = useReducer(notificationReducer, initialState)
-  const { data: session } = useSession()
+  const { accessToken, user } = useAuth()
+  const [lastToken, setLastToken] = React.useState<string | null>(null)
 
   // API base URL
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
   // Fetch notifications
   const fetchNotifications = async () => {
-    if (!session?.accessToken) return
+    if (!accessToken) return
 
     try {
       const response = await fetch(`${API_BASE_URL}/notifications?page=1&limit=20`, {
         headers: {
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       })
@@ -152,13 +153,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
   // Mark notification as read
   const markAsRead = async (notificationId: string) => {
-    if (!session?.accessToken) return
+    if (!accessToken) return
 
     try {
       const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/mark`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ status: 'READ' }),
@@ -178,13 +179,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
   // Mark all notifications as read
   const markAllAsRead = async () => {
-    if (!session?.accessToken) return
+    if (!accessToken) return
 
     try {
       const response = await fetch(`${API_BASE_URL}/notifications/mark-all-read`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       })
@@ -199,13 +200,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
   // Delete a specific notification
   const deleteNotification = async (notificationId: string) => {
-    if (!session?.accessToken) return
+    if (!accessToken) return
 
     try {
       const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       })
@@ -220,13 +221,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
   // Delete all notifications
   const deleteAllNotifications = async () => {
-    if (!session?.accessToken) return
+    if (!accessToken) return
 
     try {
       const response = await fetch(`${API_BASE_URL}/notifications/delete-all`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
       })
@@ -239,28 +240,71 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
     }
   }
 
-  // WebSocket connection
+  // WebSocket connection with automatic reconnection on token refresh
   useEffect(() => {
-    if (!session?.accessToken) return
+    if (!accessToken || !user) {
+      // Clean up existing socket if token is removed or user logged out
+      if (state.socket) {
+        console.log('User logged out or token removed, disconnecting WebSocket...')
+        state.socket.disconnect()
+        dispatch({ type: 'SET_SOCKET', socket: null })
+        dispatch({ type: 'SET_CONNECTION_STATUS', isConnected: false })
+      }
+      setLastToken(null)
+      return
+    }
 
+    // Check if token has changed (refresh scenario)
+    const tokenChanged = lastToken && lastToken !== accessToken
+    
+    // Disconnect old socket if token changed
+    if (tokenChanged && state.socket) {
+      console.log('Access token refreshed, reconnecting WebSocket with new token...')
+      state.socket.disconnect()
+    }
+
+    // Update last token
+    setLastToken(accessToken)
+
+    // Create new socket connection with fresh token
     const socket = io(`${API_BASE_URL}/notifications`, {
       query: {
-        token: session.accessToken,
+        token: accessToken,
       },
       transports: ['websocket', 'polling'],
       forceNew: true,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      reconnectionAttempts: 5,
     })
 
     dispatch({ type: 'SET_SOCKET', socket })
 
     socket.on('connect', () => {
-      console.log('Connected to notification service')
+      console.log('✅ Connected to notification service')
       dispatch({ type: 'SET_CONNECTION_STATUS', isConnected: true })
     })
 
-    socket.on('disconnect', () => {
-      console.log('Disconnected from notification service')
+    socket.on('disconnect', (reason) => {
+      console.log('❌ Disconnected from notification service:', reason)
       dispatch({ type: 'SET_CONNECTION_STATUS', isConnected: false })
+      
+      // If disconnected by server, it might be due to expired token
+      if (reason === 'io server disconnect') {
+        console.log('⚠️ Disconnected by server - token may have expired, will reconnect with new token')
+      }
+    })
+
+    socket.on('connect_error', (error) => {
+      console.error('❌ Socket connection error:', error)
+      dispatch({ type: 'SET_CONNECTION_STATUS', isConnected: false })
+    })
+
+    socket.on('error', (error: any) => {
+      console.error('❌ Socket error:', error)
+      // If it's an authentication error, the useEffect will handle reconnection
+      // when the token gets refreshed
     })
 
     socket.on('new_notification', (rawData: any) => {
@@ -385,16 +429,13 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
       }
     })
 
-    socket.on('error', (error: any) => {
-      console.error('Socket error:', error)
-    })
-
     return () => {
+      console.log('🔌 Cleaning up WebSocket connection...')
       socket.disconnect()
       dispatch({ type: 'SET_SOCKET', socket: null })
       dispatch({ type: 'SET_CONNECTION_STATUS', isConnected: false })
     }
-  }, [session?.accessToken, API_BASE_URL])
+  }, [accessToken, user, API_BASE_URL, lastToken])
 
   // Request notification permission
   useEffect(() => {
@@ -407,10 +448,10 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
 
   // Fetch initial notifications
   useEffect(() => {
-    if (session?.accessToken) {
+    if (accessToken) {
       fetchNotifications()
     }
-  }, [session?.accessToken])
+  }, [accessToken])
 
   return (
     <NotificationContext.Provider

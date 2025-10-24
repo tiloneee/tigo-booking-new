@@ -42,7 +42,7 @@ export class ChatController {
     @Body() createChatRoomDto: CreateChatRoomDto,
     @Request() req: any,
   ): Promise<ChatRoom> {
-    console.log("req", req.user);
+
     return this.chatService.createOrGetChatRoom(createChatRoomDto, req.user.userId);
   }
 

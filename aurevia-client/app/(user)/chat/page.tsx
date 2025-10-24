@@ -1,6 +1,5 @@
 "use client"
 
-import { useSession } from "next-auth/react"
 import ProtectedRoute from "@/components/auth/protected-route"
 import Header from "@/components/header"
 import ChatTestInterface from "@/components/chat/chat-test-interface"

@@ -1,21 +1,21 @@
 "use client"
 
-import { useSession, signOut } from "next-auth/react"
+import { useAuth } from "@/lib/auth-context"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { User, LogOut, MessageCircle } from "lucide-react"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 
 export default function UserNav() {
-  const { data: session } = useSession()
+  const { user, isAuthenticated, isLoading, logout } = useAuth()
 
-  // if (status === "loading") {
-  //   return (
-  //     <div className="w-8 h-8 bg-copper-accent/20 rounded-full animate-pulse"></div>
-  //   )
-  // }
+  if (isLoading) {
+    return (
+      <div className="w-8 h-8 bg-copper-accent/20 rounded-full animate-pulse"></div>
+    )
+  }
 
-  if (!session) {
+  if (!isAuthenticated) {
     return (
       <div className="flex items-center space-x-4">
         <Link href="/auth/login">
@@ -39,10 +39,7 @@ export default function UserNav() {
   }
 
   const handleLogout = async () => {
-    await signOut({ 
-      callbackUrl: "/",
-      redirect: true 
-    })
+    await logout()
   }
 
   return (
@@ -54,11 +51,11 @@ export default function UserNav() {
           </div>
           <div className="hidden md:block">
             <p className="text-cream-light font-cormorant text-vintage-sm font-medium group-hover:text-copper-accent transition-colors duration-300">
-              {session.user?.name || session.user?.email}
+              {user?.first_name} {user?.last_name}
             </p>
-            {session.roles && session.roles.length > 0 && (
+            {user?.roles && user.roles.length > 0 && (
               <p className="text-copper-accent font-cinzel text-vintage-xs uppercase tracking-wider">
-                {session.roles.join(", ")}
+                {user.roles.join(", ")}
               </p>
             )}
           </div>
@@ -66,7 +63,7 @@ export default function UserNav() {
       </div>
 
       {/* Show dashboard button only for Admin and HotelOwner */}
-      {session.roles && (session.roles.includes('Admin') || session.roles.includes('HotelOwner')) && (
+      {user?.roles && (user.roles.includes('Admin') || user.roles.includes('HotelOwner')) && (
         <Link href="/admin/dashboard">
           <Button
             size="sm"

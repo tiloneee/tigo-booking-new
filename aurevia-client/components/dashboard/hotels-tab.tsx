@@ -103,7 +103,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
     }
 
     try {
-      await bookingsApi.updateStatus(accessToken, bookingId, 'Confirmed', 'Booking confirmed by hotel management')
+      await bookingsApi.updateStatus(bookingId, 'Confirmed', 'Booking confirmed by hotel management')
       // Reload hotel data to show updated booking status
       await loadHotelData(hotelId)
       console.log('Booking confirmed successfully')
@@ -124,7 +124,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
     }
 
     try {
-      await bookingsApi.updateStatus(accessToken, bookingId, 'Cancelled', reason)
+      await bookingsApi.updateStatus(bookingId, 'Cancelled', reason)
       // Reload hotel data to show updated booking status
       await loadHotelData(hotelId)
       console.log('Booking cancelled successfully')
@@ -152,8 +152,8 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
     setLoading((prev) => ({ ...prev, [hotelId]: true }))
     try {
       const [rooms, bookings] = await Promise.all([
-        roomsApi.getByHotel(accessToken, hotelId).catch(() => []),
-        bookingsApi.getByHotel(accessToken, hotelId).catch(() => []),
+        roomsApi.getByHotel(hotelId).catch(() => []),
+        bookingsApi.getByHotel(hotelId).catch(() => []),
       ])
       setHotelRooms((prev) => ({ ...prev, [hotelId]: rooms }))
       setHotelBookings((prev) => ({ ...prev, [hotelId]: bookings }))
@@ -168,7 +168,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
   const loadRoomAvailability = async (roomId: string) => {
     setLoading((prev) => ({ ...prev, [roomId]: true }))
     try {
-      const availability = await availabilityApi.getByRoom(accessToken, roomId)
+      const availability = await availabilityApi.getByRoom(roomId)
       setRoomAvailability((prev) => ({ ...prev, [roomId]: availability }))
     } catch (error) {
       console.error(`Failed to load availability for room ${roomId}:`, error)

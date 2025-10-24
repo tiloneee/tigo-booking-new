@@ -1,14 +1,14 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/lib/auth-context"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MessageCircle, Users, Send, Settings, Wifi, WifiOff, User } from "lucide-react"
 import { io, Socket } from "socket.io-client"
 
 // Types
-interface User {
+interface UserType {
   id: string
   first_name: string
   last_name: string
@@ -21,8 +21,8 @@ interface ChatRoom {
   type: string
   participant1_id: string
   participant2_id: string
-  participant1: User
-  participant2: User
+  participant1: UserType
+  participant2: UserType
   last_message_content?: string
   last_message_at?: string
   is_active: boolean
@@ -33,7 +33,7 @@ interface ChatMessage {
   id: string
   chat_room_id: string
   sender_id: string
-  sender: User
+  sender: UserType
   content: string
   type: 'text' | 'file' | 'image'
   status: 'sent' | 'delivered' | 'read'
@@ -43,36 +43,28 @@ interface ChatMessage {
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
 export default function ChatTestInterface() {
-  const { data: session } = useSession()
+  const { user, accessToken } = useAuth()
   const [socket, setSocket] = useState<Socket | null>(null)
   const [isConnected, setIsConnected] = useState(false)
   const [chatRooms, setChatRooms] = useState<ChatRoom[]>([])
   const [selectedRoom, setSelectedRoom] = useState<ChatRoom | null>(null)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [newMessage, setNewMessage] = useState("")
-  const [users, setUsers] = useState<User[]>([])
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [users, setUsers] = useState<UserType[]>([])
+  const [selectedUser, setSelectedUser] = useState<UserType | null>(null)
   const [chatType, setChatType] = useState<'customer_hotel_owner' | 'customer_admin' | 'hotel_owner_admin'>('customer_hotel_owner')
   const [connectionStatus, setConnectionStatus] = useState<string>('Disconnected')
   const [loading, setLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  // Get auth token from session
-  const getAuthToken = () => {
-    return (session as any)?.accessToken
-  }
-
   // Initialize Socket.IO connection
   useEffect(() => {
-    if (!session) return
-
-    const token = getAuthToken()
-    if (!token) return
+    if (!user || !accessToken) return
 
     const newSocket = io(`${API_BASE_URL}/chat`, {
-      auth: { token },
+      auth: { token: accessToken },
       extraHeaders: {
-        Authorization: `Bearer ${token}`
+        Authorization: `Bearer ${accessToken}`
       }
     })
 
@@ -128,7 +120,7 @@ export default function ChatTestInterface() {
     return () => {
       newSocket.close()
     }
-  }, [session])
+  }, [user, accessToken])
 
   // Auto-scroll to bottom when new messages arrive or room changes
   useEffect(() => {
@@ -142,10 +134,9 @@ export default function ChatTestInterface() {
   // Fetch available users for testing
   const fetchUsers = async () => {
     try {
-      const token = getAuthToken()
       const response = await fetch(`${API_BASE_URL}/users`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         }
       })
@@ -163,10 +154,9 @@ export default function ChatTestInterface() {
   const fetchChatRooms = async () => {
     try {
       setLoading(true)
-      const token = getAuthToken()
       const response = await fetch(`${API_BASE_URL}/chat/rooms`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         }
       })
@@ -190,16 +180,15 @@ export default function ChatTestInterface() {
 
     try {
       setLoading(true)
-      const token = getAuthToken()
       const response = await fetch(`${API_BASE_URL}/chat/rooms`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           type: chatType,
-          participant1_id: (session as any)?.user?.userId || (session as any)?.user?.id,
+          participant1_id: user?.id,
           participant2_id: selectedUser.id,
         })
       })
@@ -230,10 +219,9 @@ export default function ChatTestInterface() {
   // Fetch messages for a room
   const fetchMessages = async (roomId: string) => {
     try {
-      const token = getAuthToken()
       const response = await fetch(`${API_BASE_URL}/chat/rooms/${roomId}/messages`, {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         }
       })
@@ -249,7 +237,7 @@ export default function ChatTestInterface() {
 
   // Send message
   const sendMessage = async () => {
-    if (!selectedRoom || !newMessage.trim() || !socket || !session) return
+    if (!selectedRoom || !newMessage.trim() || !socket || !user) return
 
     const messageContent = newMessage
 
@@ -281,11 +269,11 @@ export default function ChatTestInterface() {
   }
 
   useEffect(() => {
-    if (session) {
+    if (user) {
       fetchUsers()
       fetchChatRooms()
     }
-  }, [session])
+  }, [user])
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 h-[700px] relative z-10">
@@ -457,7 +445,7 @@ export default function ChatTestInterface() {
                 {messages
                   .filter(message => message.chat_room_id === selectedRoom.id)
                   .map(message => {
-                  const isOwnMessage = message.sender_id === ((session as any)?.user?.userId || (session as any)?.user?.id)
+                  const isOwnMessage = message.sender_id === user?.id
                   return (
                     <div
                       key={message.id}

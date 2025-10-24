@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Hotel, Room, Booking } from '@/types/hotel';
@@ -26,7 +26,7 @@ import Header from '@/components/header';
 function BookingSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { accessToken } = useAuth();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
@@ -44,9 +44,9 @@ function BookingSuccessContent() {
         return;
       }
 
-      // Don't fetch if session is not available yet
-      if (!session?.accessToken) {
-        console.log('Session not available yet, waiting...');
+      // Don't fetch if access token is not available yet
+      if (!accessToken) {
+        console.log('Access token not available yet, waiting...');
         return;
       }
 
@@ -55,7 +55,7 @@ function BookingSuccessContent() {
       
       try {
         // Fetch booking details
-        const bookingData = await HotelApiService.getBookingById(bookingId, session.accessToken);
+        const bookingData = await HotelApiService.getBookingById(bookingId);
         
         // Validate booking data
         if (!bookingData) {
@@ -88,7 +88,7 @@ function BookingSuccessContent() {
     };
 
     fetchBookingDetails();
-  }, [bookingId, session?.accessToken]);
+  }, [bookingId, accessToken]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -118,13 +118,13 @@ function BookingSuccessContent() {
     }
   };
 
-  if (loading || !session?.accessToken) {
+  if (loading || !accessToken) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-4 border-copper-accent/20 border-t-copper-accent mx-auto mb-4"></div>
           <p className="text-cream-light font-cormorant text-vintage-lg">
-            {!session?.accessToken ? 'Loading session...' : 'Loading booking confirmation...'}
+            {!accessToken ? 'Loading authentication...' : 'Loading booking confirmation...'}
           </p>
         </div>
       </div>

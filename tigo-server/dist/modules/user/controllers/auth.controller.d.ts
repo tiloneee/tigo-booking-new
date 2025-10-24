@@ -16,7 +16,9 @@ export declare class AuthController {
             email: string;
             first_name: string;
             last_name: string;
+            phone_number: string;
             roles: string[];
+            is_active: true;
         };
     }>;
     activateAccount(token: string): Promise<{
