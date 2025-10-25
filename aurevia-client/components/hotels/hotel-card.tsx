@@ -78,7 +78,7 @@ export default function HotelCard({
               <div className="flex items-center text-cream-light/70 mt-1">
                 <MapPin className="w-4 h-4 mr-1 text-copper-accent" />
                 <span className="text-vintage-sm font-cormorant">
-                  {/* {hotel.location?.city || hotel.city}, {hotel.location?.country || hotel.country} */} {hotel.address}
+                   {hotel.city || hotel.location?.city || 'City not available'}, {hotel.country}
                 </span>
               </div>
             </div>

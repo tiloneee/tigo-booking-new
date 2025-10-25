@@ -82,7 +82,7 @@ export function ManageAvailabilityModal({
             date: date.toISOString().split('T')[0],
             available_units: parseInt(newAvailability.available_units),
             price_per_night: parseFloat(newAvailability.price_per_night),
-            status: true,
+            status: "Available",
           })
         )
       )

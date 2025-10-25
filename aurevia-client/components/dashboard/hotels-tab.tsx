@@ -304,7 +304,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                           {hotel.description || 'No description available'}
                         </p>
                         <p className="text-cream-light/60 font-cormorant text-vintage-sm">
-                          {hotel.address || 'Address not available'}, {hotel.location?.city || hotel.city || 'Unknown'}, {hotel.location?.state || hotel.state || 'Unknown'} {hotel.zip_code || ''}
+                          {hotel.address || hotel.location?.address || 'Address not available'}, {hotel.location?.city || hotel.city || 'Unknown'}, {hotel.location?.state || hotel.state || 'Unknown'} {hotel.zip_code || ''}
                         </p>
                         {isAdmin && hotel.owner && (
                           <p className="text-cream-light/60 font-cormorant text-vintage-sm">
