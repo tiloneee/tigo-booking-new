@@ -99,10 +99,15 @@ axiosInstance.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    // If the failed request is the refresh token endpoint itself, logout
-    if (originalRequest.url?.includes('/auth/refresh')) {
+    // Don't attempt token refresh for login or refresh endpoints
+    if (originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh')) {
+      // For login failures, just reject without redirect
+      if (originalRequest.url?.includes('/auth/login')) {
+        return Promise.reject(error)
+      }
+      
+      // For refresh failures, clear auth and redirect to login
       clearAuthData()
-      // Redirect to login page
       if (typeof window !== 'undefined') {
         window.location.href = '/auth/login'
       }
