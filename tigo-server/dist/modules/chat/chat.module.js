@@ -13,6 +13,7 @@ const jwt_1 = require("@nestjs/jwt");
 const config_1 = require("@nestjs/config");
 const chat_room_entity_1 = require("./entities/chat-room.entity");
 const chat_message_entity_1 = require("./entities/chat-message.entity");
+const hotel_booking_entity_1 = require("../hotel/entities/hotel-booking.entity");
 const chat_service_1 = require("./services/chat.service");
 const redis_service_1 = require("./services/redis.service");
 const chat_controller_1 = require("./controllers/chat.controller");
@@ -25,7 +26,7 @@ exports.ChatModule = ChatModule;
 exports.ChatModule = ChatModule = __decorate([
     (0, common_1.Module)({
         imports: [
-            typeorm_1.TypeOrmModule.forFeature([chat_room_entity_1.ChatRoom, chat_message_entity_1.ChatMessage]),
+            typeorm_1.TypeOrmModule.forFeature([chat_room_entity_1.ChatRoom, chat_message_entity_1.ChatMessage, hotel_booking_entity_1.HotelBooking]),
             user_module_1.UserModule,
             jwt_1.JwtModule.registerAsync({
                 imports: [config_1.ConfigModule],

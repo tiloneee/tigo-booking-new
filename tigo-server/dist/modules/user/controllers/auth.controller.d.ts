@@ -21,15 +21,7 @@ export declare class AuthController {
             is_active: true;
         };
     }>;
-    activateAccount(token: string): Promise<{
-        message: string;
-        user: {
-            id: string;
-            email: string;
-            first_name: string;
-            last_name: string;
-        };
-    }>;
+    activateAccount(token: string, res: ExpressResponse): Promise<void>;
     refreshToken(req: any, res: ExpressResponse): Promise<{
         access_token: string;
     }>;

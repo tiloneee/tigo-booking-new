@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Hotel, Room, Booking } from '@/types/hotel';
 import { HotelApiService } from '@/lib/api/hotels';
+import { createChatRoomFromBooking } from '@/lib/api/chat';
 import { 
   CheckCircle,
   Calendar,
@@ -32,6 +33,7 @@ function BookingSuccessContent() {
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
   const hasFetchedData = useRef(false); // Track if we've already fetched data
 
   const bookingId = searchParams.get('booking_id');
@@ -120,10 +122,21 @@ function BookingSuccessContent() {
     alert('Receipt download feature will be implemented with PDF generation');
   };
 
-  const handleStartChat = () => {
-    if (hotel) {
-      // Navigate to chat with hotel owner
-      router.push(`/chat?hotel_id=${hotel.id}&booking_id=${bookingId}`);
+  const handleStartChat = async () => {
+    if (!bookingId) return;
+    
+    setIsCreatingChat(true);
+    try {
+      // Create or get chat room from booking
+      const chatRoom = await createChatRoomFromBooking(bookingId);
+      
+      // Navigate to chat with the created room
+      router.push(`/chat?room=${chatRoom.id}`);
+    } catch (error) {
+      console.error('Error creating chat room:', error);
+      alert('Failed to create chat room. Please try again.');
+    } finally {
+      setIsCreatingChat(false);
     }
   };
 
@@ -397,10 +410,20 @@ function BookingSuccessContent() {
               <CardContent className="p-6 space-y-4">
                 <Button
                   onClick={handleStartChat}
-                  className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300"
+                  disabled={isCreatingChat}
+                  className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300 disabled:opacity-50"
                 >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Chat with Hotel Owner
+                  {isCreatingChat ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Opening Chat...
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Chat with Hotel Owner
+                    </>
+                  )}
                 </Button>
 
                 <Button

@@ -31,7 +31,7 @@ export function AddRoomModal({ isOpen, onClose, hotelId, accessToken, onSuccess 
     setError(null)
 
     try {
-      await roomsApi.create(accessToken, hotelId, {
+      await roomsApi.create(hotelId, {
         room_number: formData.room_number,
         room_type: formData.room_type,
         description: formData.description || undefined,

@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Hotel, Room, CreateBookingData } from '@/types/hotel';
 import { HotelApiService } from '@/lib/api/hotels';
-import { NotificationApiService } from '@/lib/api/notifications';
 import { useNotifications } from '@/components/notifications/notification-provider';
 import { 
   ArrowLeft, 
@@ -290,59 +289,8 @@ function PaymentContent() {
         throw new Error('Invalid booking response: missing booking ID');
       }
 
-      // Create booking confirmation notification for current user (database)
-      if (accessToken && user?.id) {
-        try {
-          await NotificationApiService.createNotification({
-            user_id: user.id,
-            type: 'BOOKING_CONFIRMATION',
-            title: 'Booking Confirmed!',
-            message: `Your booking at ${hotel?.name} has been confirmed. Booking ID: ${booking.id}`,
-            metadata: {
-              booking_id: booking.id,
-              hotel_id: hotelId,
-              total_price: total,
-              check_in_date: checkInDate,
-              check_out_date: checkOutDate,
-            },
-            related_entity_type: 'booking',
-            related_entity_id: booking.id,
-          });
-          
-          console.log('Booking confirmation notification created successfully');
-        } catch (error) {
-          console.error('Failed to create booking confirmation notification:', error);
-          // Don't fail the payment process if notification creation fails
-        }
-      }
-
-      // Create hotel owner notification via API
-      if (booking.hotel?.owner_id && accessToken) {
-        try {
-          await NotificationApiService.createNotification({
-            user_id: booking.hotel.owner_id,
-            type: 'NEW_BOOKING',
-            title: 'New Booking Received!',
-            message: `You have received a new booking at ${hotel?.name} from ${guestName}. Booking ID: ${booking.id}`,
-            metadata: {
-              booking_id: booking.id,
-              hotel_id: hotelId,
-              guest_name: guestName,
-              guest_email: guestEmail,
-              total_price: total,
-              check_in_date: checkInDate,
-              check_out_date: checkOutDate,
-            },
-            related_entity_type: 'booking',
-            related_entity_id: booking.id,
-          });
-          
-          console.log('Hotel owner notification created successfully');
-        } catch (error) {
-          console.error('Failed to create hotel owner notification:', error);
-          // Don't fail the payment process if notification creation fails
-        }
-      }
+      // Notification is now automatically sent by backend when booking is created
+      console.log('Booking created successfully - backend will send notifications automatically');
       
       // Redirect to success page
       router.push(`/booking/success?booking_id=${booking.id}`);

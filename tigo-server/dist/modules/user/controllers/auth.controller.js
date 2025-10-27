@@ -39,8 +39,16 @@ let AuthController = class AuthController {
         const { refresh_token, ...response } = result;
         return response;
     }
-    activateAccount(token) {
-        return this.authService.activateAccount(token);
+    async activateAccount(token, res) {
+        try {
+            await this.authService.activateAccount(token);
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+            return res.redirect(`${frontendUrl}/auth/activate-success`);
+        }
+        catch (error) {
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+            return res.redirect(`${frontendUrl}/auth/activate-error?error=${encodeURIComponent(error.message)}`);
+        }
     }
     async refreshToken(req, res) {
         const result = await this.authService.refreshTokenFromCookie(req.user.userId, req.user.refreshToken);
@@ -85,9 +93,10 @@ __decorate([
 __decorate([
     (0, common_1.Get)('activate'),
     __param(0, (0, common_1.Query)('token')),
+    __param(1, (0, common_1.Response)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
 ], AuthController.prototype, "activateAccount", null);
 __decorate([
     (0, common_1.Post)('refresh'),

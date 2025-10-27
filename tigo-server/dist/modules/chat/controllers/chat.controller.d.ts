@@ -11,6 +11,7 @@ export declare class ChatController {
     private readonly redisService;
     constructor(chatService: ChatService, redisService: RedisService);
     createOrGetChatRoom(createChatRoomDto: CreateChatRoomDto, req: any): Promise<ChatRoom>;
+    createChatRoomFromBooking(bookingId: string, req: any): Promise<ChatRoom>;
     getChatRooms(query: ChatRoomQueryDto, req: any): Promise<{
         rooms: ChatRoom[];
         total: number;

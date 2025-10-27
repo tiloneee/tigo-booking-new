@@ -49,6 +49,9 @@ export class NotificationEventService implements OnModuleInit {
       case 'NEW_BOOKING':
         notificationType = NotificationType.NEW_BOOKING;
         break;
+      case 'BOOKING_CREATED' :
+        notificationType = NotificationType.BOOKING_CREATED;
+        break;
       case 'BOOKING_REMINDER':
         notificationType = NotificationType.BOOKING_REMINDER;
         break;
@@ -100,7 +103,7 @@ export class NotificationEventService implements OnModuleInit {
     });
   }
 
-  async triggerBookingNotification(userId: string, type: 'BOOKING_CONFIRMATION' | 'BOOKING_CANCELLED' | 'BOOKING_REMINDER', title: string, message: string, metadata: any) {
+  async triggerBookingNotification(userId: string, type: 'BOOKING_CONFIRMATION' | 'BOOKING_CANCELLED' | 'BOOKING_REMINDER' | 'BOOKING_CREATED', title: string, message: string, metadata: any) {
     await this.redisService.publishMessage('notification:events', {
       type,
       user_id: userId,

@@ -158,6 +158,8 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
       setHotelRooms((prev) => ({ ...prev, [hotelId]: rooms }))
       setHotelBookings((prev) => ({ ...prev, [hotelId]: bookings }))
       console.log('🔍 Bookings:', bookings)
+      console.log('🛏️ Rooms:', rooms)
+
     } catch (error) {
       console.error(`Failed to load data for hotel ${hotelId}:`, error)
     } finally {
@@ -170,6 +172,8 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
     try {
       const availability = await availabilityApi.getByRoom(roomId)
       setRoomAvailability((prev) => ({ ...prev, [roomId]: availability }))
+      console.log('📅 Loaded availability for room', roomId)
+      console.log('📅 Availability:', availability)
     } catch (error) {
       console.error(`Failed to load availability for room ${roomId}:`, error)
     } finally {
@@ -193,6 +197,10 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
         return 'bg-purple-900/60 text-purple-300 border-purple-400/70'
       case 'CheckedOut':
         return 'bg-gray-900/60 text-gray-300 border-gray-400/70'
+      case 'Booked':
+        return 'bg-orange-900/60 text-orange-300 border-orange-400/70'
+      case 'Available':
+        return 'bg-green-900/50 text-green-300 border-green-400/70'
       default:
         return 'bg-gray-900/50 text-gray-300 border-gray-400/70'
     }
@@ -465,13 +473,10 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                                   </div>
                                                   <Badge
                                                     className={`${
-                                                      avail.status
-                                                        ? 'bg-green-900/50 text-green-300 border-green-400/70'
-                                                        : 'bg-red-900/50 text-red-300 border-red-400/70'
-                                                    } font-cinzel`}
+                                                      getStatusBadgeColor(avail.status)
+                                                    } font-cinzel uppercase tracking-wider`}
                                                   >
-                                                      {avail.status ? 'Available' : 'Booked'}
-                                    
+                                                    {avail.status}
                                                   </Badge>
                                                 </div>
                                               </div>

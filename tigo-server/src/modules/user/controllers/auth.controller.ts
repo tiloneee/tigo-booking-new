@@ -46,8 +46,20 @@ export class AuthController {
   }
 
   @Get('activate')
-  activateAccount(@Query('token') token: string) {
-    return this.authService.activateAccount(token);
+  async activateAccount(
+    @Query('token') token: string,
+    @Response() res: ExpressResponse,
+  ) {
+    try {
+      await this.authService.activateAccount(token);
+      // Redirect to frontend activation success page
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      return res.redirect(`${frontendUrl}/auth/activate-success`);
+    } catch (error) {
+      // Redirect to frontend activation error page
+      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+      return res.redirect(`${frontendUrl}/auth/activate-error?error=${encodeURIComponent(error.message)}`);
+    }
   }
 
   @Post('refresh')

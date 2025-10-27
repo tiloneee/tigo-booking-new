@@ -7,6 +7,7 @@ import { User } from '../../user/entities/user.entity';
 import { CreateBookingDto } from '../dto/booking/create-booking.dto';
 import { UpdateBookingDto } from '../dto/booking/update-booking.dto';
 import { SearchBookingDto } from '../dto/booking/search-booking.dto';
+import { NotificationEventService } from '../../notification/services/notification-event.service';
 export declare class BookingService {
     private bookingRepository;
     private hotelRepository;
@@ -14,10 +15,11 @@ export declare class BookingService {
     private roomAvailabilityRepository;
     private userRepository;
     private dataSource;
+    private notificationEventService;
     private readonly logger;
     private readonly SENSITIVE_USER_FIELDS;
     private readonly SENSITIVE_OWNER_FIELDS;
-    constructor(bookingRepository: Repository<HotelBooking>, hotelRepository: Repository<Hotel>, roomRepository: Repository<Room>, roomAvailabilityRepository: Repository<RoomAvailability>, userRepository: Repository<User>, dataSource: DataSource);
+    constructor(bookingRepository: Repository<HotelBooking>, hotelRepository: Repository<Hotel>, roomRepository: Repository<Room>, roomAvailabilityRepository: Repository<RoomAvailability>, userRepository: Repository<User>, dataSource: DataSource, notificationEventService: NotificationEventService);
     private sanitizeUserObject;
     private sanitizeBookingOwnerData;
     private sanitizeBookingsOwnerData;
