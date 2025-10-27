@@ -3,20 +3,8 @@
 import React, { createContext, useContext, useReducer, useEffect, ReactNode, useCallback, useMemo } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import { io, Socket } from 'socket.io-client'
-
-// Notification types
-export interface Notification {
-  id: string
-  type: string
-  title: string
-  message: string
-  status: 'UNREAD' | 'READ' | 'ARCHIVED'
-  metadata?: any
-  related_entity_type?: string
-  related_entity_id?: string
-  created_at: string
-  updated_at: string
-}
+import { NotificationApiService } from '@/lib/api/notifications'
+import type { Notification } from '@/lib/api/notifications'
 
 // Notification state
 interface NotificationState {
@@ -130,115 +118,70 @@ export function NotificationProvider({ children }: NotificationProviderProps) {
   // API base URL
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
-  // Fetch notifications
+  // Fetch notifications using API service
   const fetchNotifications = useCallback(async () => {
     if (!accessToken) return
 
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications?page=1&limit=20`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        dispatch({ type: 'SET_NOTIFICATIONS', notifications: data.notifications })
-      }
+      const data = await NotificationApiService.getNotifications(1, 20)
+      dispatch({ type: 'SET_NOTIFICATIONS', notifications: data.notifications })
+      dispatch({ type: 'UPDATE_UNREAD_COUNT', count: data.unreadCount })
     } catch (error) {
       console.error('Failed to fetch notifications:', error)
     }
-  }, [accessToken, API_BASE_URL])
+  }, [accessToken])
 
-  // Mark notification as read
+  // Mark notification as read using API service
   const markAsRead = useCallback(async (notificationId: string) => {
     if (!accessToken) return
 
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}/mark`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'READ' }),
-      })
-
-      if (response.ok) {
-        dispatch({ type: 'MARK_AS_READ', notificationId })
-        // Also emit to socket for real-time update
-        if (state.socket) {
-          state.socket.emit('mark_as_read', { notificationId })
-        }
+      await NotificationApiService.markAsRead(notificationId)
+      dispatch({ type: 'MARK_AS_READ', notificationId })
+      // Also emit to socket for real-time update
+      if (state.socket) {
+        state.socket.emit('mark_as_read', { notificationId })
       }
     } catch (error) {
       console.error('Failed to mark notification as read:', error)
     }
-  }, [accessToken, API_BASE_URL, state.socket])
+  }, [accessToken, state.socket])
 
-  // Mark all notifications as read
+  // Mark all notifications as read using API service
   const markAllAsRead = useCallback(async () => {
     if (!accessToken) return
 
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications/mark-all-read`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        dispatch({ type: 'MARK_ALL_AS_READ' })
-      }
+      await NotificationApiService.markAllAsRead()
+      dispatch({ type: 'MARK_ALL_AS_READ' })
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error)
     }
-  }, [accessToken, API_BASE_URL])
+  }, [accessToken])
 
-  // Delete a specific notification
+  // Delete a specific notification using API service
   const deleteNotification = useCallback(async (notificationId: string) => {
     if (!accessToken) return
 
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications/${notificationId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        dispatch({ type: 'DELETE_NOTIFICATION', notificationId })
-      }
+      await NotificationApiService.deleteNotification(notificationId)
+      dispatch({ type: 'DELETE_NOTIFICATION', notificationId })
     } catch (error) {
       console.error('Failed to delete notification:', error)
     }
-  }, [accessToken, API_BASE_URL])
+  }, [accessToken])
 
-  // Delete all notifications
+  // Delete all notifications using API service
   const deleteAllNotifications = useCallback(async () => {
     if (!accessToken) return
 
     try {
-      const response = await fetch(`${API_BASE_URL}/notifications/delete-all`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (response.ok) {
-        dispatch({ type: 'DELETE_ALL_NOTIFICATIONS' })
-      }
+      await NotificationApiService.deleteAllNotifications()
+      dispatch({ type: 'DELETE_ALL_NOTIFICATIONS' })
     } catch (error) {
       console.error('Failed to delete all notifications:', error)
     }
-  }, [accessToken, API_BASE_URL])
+  }, [accessToken])
 
   // WebSocket connection with automatic reconnection on token refresh
   useEffect(() => {

@@ -14,7 +14,8 @@ import {
   Trash2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useNotifications, type Notification } from './notification-provider'
+import { useNotifications } from './notification-provider'
+import type { Notification } from '@/lib/api/notifications'
 
 interface NotificationListProps {
   maxHeight?: string
