@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CreateBookingData, Hotel, Room } from '@/types/hotel';
@@ -27,7 +27,7 @@ export default function BookingForm({
   onBookingComplete,
   onCancel,
 }: BookingFormProps) {
-  const { data: session } = useSession();
+  const { user, accessToken } = useAuth();
   const [loading, setLoading] = useState(false);
   const [loadingPricing, setLoadingPricing] = useState(true);
   const [pricingBreakdown, setPricingBreakdown] = useState<{
@@ -36,9 +36,9 @@ export default function BookingForm({
     numberOfNights: number;
   } | null>(null);
   const [formData, setFormData] = useState({
-    guestName: session?.user?.name || '',
-    guestEmail: session?.user?.email || '',
-    guestPhone: '',
+    guestName: `${user?.first_name || ''} ${user?.last_name || ''}`.trim(),
+    guestEmail: user?.email || '',
+    guestPhone: user?.phone_number || '',
     specialRequests: '',
     agreedToTerms: false,
   });
@@ -87,7 +87,7 @@ export default function BookingForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!session?.user) {
+    if (!user) {
       alert('Please sign in to make a booking');
       return;
     }
@@ -118,7 +118,7 @@ export default function BookingForm({
         total_price: total,
       };
 
-      const booking = await HotelApiService.createBooking(bookingData, session.accessToken as string);
+      const booking = await HotelApiService.createBooking(bookingData);
       
       if (onBookingComplete) {
         onBookingComplete(booking.id);

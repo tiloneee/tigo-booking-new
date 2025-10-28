@@ -11,24 +11,13 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entities/user.entity';
 import { ChatMessage } from './chat-message.entity';
-
-export enum ChatRoomType {
-  CUSTOMER_HOTEL_OWNER = 'customer_hotel_owner',
-  CUSTOMER_ADMIN = 'customer_admin',
-  HOTEL_OWNER_ADMIN = 'hotel_owner_admin',
-}
+import { HotelBooking } from '../../hotel/entities/hotel-booking.entity';
 
 @Entity('chat_rooms')
-@Index(['participant1_id', 'participant2_id', 'type'], { unique: true })
+@Index(['participant1_id', 'participant2_id'], { unique: true })
 export class ChatRoom {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({
-    type: 'enum',
-    enum: ChatRoomType,
-  })
-  type: ChatRoomType;
 
   @Column({ type: 'uuid' })
   participant1_id: string;
@@ -43,6 +32,14 @@ export class ChatRoom {
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'participant2_id' })
   participant2: User;
+
+  // Link to booking if chat was initiated from a booking
+  @Column({ type: 'uuid', nullable: true })
+  booking_id: string;
+
+  @ManyToOne(() => HotelBooking, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'booking_id' })
+  booking: HotelBooking;
 
   @Column({ type: 'uuid', nullable: true })
   hotel_id: string;

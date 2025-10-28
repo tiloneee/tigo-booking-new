@@ -1,10 +1,6 @@
-import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
-import { ChatRoomType } from '../entities/chat-room.entity';
+import { IsOptional, IsUUID } from 'class-validator';
 
 export class CreateChatRoomDto {
-  @IsEnum(ChatRoomType)
-  type: ChatRoomType;
-
   @IsUUID()
   participant1_id: string;
 
@@ -14,4 +10,8 @@ export class CreateChatRoomDto {
   @IsOptional()
   @IsUUID()
   hotel_id?: string;
+
+  @IsOptional()
+  @IsUUID()
+  booking_id?: string;
 }

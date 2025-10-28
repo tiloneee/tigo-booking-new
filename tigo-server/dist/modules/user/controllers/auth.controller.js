@@ -18,6 +18,7 @@ const auth_service_1 = require("../services/auth.service");
 const register_dto_1 = require("../dto/register.dto");
 const login_dto_1 = require("../dto/login.dto");
 const jwt_auth_guard_1 = require("../../../common/guards/jwt-auth.guard");
+const jwt_refresh_guard_1 = require("../../../common/guards/jwt-refresh.guard");
 let AuthController = class AuthController {
     authService;
     constructor(authService) {
@@ -26,16 +27,50 @@ let AuthController = class AuthController {
     register(registerDto) {
         return this.authService.register(registerDto);
     }
-    login(loginDto) {
-        return this.authService.login(loginDto);
+    async login(loginDto, res) {
+        const result = await this.authService.login(loginDto);
+        res.cookie('refresh_token', result.refresh_token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+            path: '/',
+        });
+        const { refresh_token, ...response } = result;
+        return response;
     }
-    activateAccount(token) {
-        return this.authService.activateAccount(token);
+    async activateAccount(token, res) {
+        try {
+            await this.authService.activateAccount(token);
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+            return res.redirect(`${frontendUrl}/auth/activate-success`);
+        }
+        catch (error) {
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+            return res.redirect(`${frontendUrl}/auth/activate-error?error=${encodeURIComponent(error.message)}`);
+        }
     }
-    refreshToken(refreshToken) {
-        return this.authService.refreshToken(refreshToken);
+    async refreshToken(req, res) {
+        const result = await this.authService.refreshTokenFromCookie(req.user.userId, req.user.refreshToken);
+        if (result.refresh_token) {
+            res.cookie('refresh_token', result.refresh_token, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+                path: '/',
+            });
+        }
+        const { refresh_token, ...response } = result;
+        return response;
     }
-    logout(req) {
+    async logout(req, res) {
+        res.clearCookie('refresh_token', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+        });
         return this.authService.logout(req.user.userId);
     }
 };
@@ -50,31 +85,36 @@ __decorate([
 __decorate([
     (0, common_1.Post)('login'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Response)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [login_dto_1.LoginDto]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [login_dto_1.LoginDto, Object]),
+    __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
 __decorate([
     (0, common_1.Get)('activate'),
     __param(0, (0, common_1.Query)('token')),
+    __param(1, (0, common_1.Response)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
 ], AuthController.prototype, "activateAccount", null);
 __decorate([
     (0, common_1.Post)('refresh'),
-    __param(0, (0, common_1.Body)('refresh_token')),
+    (0, common_1.UseGuards)(jwt_refresh_guard_1.JwtRefreshGuard),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Response)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
 ], AuthController.prototype, "refreshToken", null);
 __decorate([
     (0, common_1.Post)('logout'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Response)({ passthrough: true })),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", void 0)
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
 ], AuthController.prototype, "logout", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('auth'),

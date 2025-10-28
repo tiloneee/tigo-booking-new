@@ -9,23 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChatRoom = exports.ChatRoomType = void 0;
+exports.ChatRoom = void 0;
 const typeorm_1 = require("typeorm");
 const user_entity_1 = require("../../user/entities/user.entity");
 const chat_message_entity_1 = require("./chat-message.entity");
-var ChatRoomType;
-(function (ChatRoomType) {
-    ChatRoomType["CUSTOMER_HOTEL_OWNER"] = "customer_hotel_owner";
-    ChatRoomType["CUSTOMER_ADMIN"] = "customer_admin";
-    ChatRoomType["HOTEL_OWNER_ADMIN"] = "hotel_owner_admin";
-})(ChatRoomType || (exports.ChatRoomType = ChatRoomType = {}));
+const hotel_booking_entity_1 = require("../../hotel/entities/hotel-booking.entity");
 let ChatRoom = class ChatRoom {
     id;
-    type;
     participant1_id;
     participant2_id;
     participant1;
     participant2;
+    booking_id;
+    booking;
     hotel_id;
     last_message_content;
     last_message_at;
@@ -39,13 +35,6 @@ __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
     __metadata("design:type", String)
 ], ChatRoom.prototype, "id", void 0);
-__decorate([
-    (0, typeorm_1.Column)({
-        type: 'enum',
-        enum: ChatRoomType,
-    }),
-    __metadata("design:type", String)
-], ChatRoom.prototype, "type", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'uuid' }),
     __metadata("design:type", String)
@@ -64,6 +53,15 @@ __decorate([
     (0, typeorm_1.JoinColumn)({ name: 'participant2_id' }),
     __metadata("design:type", user_entity_1.User)
 ], ChatRoom.prototype, "participant2", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
+    __metadata("design:type", String)
+], ChatRoom.prototype, "booking_id", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => hotel_booking_entity_1.HotelBooking, { nullable: true, onDelete: 'SET NULL' }),
+    (0, typeorm_1.JoinColumn)({ name: 'booking_id' }),
+    __metadata("design:type", hotel_booking_entity_1.HotelBooking)
+], ChatRoom.prototype, "booking", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'uuid', nullable: true }),
     __metadata("design:type", String)
@@ -94,6 +92,6 @@ __decorate([
 ], ChatRoom.prototype, "updated_at", void 0);
 exports.ChatRoom = ChatRoom = __decorate([
     (0, typeorm_1.Entity)('chat_rooms'),
-    (0, typeorm_1.Index)(['participant1_id', 'participant2_id', 'type'], { unique: true })
+    (0, typeorm_1.Index)(['participant1_id', 'participant2_id'], { unique: true })
 ], ChatRoom);
 //# sourceMappingURL=chat-room.entity.js.map

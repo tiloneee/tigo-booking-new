@@ -22,6 +22,7 @@ const hotel_entity_1 = require("../entities/hotel.entity");
 const room_entity_1 = require("../entities/room.entity");
 const room_availability_entity_1 = require("../entities/room-availability.entity");
 const user_entity_1 = require("../../user/entities/user.entity");
+const notification_event_service_1 = require("../../notification/services/notification-event.service");
 let BookingService = BookingService_1 = class BookingService {
     bookingRepository;
     hotelRepository;
@@ -29,6 +30,7 @@ let BookingService = BookingService_1 = class BookingService {
     roomAvailabilityRepository;
     userRepository;
     dataSource;
+    notificationEventService;
     logger = new common_1.Logger(BookingService_1.name);
     SENSITIVE_USER_FIELDS = [
         'password_hash',
@@ -48,13 +50,14 @@ let BookingService = BookingService_1 = class BookingService {
         'created_at',
         'updated_at',
     ];
-    constructor(bookingRepository, hotelRepository, roomRepository, roomAvailabilityRepository, userRepository, dataSource) {
+    constructor(bookingRepository, hotelRepository, roomRepository, roomAvailabilityRepository, userRepository, dataSource, notificationEventService) {
         this.bookingRepository = bookingRepository;
         this.hotelRepository = hotelRepository;
         this.roomRepository = roomRepository;
         this.roomAvailabilityRepository = roomAvailabilityRepository;
         this.userRepository = userRepository;
         this.dataSource = dataSource;
+        this.notificationEventService = notificationEventService;
     }
     sanitizeUserObject(user, fieldsToRemove) {
         if (!user)
@@ -144,15 +147,50 @@ let BookingService = BookingService_1 = class BookingService {
             for (const availRecord of availability) {
                 await manager.update(room_availability_entity_1.RoomAvailability, availRecord.id, {
                     available_units: availRecord.available_units - unitsRequested,
+                    status: 'Booked',
                 });
             }
             this.logger.log(`Booking created successfully: ${savedBooking.id} for room ${createBookingDto.room_id}`);
             const bookingWithRelations = await manager.findOne(hotel_booking_entity_1.HotelBooking, {
                 where: { id: savedBooking.id },
-                relations: ['hotel', 'room', 'user'],
+                relations: ['hotel', 'room', 'user', 'hotel.owner'],
             });
             if (!bookingWithRelations) {
                 throw new common_1.NotFoundException('Failed to retrieve created booking');
+            }
+            if (bookingWithRelations.user_id) {
+                try {
+                    await this.notificationEventService.triggerBookingNotification(bookingWithRelations.user_id, 'BOOKING_CREATED', 'Booking Created Successfully!', `Your booking at ${bookingWithRelations.hotel.name} - Room ${bookingWithRelations.room?.room_number || 'N/A'} has been confirmed. Check-in: ${new Date(bookingWithRelations.check_in_date).toLocaleDateString()}`, {
+                        booking_id: bookingWithRelations.id,
+                        hotel_id: bookingWithRelations.hotel_id,
+                        room_id: bookingWithRelations.room_id,
+                        guest_name: bookingWithRelations.guest_name,
+                        number_of_guests: bookingWithRelations.number_of_guests,
+                        check_in_date: bookingWithRelations.check_in_date,
+                        check_out_date: bookingWithRelations.check_out_date,
+                        total_price: bookingWithRelations.total_price,
+                    });
+                }
+                catch (error) {
+                    this.logger.error('Failed to send booking created notification to customer:', error);
+                }
+            }
+            if (bookingWithRelations.hotel?.owner?.id) {
+                try {
+                    await this.notificationEventService.triggerBookingNotification(bookingWithRelations.hotel.owner.id, 'BOOKING_CONFIRMATION', 'New Booking Received!', `You have a new booking at ${bookingWithRelations.hotel.name} - Room ${bookingWithRelations.room?.room_number || 'N/A'} from ${bookingWithRelations.guest_name || 'Guest'}. Check-in: ${new Date(bookingWithRelations.check_in_date).toLocaleDateString()}`, {
+                        booking_id: bookingWithRelations.id,
+                        hotel_id: bookingWithRelations.hotel_id,
+                        room_id: bookingWithRelations.room_id,
+                        guest_name: bookingWithRelations.guest_name,
+                        number_of_guests: bookingWithRelations.number_of_guests,
+                        check_in_date: bookingWithRelations.check_in_date,
+                        check_out_date: bookingWithRelations.check_out_date,
+                        total_price: bookingWithRelations.total_price,
+                    });
+                }
+                catch (error) {
+                    this.logger.error('Failed to send new booking notification to hotel owner:', error);
+                }
             }
             this.sanitizeBookingOwnerData(bookingWithRelations);
             return bookingWithRelations;
@@ -216,19 +254,40 @@ let BookingService = BookingService_1 = class BookingService {
         return booking;
     }
     async updateStatus(id, updateBookingDto, userId, userRoles) {
-        const booking = await this.findOne(id);
+        const booking = await this.bookingRepository.findOne({
+            where: { id },
+            relations: ['hotel', 'room', 'user', 'hotel.owner'],
+        });
+        if (!booking) {
+            throw new common_1.NotFoundException('Booking not found');
+        }
         const isOwner = booking.user_id === userId;
         const isHotelOwner = booking.hotel.owner_id === userId;
         const isAdmin = userRoles.includes('Admin');
         if (!isOwner && !isHotelOwner && !isAdmin) {
             throw new common_1.ForbiddenException('You do not have permission to update this booking');
         }
+        const oldStatus = booking.status;
         if (updateBookingDto.status) {
             const now = new Date();
             switch (updateBookingDto.status) {
                 case 'Confirmed':
                     updateBookingDto.confirmed_at = now;
                     updateBookingDto.admin_notes = `Room ${booking.room.room_number} assigned to Mr/Mrs ${booking.guest_name}`;
+                    if (booking.user_id && oldStatus !== 'Confirmed') {
+                        try {
+                            await this.notificationEventService.triggerBookingNotification(booking.user_id, 'BOOKING_CONFIRMATION', 'Booking Confirmed!', `Your booking at ${booking.hotel.name} - Room ${booking.room?.room_number || 'N/A'} has been confirmed. Check-in: ${new Date(booking.check_in_date).toLocaleDateString()}`, {
+                                booking_id: booking.id,
+                                hotel_id: booking.hotel_id,
+                                room_id: booking.room_id,
+                                check_in_date: booking.check_in_date,
+                                check_out_date: booking.check_out_date,
+                            });
+                        }
+                        catch (error) {
+                            this.logger.error('Failed to send confirmation notification:', error);
+                        }
+                    }
                     break;
                 case 'Cancelled':
                     if (booking.status === 'Cancelled') {
@@ -238,6 +297,22 @@ let BookingService = BookingService_1 = class BookingService {
                     updateBookingDto.cancelled_at = now;
                     updateBookingDto.confirmed_at = undefined;
                     await this.restoreAvailability(booking);
+                    if (booking.user_id) {
+                        try {
+                            await this.notificationEventService.triggerBookingNotification(booking.user_id, 'BOOKING_CANCELLED', 'Booking Cancelled!', `Your booking at ${booking.hotel.name} - Room ${booking.room?.room_number || 'N/A'} has been cancelled. Reason: ${updateBookingDto.cancellation_reason}`, {
+                                booking_id: booking.id,
+                                hotel_id: booking.hotel_id,
+                                room_id: booking.room_id,
+                                check_in_date: booking.check_in_date,
+                                check_out_date: booking.check_out_date,
+                                cancellation_reason: updateBookingDto.cancellation_reason,
+                                cancelled_by: isHotelOwner ? 'hotel_owner' : (isAdmin ? 'admin' : 'customer'),
+                            });
+                        }
+                        catch (error) {
+                            this.logger.error('Failed to send cancellation notification:', error);
+                        }
+                    }
                     break;
             }
         }
@@ -260,9 +335,6 @@ let BookingService = BookingService_1 = class BookingService {
         const checkInDate = new Date(booking.check_in_date);
         const now = new Date();
         const hoursDifference = (checkInDate.getTime() - now.getTime()) / (1000 * 3600);
-        if (hoursDifference < 24) {
-            throw new common_1.BadRequestException('Cannot cancel booking less than 24 hours before check-in');
-        }
         return this.dataSource.transaction(async (manager) => {
             await manager.update(hotel_booking_entity_1.HotelBooking, id, {
                 status: 'Cancelled',
@@ -272,10 +344,44 @@ let BookingService = BookingService_1 = class BookingService {
             await this.restoreAvailability(booking, manager);
             const cancelledBooking = await manager.findOne(hotel_booking_entity_1.HotelBooking, {
                 where: { id },
-                relations: ['hotel', 'room', 'user'],
+                relations: ['hotel', 'room', 'user', 'hotel.owner'],
             });
             if (!cancelledBooking) {
                 throw new common_1.NotFoundException('Failed to retrieve cancelled booking');
+            }
+            if (cancelledBooking.hotel?.owner?.id) {
+                try {
+                    await this.notificationEventService.triggerBookingNotification(cancelledBooking.hotel.owner.id, 'BOOKING_CANCELLED', 'Booking Cancelled', `A booking for ${cancelledBooking.hotel.name} - Room ${cancelledBooking.room?.room_number || 'N/A'} has been cancelled by ${cancelledBooking.user?.first_name || 'Guest'} ${cancelledBooking.user?.last_name || ''}. Check-in date: ${new Date(cancelledBooking.check_in_date).toLocaleDateString()}`, {
+                        booking_id: cancelledBooking.id,
+                        hotel_id: cancelledBooking.hotel_id,
+                        room_id: cancelledBooking.room_id,
+                        guest_name: cancelledBooking.guest_name,
+                        check_in_date: cancelledBooking.check_in_date,
+                        check_out_date: cancelledBooking.check_out_date,
+                        cancellation_reason: cancellationReason || 'No reason provided',
+                        cancelled_by: 'customer',
+                    });
+                }
+                catch (error) {
+                    this.logger.error('Failed to send cancellation notification to hotel owner:', error);
+                }
+                if (cancelledBooking.user_id) {
+                    try {
+                        await this.notificationEventService.triggerBookingNotification(cancelledBooking.user_id, 'BOOKING_CANCELLED', 'Booking Cancelled', `Your booking for ${cancelledBooking.hotel.name} - Room ${cancelledBooking.room?.room_number || 'N/A'} has been cancelled. Check-in date: ${new Date(cancelledBooking.check_in_date).toLocaleDateString()}`, {
+                            booking_id: cancelledBooking.id,
+                            hotel_id: cancelledBooking.hotel_id,
+                            room_id: cancelledBooking.room_id,
+                            guest_name: cancelledBooking.guest_name,
+                            check_in_date: cancelledBooking.check_in_date,
+                            check_out_date: cancelledBooking.check_out_date,
+                            cancellation_reason: cancellationReason || 'No reason provided',
+                            cancelled_by: 'customer',
+                        });
+                    }
+                    catch (error) {
+                        this.logger.error('Failed to send cancellation notification to user:', error);
+                    }
+                }
             }
             this.sanitizeBookingOwnerData(cancelledBooking);
             return cancelledBooking;
@@ -368,6 +474,7 @@ let BookingService = BookingService_1 = class BookingService {
             if (availability) {
                 await transactionManager.update(room_availability_entity_1.RoomAvailability, availability.id, {
                     available_units: availability.available_units + booking.units_requested,
+                    status: 'Available',
                 });
             }
         }
@@ -387,6 +494,7 @@ exports.BookingService = BookingService = BookingService_1 = __decorate([
         typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.DataSource])
+        typeorm_2.DataSource,
+        notification_event_service_1.NotificationEventService])
 ], BookingService);
 //# sourceMappingURL=booking.service.js.map

@@ -29,8 +29,10 @@ let ChatController = class ChatController {
         this.redisService = redisService;
     }
     async createOrGetChatRoom(createChatRoomDto, req) {
-        console.log("req", req.user);
         return this.chatService.createOrGetChatRoom(createChatRoomDto, req.user.userId);
+    }
+    async createChatRoomFromBooking(bookingId, req) {
+        return this.chatService.createChatRoomFromBooking(bookingId, req.user.userId);
     }
     async getChatRooms(query, req) {
         const result = await this.chatService.getChatRooms(query, req.user.userId);
@@ -124,6 +126,18 @@ __decorate([
     __metadata("design:paramtypes", [create_chat_room_dto_1.CreateChatRoomDto, Object]),
     __metadata("design:returntype", Promise)
 ], ChatController.prototype, "createOrGetChatRoom", null);
+__decorate([
+    (0, common_1.Post)('rooms/from-booking/:bookingId'),
+    (0, swagger_1.ApiOperation)({ summary: 'Create or get chat room for a booking' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Chat room created or retrieved successfully' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Bad request' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Booking not found' }),
+    __param(0, (0, common_1.Param)('bookingId')),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ChatController.prototype, "createChatRoomFromBooking", null);
 __decorate([
     (0, common_1.Get)('rooms'),
     (0, swagger_1.ApiOperation)({ summary: 'Get user chat rooms' }),

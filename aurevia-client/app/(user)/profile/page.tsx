@@ -1,45 +1,32 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { useState, useEffect, useRef } from "react"
+import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { User, Mail, Phone, Calendar, MapPin, CreditCard, Clock, CheckCircle, XCircle, X, Eye, EyeOff, Edit3, Save, X as XIcon } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, CreditCard, Clock, CheckCircle, XCircle, X, Eye, EyeOff, Edit3, Save, X as XIcon, ChevronLeft, ChevronRight, Bell, ArrowUpDown } from "lucide-react"
 import { authApi } from "@/lib/api"
 import { bookingsApi } from "@/lib/api/dashboard"
 import Header from "@/components/header"
+import type { User as ApiUser } from "@/lib/api"
+import type { Booking as DashboardBooking } from "@/types/dashboard"
+import { access } from "fs"
+import { gu } from "date-fns/locale"
+import { useNotifications } from "@/components/notifications/notification-provider"
+import { NotificationList } from "@/components/notifications/notification-list"
 
-interface UserProfile {
-  id: string
-  email: string
-  first_name: string
-  last_name: string
-  phone_number?: string
-  roles: { name: string }[]
-  is_active: boolean
-}
+// Use User type directly from API
+type UserProfile = ApiUser
 
-interface Booking {
-  id: string
-  hotel: {
-    name: string
-    address: string
-  }
-  room: {
-    room_number: string
-    room_type: string   
-  }
-  check_in_date: string
-  check_out_date: string
-  total_price: number
-  status: string
-  created_at: string
-}
+// Use Booking type from dashboard
+type Booking = DashboardBooking
+
+type SortOption = 'date-desc' | 'date-asc' | 'price-desc' | 'price-asc' | 'status'
 
 export default function ProfilePage() {
-  const { data: session, status, update } = useSession()
+  const { user, accessToken, isLoading } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -54,23 +41,43 @@ export default function ProfilePage() {
     phone_number: ''
   })
   const [editLoading, setEditLoading] = useState(false)
+  const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null)
+  const hasFetchedData = useRef(false) // Track if we've already fetched data
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1)
+  const [itemsPerPage] = useState(4)
+  
+  // Sort state
+  const [sortBy, setSortBy] = useState<SortOption>('date-desc')
+  
+  // Notification state
+  const { state: notificationState } = useNotifications()
 
   useEffect(() => {
     const fetchProfileData = async () => {
-      if (!session?.accessToken) return
+      if (!accessToken) return
+
+      // Prevent refetching on token refresh
+      if (hasFetchedData.current) {
+        return
+      }
 
       try {
         setLoading(true)
         setError(null)
 
         // Fetch user profile
-        const profileData = await authApi.getProfile(session.accessToken)
-        console.log(profileData)
+        const profileData = await authApi.getProfile()
         setProfile(profileData)
 
-        // Fetch user bookings
-        const bookingsData = await bookingsApi.getByUser(session.accessToken)
+
+        // Fetch user bookingss
+        const bookingsData = await bookingsApi.getByUser()
         setBookings(bookingsData)
+
+        // Mark as fetched
+        hasFetchedData.current = true
       } catch (err) {
         console.error('Error fetching profile data:', err)
         setError('Failed to load profile data')
@@ -79,10 +86,10 @@ export default function ProfilePage() {
       }
     }
 
-    if (session?.accessToken) {
+    if (accessToken) {
       fetchProfileData()
     }
-  }, [session?.accessToken])
+  }, [accessToken])
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
@@ -98,27 +105,61 @@ export default function ProfilePage() {
   }
 
 
-    const getStatusBadgeColor = (status: string) => {
-      switch (status) {
-        case 'Confirmed':
-          return 'bg-green-900/60 text-green-300 border-green-400/70'
-        case 'Paid':
-          return 'bg-green-900/60 text-green-300 border-green-400/70'
-        case 'Pending':
-          return 'bg-yellow-900/60 text-yellow-300 border-yellow-400/70'
-        case 'Cancelled':
-          return 'bg-red-900/60 text-red-300 border-red-400/70'
-        case 'Completed':
-          return 'bg-blue-900/60 text-blue-300 border-blue-400/70'
-        case 'CheckedIn':
-          return 'bg-purple-900/60 text-purple-300 border-purple-400/70'
-        case 'CheckedOut':
-          return 'bg-gray-900/60 text-gray-300 border-gray-400/70'
-        default:
-          return 'bg-gray-900/50 text-gray-300 border-gray-400/70'
-      }
+  const getStatusBadgeColor = (status: string) => {
+    switch (status) {
+      case 'Confirmed':
+        return 'bg-green-900/60 text-green-300 border-green-400/70'
+      case 'Paid':
+        return 'bg-green-900/60 text-green-300 border-green-400/70'
+      case 'Pending':
+        return 'bg-yellow-900/60 text-yellow-300 border-yellow-400/70'
+      case 'Cancelled':
+        return 'bg-red-900/60 text-red-300 border-red-400/70'
+      case 'Completed':
+        return 'bg-blue-900/60 text-blue-300 border-blue-400/70'
+      case 'CheckedIn':
+        return 'bg-purple-900/60 text-purple-300 border-purple-400/70'
+      case 'CheckedOut':
+        return 'bg-gray-900/60 text-gray-300 border-gray-400/70'
+      default:
+        return 'bg-gray-900/50 text-gray-300 border-gray-400/70'
     }
-    
+  }
+
+  // Sort bookings
+  const sortedBookings = [...bookings].sort((a, b) => {
+    switch (sortBy) {
+      case 'date-desc':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      case 'date-asc':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      case 'price-desc':
+        return parseFloat(b.total_price.toString()) - parseFloat(a.total_price.toString())
+      case 'price-asc':
+        return parseFloat(a.total_price.toString()) - parseFloat(b.total_price.toString())
+      case 'status':
+        return a.status.localeCompare(b.status)
+      default:
+        return 0
+    }
+  })
+
+  // Pagination logic
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const currentBookings = sortedBookings.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(sortedBookings.length / itemsPerPage)
+
+  const handlePageChange = (pageNumber: number) => {
+    setCurrentPage(pageNumber)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const handleSortChange = (newSort: SortOption) => {
+    setSortBy(newSort)
+    setCurrentPage(1) // Reset to first page when sorting changes
+  }
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -128,11 +169,12 @@ export default function ProfilePage() {
     })
   }
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number | string) => {
+    const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
-    }).format(amount)
+    }).format(numAmount)
   }
 
   const handleViewDetails = (booking: Booking) => {
@@ -173,14 +215,14 @@ export default function ProfilePage() {
   }
 
   const saveProfileChanges = async () => {
-    if (!session?.accessToken || !profile) return
+    if (!accessToken || !profile) return
 
     try {
       setEditLoading(true)
       setError(null)
 
       // Update profile via API
-      const updatedProfile = await authApi.updateProfile(session.accessToken, {
+      const updatedProfile = await authApi.updateProfile({
         first_name: editForm.first_name,
         last_name: editForm.last_name,
         phone_number: editForm.phone_number
@@ -189,14 +231,8 @@ export default function ProfilePage() {
       setProfile(updatedProfile)
       setIsEditingProfile(false)
 
-      // Update the session to reflect the new name in the navbar
-      await update({
-        ...session,
-        user: {
-          ...session.user,
-          name: `${updatedProfile.first_name} ${updatedProfile.last_name}`.trim()
-        }
-      })
+      // Profile update will automatically refresh the user context
+      window.location.reload() // Refresh to update the navbar
     } catch (err) {
       console.error('Error updating profile:', err)
       setError('Failed to update profile')
@@ -205,7 +241,61 @@ export default function ProfilePage() {
     }
   }
 
-  if (status === "loading" || loading) {
+  const handleCancelBooking = async (bookingId: string) => {
+    if (!accessToken) return
+
+    const cancellationReason = prompt('Please provide a reason for cancellation:')
+    if (!cancellationReason) {
+      return // User cancelled the prompt
+    }
+
+    if (!confirm('Are you sure you want to cancel this booking? This action cannot be undone.')) {
+      return
+    }
+
+    try {
+      setCancellingBookingId(bookingId)
+      setError(null)
+
+      // Cancel booking via API - backend will automatically send notifications
+      await bookingsApi.cancel(bookingId, cancellationReason)
+
+      // Refresh bookings list
+      const bookingsData = await bookingsApi.getByUser()
+      setBookings(bookingsData)
+
+      // If the cancelled booking was being viewed in details modal, close it
+      if (selectedBooking?.id === bookingId) {
+        closeBookingDetails()
+      }
+
+      alert('Booking cancelled successfully!')
+      console.log('Booking cancelled - backend will send notifications automatically')
+
+    } catch (err: any) {
+      console.error('Error cancelling booking:', err)
+
+      // Extract error message from API response
+      let errorMessage = 'Failed to cancel booking'
+
+      if (err?.response?.data?.message) {
+        // Axios error with response
+        errorMessage = err.response.data.message
+      } else if (err?.message) {
+        // Standard Error object
+        errorMessage = err.message
+      }
+
+      setError(errorMessage)
+      alert(errorMessage)
+
+    } finally {
+      setCancellingBookingId(null)
+    }
+  }
+
+
+  if (isLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
         <Header />
@@ -236,7 +326,7 @@ export default function ProfilePage() {
     )
   }
 
-  if (!session) {
+  if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
         <Header />
@@ -254,11 +344,11 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
       <Header />
-      
+
       {/* Warm lighting effects */}
       <div className="absolute top-0 left-1/4 w-80 h-80 bg-copper-accent/4 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-copper-light/3 rounded-full blur-3xl"></div>
-      
+
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
@@ -271,8 +361,9 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Profile Information */}
-          <div className="lg:col-span-1">
+          {/* Left Column - Profile Information and Notifications */}
+          <div className="lg:col-span-1 space-y-8">
+            {/* Profile Information */}
             <Card className="bg-walnut-dark/50 backdrop-blur-sm border-copper-accent/20 p-6">
               <div className="text-center mb-6">
                 <div className="w-24 h-24 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center mx-auto mb-4">
@@ -282,7 +373,9 @@ export default function ProfilePage() {
                   {profile?.first_name} {profile?.last_name}
                 </h2>
                 <p className="text-vintage-sm text-copper-accent font-cinzel uppercase tracking-wider">
-                  {profile?.roles?.map((role) => role.name).join(", ")}
+                  {Array.isArray(profile?.roles) && profile.roles.length > 0
+                    ? (profile.roles as any[]).map(role => typeof role === 'string' ? role : role.name).join(", ")
+                    : "User"}
                 </p>
               </div>
 
@@ -293,7 +386,7 @@ export default function ProfilePage() {
                       <Edit3 className="h-5 w-5 text-copper-accent mr-2" />
                       Edit Profile
                     </h4>
-                    
+
                     <div className="space-y-4">
                       <div>
                         <label className="block text-vintage-sm text-cream-light font-cormorant mb-2">First Name</label>
@@ -305,7 +398,7 @@ export default function ProfilePage() {
                           placeholder="Enter first name"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-vintage-sm text-cream-light font-cormorant mb-2">Last Name</label>
                         <input
@@ -316,7 +409,7 @@ export default function ProfilePage() {
                           placeholder="Enter last name"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-vintage-sm text-cream-light font-cormorant mb-2">Phone Number</label>
                         <input
@@ -328,7 +421,7 @@ export default function ProfilePage() {
                         />
                       </div>
                     </div>
-                    
+
                     <div className="flex justify-end space-x-3 mt-6">
                       <Button
                         size="sm"
@@ -409,11 +502,38 @@ export default function ProfilePage() {
                 </div>
               )}
             </Card>
+
+            {/* Notifications Section */}
+            <Card className="bg-walnut-dark/50 backdrop-blur-sm border-copper-accent/20 p-6">
+              <div className="flex items-center justify-between mb-">
+                <h3 className="text-vintage-2xl font-playfair font-bold text-cream-light flex items-center gap-2">
+                  <Bell className="h-6 w-6 text-copper-accent" />
+                  Notifications
+                </h3>
+                {notificationState.unreadCount > 0 && (
+                  <Badge className="bg-red-500/20 text-red-300 border-red-400/50 font-cinzel">
+                    {notificationState.unreadCount} Unread
+                  </Badge>
+                )}
+              </div>
+
+              {notificationState.notifications.length === 0 ? (
+                <div className="text-center py-12">
+                  <Bell className="h-16 w-16 text-copper-accent/50 mx-auto mb-4" />
+                  <p className="text-vintage-lg text-cream-light/60 font-cormorant mb-2">No notifications</p>
+                  <p className="text-vintage-sm text-cream-light/40">You're all caught up!</p>
+                </div>
+              ) : (
+                <div className="bg-walnut-light/20 border border-copper-accent/10 rounded-lg overflow-hidden">
+                  <NotificationList maxHeight="700px" />
+                </div>
+              )}
+            </Card>
           </div>
 
-          {/* Booking History */}
-          <div className="lg:col-span-2">
-            <Card className="bg-walnut-dark/50 backdrop-blur-sm border-copper-accent/20 p-6">
+          {/* Right Column - Booking History */}
+          <div className="lg:col-span-2 flex flex-col">
+            <Card className="bg-walnut-dark/50 backdrop-blur-sm border-copper-accent/20 p-6 pb-13 flex flex-col">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-vintage-2xl font-playfair font-bold text-cream-light">
                   Booking History
@@ -424,34 +544,58 @@ export default function ProfilePage() {
                 </div>
               </div>
 
+              {/* Sort and Filter Controls */}
+              {bookings.length > 0 && (
+                <div className="mb-4 flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="h-4 w-4 text-copper-accent" />
+                    <span className="text-vintage-sm text-cream-light/80 font-cormorant">Sort by:</span>
+                  </div>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => handleSortChange(e.target.value as SortOption)}
+                    className="bg-walnut-medium/50 border border-copper-accent/30 rounded-lg px-3 py-2 text-vintage-sm text-cream-light font-cormorant focus:outline-none focus:border-copper-accent transition-colors"
+                  >
+                    <option value="date-desc">Newest First</option>
+                    <option value="date-asc">Oldest First</option>
+                    <option value="price-desc">Price: High to Low</option>
+                    <option value="price-asc">Price: Low to High</option>
+                    <option value="status">Status</option>
+                  </select>
+                </div>
+              )}
+
               {bookings.length === 0 ? (
-                <div className="text-center py-12">
-                  <CreditCard className="h-16 w-16 text-copper-accent/50 mx-auto mb-4" />
-                  <p className="text-vintage-lg text-cream-light/60 font-cormorant mb-2">No bookings yet</p>
-                  <p className="text-vintage-sm text-cream-light/40">Start exploring our luxury hotels!</p>
+                <div className="text-center py-12 flex-grow flex items-center justify-center">
+                  <div>
+                    <CreditCard className="h-16 w-16 text-copper-accent/50 mx-auto mb-4" />
+                    <p className="text-vintage-lg text-cream-light/60 font-cormorant mb-2">No bookings yet</p>
+                    <p className="text-vintage-sm text-cream-light/40">Start exploring our luxury hotels!</p>
+                  </div>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {bookings.map((booking) => (
+                <>
+                  <div className="space-y-4 flex-grow">
+                    {currentBookings.map((booking) => (
                     <div key={booking.id} className="bg-walnut-light/30 border border-copper-accent/10 rounded-lg p-4 hover:bg-walnut-light/40 transition-colors duration-300">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h4 className="text-vintage-lg font-playfair font-semibold text-cream-light mb-1">
-                            {booking.hotel.name}
+                            {booking.hotel?.name || 'Hotel Information Unavailable'}
                           </h4>
                           <div className="flex items-center text-vintage-sm text-copper-accent mb-2">
                             <MapPin className="h-4 w-4 mr-1" />
-                            {booking.hotel.address}
+                            {booking.hotel?.address || 'Address not available'}
                           </div>
                           <p className="text-vintage-sm text-cream-light/80">
-                            {booking.room.room_type} - Room {booking.room.room_number}
+                            {booking.room?.room_type || 'Room'} - Room {booking.room?.room_number || 'N/A'}
                           </p>
                         </div>
                         <div className="text-right flex flex-col gap-2 mt-2 items-end">
                           <Badge className={`${getStatusBadgeColor(booking.status)} font-cinzel uppercase tracking-wider`}>
                             {booking.status}
                           </Badge>
-        
+
                         </div>
                       </div>
 
@@ -480,19 +624,85 @@ export default function ProfilePage() {
                               Booked on {formatDate(booking.created_at)}
                             </span>
                           </div>
-                          <Button
-                            size="sm"
-                            className="px-8 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
-                            onClick={() => handleViewDetails(booking)}
-                          >
-                            <Eye className="h-4 w-4 mr-1" />
-                            View Details
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="px-8 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                              onClick={() => handleViewDetails(booking)}
+                            >
+                              <Eye className="h-4 w-4 mr-1" />
+                              View Details
+                            </Button>
+                            {(booking.status === 'Pending' || booking.status === 'Confirmed') && (
+                              <Button
+                                size="sm"
+                                className="px-8 py-4 text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                                onClick={() => handleCancelBooking(booking.id)}
+                                disabled={cancellingBookingId === booking.id}
+                              >
+                                {cancellingBookingId === booking.id ? (
+                                  <>
+                                    <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin mr-1"></div>
+                                    Cancelling...
+                                  </>
+                                ) : (
+                                  <>
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    Cancel Booking
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
                   ))}
-                </div>
+                  </div>
+
+                  {/* Pagination Controls */}
+                  {totalPages > 1 && (
+                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-copper-accent/20">
+                      <div className="text-vintage-sm text-cream-light/60 font-cormorant">
+                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, sortedBookings.length)} of {sortedBookings.length} bookings
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="bg-walnut-medium/50 border border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                          <Button
+                            key={page}
+                            size="sm"
+                            onClick={() => handlePageChange(page)}
+                            className={`${
+                              currentPage === page
+                                ? 'bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-bold'
+                                : 'bg-walnut-medium/50 border border-copper-accent/30 text-cream-light hover:bg-copper-accent/20'
+                            }`}
+                          >
+                            {page}
+                          </Button>
+                        ))}
+                        
+                        <Button
+                          size="sm"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="bg-walnut-medium/50 border border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </Card>
           </div>
@@ -530,11 +740,11 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Hotel Name</p>
-                      <p className="text-vintage-base text-cream-light font-semibold">{selectedBooking.hotel.name}</p>
+                      <p className="text-vintage-base text-cream-light font-semibold">{selectedBooking.hotel?.name || 'Hotel Information Unavailable'}</p>
                     </div>
                     <div>
                       <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Address</p>
-                      <p className="text-vintage-base text-cream-light">{selectedBooking.hotel.address}</p>
+                      <p className="text-vintage-base text-cream-light">{selectedBooking.hotel?.address || 'Address not available'}</p>
                     </div>
                   </div>
                 </div>
@@ -548,11 +758,11 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Room Type</p>
-                      <p className="text-vintage-base text-cream-light font-semibold">{selectedBooking.room.room_type}</p>
+                      <p className="text-vintage-base text-cream-light font-semibold">{selectedBooking.room?.room_type || 'Room type not available'}</p>
                     </div>
                     <div>
                       <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Room Number</p>
-                      <p className="text-vintage-base text-cream-light">{selectedBooking.room.room_number}</p>
+                      <p className="text-vintage-base text-cream-light">{selectedBooking.room?.room_number || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
@@ -609,7 +819,26 @@ export default function ProfilePage() {
               </div>
 
               {/* Modal Footer */}
-              <div className="flex justify-end mt-6 pt-4 border-t border-copper-accent/20">
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-copper-accent/20">
+                {(selectedBooking.status === 'Pending' || selectedBooking.status === 'Confirmed') && (
+                  <Button
+                    onClick={() => handleCancelBooking(selectedBooking.id)}
+                    disabled={cancellingBookingId === selectedBooking.id}
+                    className="px-8 py-4 text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                  >
+                    {cancellingBookingId === selectedBooking.id ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin mr-2"></div>
+                        Cancelling...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 mr-2" />
+                        Cancel Booking
+                      </>
+                    )}
+                  </Button>
+                )}
                 <Button
                   onClick={closeBookingDetails}
                   className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-playfair border-copper-accent/30 font-semibold hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105"

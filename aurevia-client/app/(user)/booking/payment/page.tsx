@@ -2,12 +2,11 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Hotel, Room, CreateBookingData } from '@/types/hotel';
 import { HotelApiService } from '@/lib/api/hotels';
-import { NotificationApiService } from '@/lib/api/notifications';
 import { useNotifications } from '@/components/notifications/notification-provider';
 import { 
   ArrowLeft, 
@@ -27,7 +26,7 @@ import Header from '@/components/header';
 function PaymentContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { user, accessToken } = useAuth();
   const { dispatch } = useNotifications();
   
   const [hotel, setHotel] = useState<Hotel | null>(null);
@@ -86,7 +85,7 @@ function PaymentContent() {
             // Create a complete Room object from the passed data
             const room: Room = {
               id: roomData.id,
-              room_number: `Room ${roomIds.indexOf(roomData.id) + 1}`,
+              room_number: roomData.room_number,
               room_type: roomData.room_type,
               description: roomData.description,
               max_occupancy: roomData.max_occupancy,
@@ -220,7 +219,7 @@ function PaymentContent() {
   };
 
   const handlePayment = async () => {
-    if (!session?.user) {
+    if (!user) {
       alert('Please sign in to complete your booking');
       return;
     }
@@ -272,7 +271,7 @@ function PaymentContent() {
 
       console.log('bookingData: ', bookingData);
 
-      const booking = await HotelApiService.createBooking(bookingData, session.accessToken as string);
+      const booking = await HotelApiService.createBooking(bookingData);
       
       console.log('booking: ', booking);
       console.log('booking.id: ', booking?.id);
@@ -290,59 +289,8 @@ function PaymentContent() {
         throw new Error('Invalid booking response: missing booking ID');
       }
 
-      // Create booking confirmation notification for current user (database)
-      if (session?.accessToken && session?.user?.id) {
-        try {
-          await NotificationApiService.createNotification({
-            user_id: session.user.id,
-            type: 'BOOKING_CONFIRMATION',
-            title: 'Booking Confirmed!',
-            message: `Your booking at ${hotel?.name} has been confirmed. Booking ID: ${booking.id}`,
-            metadata: {
-              booking_id: booking.id,
-              hotel_id: hotelId,
-              total_price: total,
-              check_in_date: checkInDate,
-              check_out_date: checkOutDate,
-            },
-            related_entity_type: 'booking',
-            related_entity_id: booking.id,
-          }, session.accessToken);
-          
-          console.log('Booking confirmation notification created successfully');
-        } catch (error) {
-          console.error('Failed to create booking confirmation notification:', error);
-          // Don't fail the payment process if notification creation fails
-        }
-      }
-
-      // Create hotel owner notification via API
-      if (booking.hotel?.owner_id && session?.accessToken) {
-        try {
-          await NotificationApiService.createNotification({
-            user_id: booking.hotel.owner_id,
-            type: 'NEW_BOOKING',
-            title: 'New Booking Received!',
-            message: `You have received a new booking at ${hotel?.name} from ${guestName}. Booking ID: ${booking.id}`,
-            metadata: {
-              booking_id: booking.id,
-              hotel_id: hotelId,
-              guest_name: guestName,
-              guest_email: guestEmail,
-              total_price: total,
-              check_in_date: checkInDate,
-              check_out_date: checkOutDate,
-            },
-            related_entity_type: 'booking',
-            related_entity_id: booking.id,
-          }, session.accessToken);
-          
-          console.log('Hotel owner notification created successfully');
-        } catch (error) {
-          console.error('Failed to create hotel owner notification:', error);
-          // Don't fail the payment process if notification creation fails
-        }
-      }
+      // Notification is now automatically sent by backend when booking is created
+      console.log('Booking created successfully - backend will send notifications automatically');
       
       // Redirect to success page
       router.push(`/booking/success?booking_id=${booking.id}`);
@@ -631,6 +579,10 @@ function PaymentContent() {
               <CardContent className="space-y-4">
                 {/* Dates and Guests */}
                 <div className="space-y-2 text-vintage-lg text-cream-light/80 font-cormorant">
+                <div className="flex justify-between">
+                    <span>Room Number</span>
+                    <span className="font-bold text-cream-light">{selectedRooms[0].room_number}</span>
+                  </div>
                   <div className="flex justify-between">
                     <span>Check-in:</span>
                     <span className="font-bold text-cream-light">{formatDate(checkInDate!)}</span>

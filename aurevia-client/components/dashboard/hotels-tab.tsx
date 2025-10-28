@@ -103,7 +103,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
     }
 
     try {
-      await bookingsApi.updateStatus(accessToken, bookingId, 'Confirmed', 'Booking confirmed by hotel management')
+      await bookingsApi.updateStatus(bookingId, 'Confirmed', 'Booking confirmed by hotel management')
       // Reload hotel data to show updated booking status
       await loadHotelData(hotelId)
       console.log('Booking confirmed successfully')
@@ -124,7 +124,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
     }
 
     try {
-      await bookingsApi.updateStatus(accessToken, bookingId, 'Cancelled', reason)
+      await bookingsApi.updateStatus(bookingId, 'Cancelled', reason)
       // Reload hotel data to show updated booking status
       await loadHotelData(hotelId)
       console.log('Booking cancelled successfully')
@@ -152,12 +152,14 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
     setLoading((prev) => ({ ...prev, [hotelId]: true }))
     try {
       const [rooms, bookings] = await Promise.all([
-        roomsApi.getByHotel(accessToken, hotelId).catch(() => []),
-        bookingsApi.getByHotel(accessToken, hotelId).catch(() => []),
+        roomsApi.getByHotel(hotelId).catch(() => []),
+        bookingsApi.getByHotel(hotelId).catch(() => []),
       ])
       setHotelRooms((prev) => ({ ...prev, [hotelId]: rooms }))
       setHotelBookings((prev) => ({ ...prev, [hotelId]: bookings }))
       console.log('🔍 Bookings:', bookings)
+      console.log('🛏️ Rooms:', rooms)
+
     } catch (error) {
       console.error(`Failed to load data for hotel ${hotelId}:`, error)
     } finally {
@@ -168,8 +170,10 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
   const loadRoomAvailability = async (roomId: string) => {
     setLoading((prev) => ({ ...prev, [roomId]: true }))
     try {
-      const availability = await availabilityApi.getByRoom(accessToken, roomId)
+      const availability = await availabilityApi.getByRoom(roomId)
       setRoomAvailability((prev) => ({ ...prev, [roomId]: availability }))
+      console.log('📅 Loaded availability for room', roomId)
+      console.log('📅 Availability:', availability)
     } catch (error) {
       console.error(`Failed to load availability for room ${roomId}:`, error)
     } finally {
@@ -193,6 +197,10 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
         return 'bg-purple-900/60 text-purple-300 border-purple-400/70'
       case 'CheckedOut':
         return 'bg-gray-900/60 text-gray-300 border-gray-400/70'
+      case 'Booked':
+        return 'bg-orange-900/60 text-orange-300 border-orange-400/70'
+      case 'Available':
+        return 'bg-green-900/50 text-green-300 border-green-400/70'
       default:
         return 'bg-gray-900/50 text-gray-300 border-gray-400/70'
     }
@@ -304,7 +312,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                           {hotel.description || 'No description available'}
                         </p>
                         <p className="text-cream-light/60 font-cormorant text-vintage-sm">
-                          {hotel.address || 'Address not available'}, {hotel.location?.city || hotel.city || 'Unknown'}, {hotel.location?.state || hotel.state || 'Unknown'} {hotel.zip_code || ''}
+                          {hotel.address || hotel.location?.address || 'Address not available'}, {hotel.location?.city || hotel.city || 'Unknown'}, {hotel.location?.state || hotel.state || 'Unknown'} {hotel.zip_code || ''}
                         </p>
                         {isAdmin && hotel.owner && (
                           <p className="text-cream-light/60 font-cormorant text-vintage-sm">
@@ -465,13 +473,10 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                                   </div>
                                                   <Badge
                                                     className={`${
-                                                      avail.status
-                                                        ? 'bg-green-900/50 text-green-300 border-green-400/70'
-                                                        : 'bg-red-900/50 text-red-300 border-red-400/70'
-                                                    } font-cinzel`}
+                                                      getStatusBadgeColor(avail.status)
+                                                    } font-cinzel uppercase tracking-wider`}
                                                   >
-                                                      {avail.status ? 'Available' : 'Booked'}
-                                    
+                                                    {avail.status}
                                                   </Badge>
                                                 </div>
                                               </div>

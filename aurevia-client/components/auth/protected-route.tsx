@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 
@@ -15,19 +15,19 @@ export default function ProtectedRoute({
   requireAuth = true, 
   allowedRoles = [] 
 }: ProtectedRouteProps) {
-  const { data: session, status } = useSession()
+  const { user, isAuthenticated, isLoading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (status === "loading") return // Still loading
+    if (isLoading) return // Still loading
 
-    if (requireAuth && !session) {
+    if (requireAuth && !isAuthenticated) {
       router.push("/auth/login")
       return
     }
 
-    if (allowedRoles.length > 0 && session) {
-      const userRoles = session.roles || []
+    if (allowedRoles.length > 0 && user) {
+      const userRoles = user.roles || []
       const hasRequiredRole = allowedRoles.some(role => 
         userRoles.includes(role)
       )
@@ -37,9 +37,9 @@ export default function ProtectedRoute({
         return
       }
     }
-  }, [session, status, router, requireAuth, allowedRoles])
+  }, [user, isAuthenticated, isLoading, router, requireAuth, allowedRoles])
 
-  if (status === "loading") {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-darkest flex items-center justify-center">
         <div className="text-center">
@@ -50,12 +50,12 @@ export default function ProtectedRoute({
     )
   }
 
-  if (requireAuth && !session) {
+  if (requireAuth && !isAuthenticated) {
     return null // Will redirect in useEffect
   }
 
-  if (allowedRoles.length > 0 && session) {
-    const userRoles = session.roles || []
+  if (allowedRoles.length > 0 && user) {
+    const userRoles = user.roles || []
     const hasRequiredRole = allowedRoles.some(role => 
       userRoles.includes(role)
     )

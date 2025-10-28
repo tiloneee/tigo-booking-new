@@ -1,58 +1,75 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import axiosInstance from '@/lib/axios';
 
-export interface CreateNotificationData {
-  user_id: string;
+export interface Notification {
+  id: string;
   type: string;
   title: string;
   message: string;
+  status: 'UNREAD' | 'READ' | 'ARCHIVED';
   metadata?: any;
   related_entity_type?: string;
   related_entity_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NotificationListResponse {
+  notifications: Notification[];
+  total: number;
+  page: number;
+  limit: number;
+  unreadCount: number;
 }
 
 export class NotificationApiService {
   /**
-   * Create a notification for a specific user
+   * Get all notifications for the current user (paginated)
    */
-  static async createNotification(
-    notificationData: CreateNotificationData,
-    token: string
-  ): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/notifications`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify(notificationData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || `Failed to create notification: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    console.log('Notification created:', data);
-    
-    return data;
+  static async getNotifications(page: number = 1, limit: number = 20): Promise<NotificationListResponse> {
+    const response = await axiosInstance.get(`/notifications?page=${page}&limit=${limit}`);
+    return response.data;
   }
 
   /**
-   * Get notifications for a specific user
+   * Mark a notification as read
    */
-  static async getUserNotifications(userId: string, token: string): Promise<any> {
-    const response = await fetch(`${API_BASE_URL}/notifications/user/${userId}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
+  static async markAsRead(notificationId: string): Promise<Notification> {
+    const response = await axiosInstance.put(`/notifications/${notificationId}/mark`, {
+      status: 'READ'
     });
+    return response.data;
+  }
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch notifications: ${response.statusText}`);
-    }
+  /**
+   * Mark all notifications as read
+   */
+  static async markAllAsRead(): Promise<{ message: string; count: number }> {
+    const response = await axiosInstance.put('/notifications/mark-all-read');
+    return response.data;
+  }
 
-    const data = await response.json();
-    return data;
+  /**
+   * Delete a specific notification
+   */
+  static async deleteNotification(notificationId: string): Promise<{ message: string }> {
+    const response = await axiosInstance.delete(`/notifications/${notificationId}`);
+    return response.data;
+  }
+
+  /**
+   * Delete all notifications for the current user
+   */
+  static async deleteAllNotifications(): Promise<{ message: string; count: number }> {
+    const response = await axiosInstance.delete('/notifications/delete-all');
+    return response.data;
+  }
+
+  /**
+   * Get unread notification count
+   */
+  static async getUnreadCount(): Promise<{ count: number }> {
+    const response = await axiosInstance.get('/notifications/unread-count');
+    return response.data;
   }
 }
+

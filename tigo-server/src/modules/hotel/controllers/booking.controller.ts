@@ -32,16 +32,14 @@ export class BookingController {
 
   // Get own bookings (Customer)
   @Get('mine')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('Customer', 'Admin')
+  @UseGuards(JwtAuthGuard)
   getMyBookings(@Request() req) {
     return this.bookingService.findByUser(req.user.userId);
   }
 
   // Cancel own booking (Customer)
   @Patch(':id/cancel')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('Customer', 'Admin')
+  @UseGuards(JwtAuthGuard)
   cancelBooking(
     @Param('id') id: string,
     @Body('cancellation_reason') cancellationReason: string,

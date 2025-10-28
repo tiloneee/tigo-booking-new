@@ -75,7 +75,7 @@ export interface RoomAvailability {
   date: string
   available_units: number
   price_per_night: number | string
-  status: boolean
+  status: 'Available' | 'Booked' | 'Maintenance' | 'Blocked'
   created_at: string
   updated_at: string
 }

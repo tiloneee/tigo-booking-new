@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Hotel, Room, Booking } from '@/types/hotel';
 import { HotelApiService } from '@/lib/api/hotels';
+import { createChatRoomFromBooking } from '@/lib/api/chat';
 import { 
   CheckCircle,
   Calendar,
@@ -26,12 +27,14 @@ import Header from '@/components/header';
 function BookingSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { data: session } = useSession();
+  const { accessToken } = useAuth();
   const [booking, setBooking] = useState<Booking | null>(null);
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isCreatingChat, setIsCreatingChat] = useState(false);
+  const hasFetchedData = useRef(false); // Track if we've already fetched data
 
   const bookingId = searchParams.get('booking_id');
 
@@ -44,9 +47,14 @@ function BookingSuccessContent() {
         return;
       }
 
-      // Don't fetch if session is not available yet
-      if (!session?.accessToken) {
-        console.log('Session not available yet, waiting...');
+      // Don't fetch if access token is not available yet
+      if (!accessToken) {
+        console.log('Access token not available yet, waiting...');
+        return;
+      }
+
+      // Prevent refetching on token refresh
+      if (hasFetchedData.current) {
         return;
       }
 
@@ -55,7 +63,7 @@ function BookingSuccessContent() {
       
       try {
         // Fetch booking details
-        const bookingData = await HotelApiService.getBookingById(bookingId, session.accessToken);
+        const bookingData = await HotelApiService.getBookingById(bookingId);
         
         // Validate booking data
         if (!bookingData) {
@@ -79,6 +87,9 @@ function BookingSuccessContent() {
           const roomData = await HotelApiService.getRoomById(bookingData.room_id);
           setRoom(roomData);
         }
+        
+        // Mark as fetched
+        hasFetchedData.current = true;
       } catch (err) {
         console.error('Error fetching booking details:', err);
         setError('Failed to load booking details. Please try again.');
@@ -88,7 +99,7 @@ function BookingSuccessContent() {
     };
 
     fetchBookingDetails();
-  }, [bookingId, session?.accessToken]);
+  }, [bookingId, accessToken]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -111,20 +122,31 @@ function BookingSuccessContent() {
     alert('Receipt download feature will be implemented with PDF generation');
   };
 
-  const handleStartChat = () => {
-    if (hotel) {
-      // Navigate to chat with hotel owner
-      router.push(`/chat?hotel_id=${hotel.id}&booking_id=${bookingId}`);
+  const handleStartChat = async () => {
+    if (!bookingId) return;
+    
+    setIsCreatingChat(true);
+    try {
+      // Create or get chat room from booking
+      const chatRoom = await createChatRoomFromBooking(bookingId);
+      
+      // Navigate to chat with the created room
+      router.push(`/chat?room=${chatRoom.id}`);
+    } catch (error) {
+      console.error('Error creating chat room:', error);
+      alert('Failed to create chat room. Please try again.');
+    } finally {
+      setIsCreatingChat(false);
     }
   };
 
-  if (loading || !session?.accessToken) {
+  if (loading || !accessToken) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-4 border-copper-accent/20 border-t-copper-accent mx-auto mb-4"></div>
           <p className="text-cream-light font-cormorant text-vintage-lg">
-            {!session?.accessToken ? 'Loading session...' : 'Loading booking confirmation...'}
+            {!accessToken ? 'Loading authentication...' : 'Loading booking confirmation...'}
           </p>
         </div>
       </div>
@@ -388,10 +410,20 @@ function BookingSuccessContent() {
               <CardContent className="p-6 space-y-4">
                 <Button
                   onClick={handleStartChat}
-                  className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300"
+                  disabled={isCreatingChat}
+                  className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300 disabled:opacity-50"
                 >
-                  <MessageSquare className="w-4 h-4 mr-2" />
-                  Chat with Hotel Owner
+                  {isCreatingChat ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Opening Chat...
+                    </>
+                  ) : (
+                    <>
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      Chat with Hotel Owner
+                    </>
+                  )}
                 </Button>
 
                 <Button

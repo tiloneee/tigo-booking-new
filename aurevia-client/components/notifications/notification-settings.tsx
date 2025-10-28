@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/lib/auth-context'
 import { Settings, Save, Loader2, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -19,7 +19,7 @@ interface NotificationSettingsProps {
 }
 
 export function NotificationSettings({ className }: NotificationSettingsProps) {
-  const { data: session } = useSession()
+  const { accessToken } = useAuth()
   const [preferences, setPreferences] = useState<NotificationPreference[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -77,13 +77,13 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
 
   // Fetch user preferences
   useEffect(() => {
-    if (!session?.accessToken) return
+    if (!accessToken) return
 
     const fetchPreferences = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/notifications/preferences`, {
           headers: {
-            'Authorization': `Bearer ${session.accessToken}`,
+            'Authorization': `Bearer ${accessToken}`,
           },
         })
 
@@ -99,11 +99,11 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
     }
 
     fetchPreferences()
-  }, [session?.accessToken, API_BASE_URL])
+  }, [accessToken, API_BASE_URL])
 
   // Update preference
   const updatePreference = async (type: string, field: keyof NotificationPreference, value: boolean) => {
-    if (!session?.accessToken) return
+    if (!accessToken) return
 
     setSaving(true)
 
@@ -111,7 +111,7 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
       const response = await fetch(`${API_BASE_URL}/notifications/preferences/${type}`, {
         method: 'PUT',
         headers: {
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ [field]: value }),
@@ -294,3 +294,4 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
     </Card>
   )
 }
+

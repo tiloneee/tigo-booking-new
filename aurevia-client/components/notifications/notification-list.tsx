@@ -14,7 +14,8 @@ import {
   Trash2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useNotifications, type Notification } from './notification-provider'
+import { useNotifications } from './notification-provider'
+import type { Notification } from '@/lib/api/notifications'
 
 interface NotificationListProps {
   maxHeight?: string
@@ -35,6 +36,7 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
         return <MessageCircle className="h-4 w-4 text-copper-accent" />
       case 'BOOKING_CONFIRMATION':
       case 'BOOKING_CANCELLED':
+        return <Calendar className="h-4 w-4 text-copper-accent" />
       case 'BOOKING_REMINDER':
       case 'NEW_BOOKING':
         return <Calendar className="h-4 w-4 text-copper-accent" />
@@ -221,7 +223,7 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
         <Button
           variant="link"
           size="sm"
-          className="text-copper-accent hover:text-cream-light font-cormorant text-vintage-sm"
+          className="text-vintage-sm text-md text-copper-accent hover:text-cream-light font-cormorant font-bold"
           onClick={() => {
             router.push('/notifications')
             if (onClose) onClose()

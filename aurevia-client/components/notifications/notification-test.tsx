@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useState } from 'react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/lib/auth-context'
 import { Send, TestTube, MessageCircle, Calendar, Star, Bell } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -48,7 +48,7 @@ const testNotifications: TestNotification[] = [
 ]
 
 export function NotificationTest() {
-  const { data: session } = useSession()
+  const { accessToken, user } = useAuth()
   const { state } = useNotifications()
   const [sending, setSending] = useState<string | null>(null)
   const [lastSent, setLastSent] = useState<string | null>(null)
@@ -56,7 +56,7 @@ export function NotificationTest() {
   const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
   const sendTestNotification = async (testNotif: TestNotification) => {
-    if (!session?.accessToken || !session?.user?.id) {
+    if (!accessToken || !user?.id) {
       alert('Please log in to test notifications')
       return
     }
@@ -68,7 +68,7 @@ export function NotificationTest() {
       const response = await fetch(`${API_BASE_URL}/notifications/send/bulk`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.accessToken}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -100,7 +100,7 @@ export function NotificationTest() {
     }
   }
 
-  if (!session) {
+  if (!user) {
     return (
       <Card className="bg-walnut-dark/98 border-copper-accent/20">
         <CardContent className="p-6 text-center">
@@ -203,3 +203,4 @@ export function NotificationTest() {
     </Card>
   )
 }
+

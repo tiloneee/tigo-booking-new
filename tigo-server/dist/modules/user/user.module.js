@@ -20,6 +20,7 @@ const user_entity_1 = require("./entities/user.entity");
 const role_entity_1 = require("./entities/role.entity");
 const permission_entity_1 = require("./entities/permission.entity");
 const jwt_strategy_1 = require("../../common/strategies/jwt.strategy");
+const jwt_refresh_strategy_1 = require("../../common/strategies/jwt-refresh.strategy");
 const email_service_1 = require("../../common/services/email.service");
 let UserModule = class UserModule {
 };
@@ -39,7 +40,7 @@ exports.UserModule = UserModule = __decorate([
             }),
         ],
         controllers: [user_controller_1.UserController, auth_controller_1.AuthController],
-        providers: [user_service_1.UserService, auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, email_service_1.EmailService],
+        providers: [user_service_1.UserService, auth_service_1.AuthService, jwt_strategy_1.JwtStrategy, jwt_refresh_strategy_1.JwtRefreshStrategy, email_service_1.EmailService],
         exports: [user_service_1.UserService, auth_service_1.AuthService],
     })
 ], UserModule);

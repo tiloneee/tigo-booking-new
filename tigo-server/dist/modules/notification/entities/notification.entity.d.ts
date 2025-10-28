@@ -2,6 +2,7 @@ import { User } from '../../user/entities/user.entity';
 export declare enum NotificationType {
     CHAT_MESSAGE = "CHAT_MESSAGE",
     NEW_BOOKING = "NEW_BOOKING",
+    BOOKING_CREATED = "BOOKING_CREATED",
     BOOKING_CONFIRMATION = "BOOKING_CONFIRMATION",
     BOOKING_CANCELLED = "BOOKING_CANCELLED",
     BOOKING_REMINDER = "BOOKING_REMINDER",

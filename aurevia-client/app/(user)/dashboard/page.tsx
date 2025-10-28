@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/lib/auth-context"
 import ProtectedRoute from "@/components/auth/protected-route"
 import Header from "@/components/header"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
@@ -8,7 +8,7 @@ import { User, Calendar, MapPin, Star, MessageCircle } from "lucide-react"
 import Link from "next/link"
 
 export default function Dashboard() {
-  const { data: session } = useSession()
+  const { user } = useAuth()
 
   return (
     <ProtectedRoute>
@@ -22,7 +22,7 @@ export default function Dashboard() {
               <h1 className="text-vintage-4xl md:text-vintage-5xl font-playfair font-bold text-cream-light mb-4 tracking-wide">
                 Welcome Back,{" "}
                 <span className="text-copper-accent font-great-vibes text-vintage-5xl font-normal italic">
-                  {session?.user?.name?.split(' ')[0] || 'Traveler'}
+                  {user?.first_name || 'Traveler'}
                 </span>
               </h1>
               <p className="text-vintage-lg text-cream-light/80 font-cormorant font-light leading-relaxed">
@@ -51,19 +51,19 @@ export default function Dashboard() {
                   <div>
                     <p className="text-cream-light/60 font-cormorant text-vintage-sm">Name</p>
                     <p className="text-cream-light font-cormorant text-vintage-base font-medium">
-                      {session?.user?.name || 'Not specified'}
+                      {user?.first_name} {user?.last_name}
                     </p>
                   </div>
                   <div>
                     <p className="text-cream-light/60 font-cormorant text-vintage-sm">Email</p>
                     <p className="text-cream-light font-cormorant text-vintage-base font-medium">
-                      {session?.user?.email}
+                      {user?.email}
                     </p>
                   </div>
                   <div>
                     <p className="text-cream-light/60 font-cormorant text-vintage-sm">Role</p>
                     <p className="text-copper-accent font-cinzel text-vintage-sm uppercase tracking-wider">
-                      {session?.roles?.join(', ') || 'Customer'}
+                      {user?.roles?.join(', ') || 'Customer'}
                     </p>
                   </div>
                 </CardContent>

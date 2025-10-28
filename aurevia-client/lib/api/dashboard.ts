@@ -1,186 +1,150 @@
 import type { DashboardUser, Hotel, Room, Booking, RoomAvailability } from '@/types/dashboard'
+import axiosInstance from '@/lib/axios'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
 
-// Helper function to make authenticated API calls
-async function fetchWithAuth(url: string, accessToken: string, options?: RequestInit) {
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  })
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }))
-    throw new Error(error.message || `HTTP ${response.status}`)
-  }
-
-  return response.json()
-}
-
 // User Management APIs (Admin only)
 export const usersApi = {
-  getAll: async (accessToken: string): Promise<DashboardUser[]> => {
-    return fetchWithAuth(`${API_BASE_URL}/users`, accessToken)
+  getAll: async (): Promise<DashboardUser[]> => {
+    const response = await axiosInstance.get('/users');
+    return response.data;
   },
 
-  getOne: async (accessToken: string, userId: string): Promise<DashboardUser> => {
-    return fetchWithAuth(`${API_BASE_URL}/users/${userId}`, accessToken)
+  getOne: async (userId: string): Promise<DashboardUser> => {
+    const response = await axiosInstance.get(`/users/${userId}`);
+    return response.data;
   },
 
   update: async (
-    accessToken: string,
     userId: string,
     data: Partial<DashboardUser>
   ): Promise<DashboardUser> => {
-    return fetchWithAuth(`${API_BASE_URL}/users/${userId}`, accessToken, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    })
+    const response = await axiosInstance.patch(`/users/${userId}`, data);
+    return response.data;
   },
 
-  delete: async (accessToken: string, userId: string): Promise<{ message: string }> => {
-    return fetchWithAuth(`${API_BASE_URL}/users/${userId}`, accessToken, {
-      method: 'DELETE',
-    })
+  delete: async (userId: string): Promise<{ message: string }> => {
+    const response = await axiosInstance.delete(`/users/${userId}`);
+    return response.data;
   },
 
   assignRole: async (
-    accessToken: string,
     userId: string,
     role: string
   ): Promise<DashboardUser> => {
-    return fetchWithAuth(`${API_BASE_URL}/users/${userId}/roles`, accessToken, {
-      method: 'POST',
-      body: JSON.stringify({ role }),
-    })
+    const response = await axiosInstance.post(`/users/${userId}/roles`, { role });
+    return response.data;
   },
 }
 
 // Hotel Management APIs
 export const hotelsApi = {
   // Get all hotels (Admin only)
-  getAll: async (accessToken: string): Promise<Hotel[]> => {
-    return fetchWithAuth(`${API_BASE_URL}/hotels`, accessToken)
+  getAll: async (): Promise<Hotel[]> => {
+    const response = await axiosInstance.get('/hotels');
+    return response.data;
   },
 
   // Get hotels owned by the current user (HotelOwner)
-  getOwned: async (accessToken: string): Promise<Hotel[]> => {
-    return fetchWithAuth(`${API_BASE_URL}/hotels/mine`, accessToken)
+  getOwned: async (): Promise<Hotel[]> => {
+    const response = await axiosInstance.get('/hotels/mine');
+    return response.data;
   },
 
   // Get single hotel with details
-  getOne: async (accessToken: string, hotelId: string): Promise<Hotel> => {
-    return fetchWithAuth(`${API_BASE_URL}/hotels/${hotelId}`, accessToken)
+  getOne: async (hotelId: string): Promise<Hotel> => {
+    const response = await axiosInstance.get(`/hotels/${hotelId}`);
+    return response.data;
   },
 
   // Update hotel
   update: async (
-    accessToken: string,
     hotelId: string,
     data: Partial<Hotel>
   ): Promise<Hotel> => {
-    return fetchWithAuth(`${API_BASE_URL}/hotels/${hotelId}`, accessToken, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    })
+    const response = await axiosInstance.patch(`/hotels/${hotelId}`, data);
+    return response.data;
   },
 
   // Delete hotel
-  delete: async (accessToken: string, hotelId: string): Promise<{ message: string }> => {
-    return fetchWithAuth(`${API_BASE_URL}/hotels/${hotelId}`, accessToken, {
-      method: 'DELETE',
-    })
+  delete: async (hotelId: string): Promise<{ message: string }> => {
+    const response = await axiosInstance.delete(`/hotels/${hotelId}`);
+    return response.data;
   },
 }
 
 // Room Management APIs
 export const roomsApi = {
   // Get all rooms for a hotel
-  getByHotel: async (accessToken: string, hotelId: string): Promise<Room[]> => {
-    return fetchWithAuth(`${API_BASE_URL}/hotels/${hotelId}/rooms`, accessToken)
+  getByHotel: async (hotelId: string): Promise<Room[]> => {
+    const response = await axiosInstance.get(`/hotels/${hotelId}/rooms`);
+    return response.data;
   },
 
   // Get single room
-  getOne: async (accessToken: string, roomId: string): Promise<Room> => {
-    return fetchWithAuth(`${API_BASE_URL}/rooms/${roomId}`, accessToken)
+  getOne: async (roomId: string): Promise<Room> => {
+    const response = await axiosInstance.get(`/rooms/${roomId}`);
+    return response.data;
   },
 
   // Create room
   create: async (
-    accessToken: string,
     hotelId: string,
     data: Partial<Room>
   ): Promise<Room> => {
-    return fetchWithAuth(`${API_BASE_URL}/hotels/${hotelId}/rooms`, accessToken, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
+    const response = await axiosInstance.post(`/hotels/${hotelId}/rooms`, data);
+    return response.data;
   },
 
   // Update room
   update: async (
-    accessToken: string,
     roomId: string,
     data: Partial<Room>
   ): Promise<Room> => {
-    return fetchWithAuth(`${API_BASE_URL}/rooms/${roomId}`, accessToken, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    })
+    const response = await axiosInstance.patch(`/rooms/${roomId}`, data);
+    return response.data;
   },
 
   // Delete room
-  delete: async (accessToken: string, roomId: string): Promise<{ message: string }> => {
-    return fetchWithAuth(`${API_BASE_URL}/rooms/${roomId}`, accessToken, {
-      method: 'DELETE',
-    })
+  delete: async (roomId: string): Promise<{ message: string }> => {
+    const response = await axiosInstance.delete(`/rooms/${roomId}`);
+    return response.data;
   },
 }
 
 // Room Availability APIs
 export const availabilityApi = {
   // Get availability for a room
-  getByRoom: async (accessToken: string, roomId: string): Promise<RoomAvailability[]> => {
-    return fetchWithAuth(`${API_BASE_URL}/rooms/${roomId}/availability`, accessToken)
+  getByRoom: async (roomId: string): Promise<RoomAvailability[]> => {
+    const response = await axiosInstance.get(`/rooms/${roomId}/availability`);
+    return response.data;
   },
 
   // Create availability
   create: async (
-    accessToken: string,
     roomId: string,
     data: Partial<RoomAvailability>
   ): Promise<RoomAvailability> => {
-    return fetchWithAuth(`${API_BASE_URL}/rooms/${roomId}/availability`, accessToken, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    })
+    const response = await axiosInstance.post(`/rooms/${roomId}/availability`, data);
+    return response.data;
   },
 
   // Update availability (requires roomId and date)
   update: async (
-    accessToken: string,
     roomId: string,
     date: string,
     data: Partial<RoomAvailability>
   ): Promise<RoomAvailability> => {
-    return fetchWithAuth(`${API_BASE_URL}/rooms/${roomId}/availability/${date}`, accessToken, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    })
+    const response = await axiosInstance.patch(`/rooms/${roomId}/availability/${date}`, data);
+    return response.data;
   },
 
   // Delete availability
   delete: async (
-    accessToken: string,
     availabilityId: string
   ): Promise<{ message: string }> => {
-    return fetchWithAuth(`${API_BASE_URL}/availability/${availabilityId}`, accessToken, {
-      method: 'DELETE',
-    })
+    const response = await axiosInstance.delete(`/availability/${availabilityId}`);
+    return response.data;
   },
 }
 
@@ -188,58 +152,60 @@ export const availabilityApi = {
 export const bookingsApi = {
   
   // Get user's own bookings
-  getByUser: async (accessToken: string): Promise<Booking[]> => {
-    return fetchWithAuth(`${API_BASE_URL}/bookings/mine`, accessToken)
+  getByUser: async (): Promise<Booking[]> => {
+    const response = await axiosInstance.get('/bookings/mine');
+    return response.data;
+  },
+  
+  // Get all bookings for hotel owner's hotels
+  getByHotelOwner: async (): Promise<Booking[]> => {
+    const response = await axiosInstance.get('/bookings/search');
+    return response.data;
   },
   
   // Get all bookings for a hotel
-  getByHotel: async (accessToken: string, hotelId: string): Promise<Booking[]> => {
-    return fetchWithAuth(`${API_BASE_URL}/hotels/${hotelId}/bookings`, accessToken)
+  getByHotel: async (hotelId: string): Promise<Booking[]> => {
+    const response = await axiosInstance.get(`/hotels/${hotelId}/bookings`);
+    return response.data;
   },
 
   // Get single booking
-  getOne: async (accessToken: string, bookingId: string): Promise<Booking> => {
-    return fetchWithAuth(`${API_BASE_URL}/bookings/${bookingId}`, accessToken)
+  getOne: async (bookingId: string): Promise<Booking> => {
+    const response = await axiosInstance.get(`/bookings/${bookingId}`);
+    return response.data;
   },
 
   // Update booking
   update: async (
-    accessToken: string,
     bookingId: string,
     data: Partial<Booking>
   ): Promise<Booking> => {
-    return fetchWithAuth(`${API_BASE_URL}/bookings/${bookingId}`, accessToken, {
-      method: 'PATCH',
-      body: JSON.stringify(data),
-    })
+    const response = await axiosInstance.patch(`/bookings/${bookingId}`, data);
+    return response.data;
   },
 
   // Cancel booking
   cancel: async (
-    accessToken: string,
     bookingId: string,
     reason?: string
   ): Promise<Booking> => {
-    return fetchWithAuth(`${API_BASE_URL}/bookings/${bookingId}/cancel`, accessToken, {
-      method: 'POST',
-      body: JSON.stringify({ cancellation_reason: reason }),
-    })
+    const response = await axiosInstance.patch(`/bookings/${bookingId}/cancel`, {
+      cancellation_reason: reason
+    });
+    return response.data;
   },
 
   // Update booking status (confirm/cancel)
   updateStatus: async (
-    accessToken: string,
     bookingId: string,
     status: string,
     adminNotes?: string
   ): Promise<Booking> => {
-    return fetchWithAuth(`${API_BASE_URL}/bookings/${bookingId}/status`, accessToken, {
-      method: 'PATCH',
-      body: JSON.stringify({ 
-        status,
-        admin_notes: adminNotes 
-      }),
-    })
+    const response = await axiosInstance.patch(`/bookings/${bookingId}/status`, {
+      status,
+      admin_notes: adminNotes
+    });
+    return response.data;
   },
 }
 

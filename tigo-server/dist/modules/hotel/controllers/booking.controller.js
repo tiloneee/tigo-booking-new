@@ -64,8 +64,7 @@ __decorate([
 ], BookingController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('mine'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('Customer', 'Admin'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -73,8 +72,7 @@ __decorate([
 ], BookingController.prototype, "getMyBookings", null);
 __decorate([
     (0, common_1.Patch)(':id/cancel'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
-    (0, roles_decorator_1.Roles)('Customer', 'Admin'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)('cancellation_reason')),
     __param(2, (0, common_1.Request)()),

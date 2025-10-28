@@ -42,8 +42,20 @@ export class ChatController {
     @Body() createChatRoomDto: CreateChatRoomDto,
     @Request() req: any,
   ): Promise<ChatRoom> {
-    console.log("req", req.user);
+
     return this.chatService.createOrGetChatRoom(createChatRoomDto, req.user.userId);
+  }
+
+  @Post('rooms/from-booking/:bookingId')
+  @ApiOperation({ summary: 'Create or get chat room for a booking' })
+  @ApiResponse({ status: 201, description: 'Chat room created or retrieved successfully' })
+  @ApiResponse({ status: 400, description: 'Bad request' })
+  @ApiResponse({ status: 404, description: 'Booking not found' })
+  async createChatRoomFromBooking(
+    @Param('bookingId') bookingId: string,
+    @Request() req: any,
+  ): Promise<ChatRoom> {
+    return this.chatService.createChatRoomFromBooking(bookingId, req.user.userId);
   }
 
   @Get('rooms')

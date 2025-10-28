@@ -209,11 +209,31 @@ let HotelSearchService = HotelSearchService_1 = class HotelSearchService {
             console.log(result, "HOTEL SEARCH RESULT: ");
             console.log(result.hits.hits, "HOTEL SEARCH HITS Hit: ");
             console.log(result.hits, "HOTEL SEARCH HITS: ");
-            let hotels = result.hits.hits.map((hit) => ({
-                id: hit._id,
-                score: hit._score,
-                ...hit._source,
-            }));
+            let hotels = result.hits.hits.map((hit) => {
+                const source = hit._source;
+                return {
+                    id: hit._id,
+                    score: hit._score,
+                    name: source.name,
+                    description: source.description,
+                    address: source.location?.address,
+                    city: source.location?.city,
+                    state: source.location?.state,
+                    country: source.location?.country,
+                    latitude: source.location?.coordinates?.lat,
+                    longitude: source.location?.coordinates?.lon,
+                    phone_number: source.phone_number,
+                    avg_rating: source.ratings?.average,
+                    total_reviews: source.ratings?.count,
+                    is_active: source.is_active,
+                    owner_id: source.owner_id,
+                    created_at: source.created_at,
+                    updated_at: source.updated_at,
+                    amenities: source.amenities || [],
+                    pricing: source.pricing,
+                    location: source.location,
+                };
+            });
             if (check_in_date && check_out_date) {
                 hotels = await this.filterHotelsByAvailability(hotels, check_in_date, check_out_date, number_of_guests);
             }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Hotel, Room, CreateBookingData } from '@/types/hotel';
@@ -30,8 +30,7 @@ import Header from '@/components/header';
 function BookingSummaryContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { data: session } = useSession();
-  
+  const { user } = useAuth();
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [selectedRooms, setSelectedRooms] = useState<Room[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,9 +47,9 @@ function BookingSummaryContent() {
   
   // Form data
   const [formData, setFormData] = useState({
-    guestName: session?.user?.name || '',
-    guestEmail: session?.user?.email || '',
-    guestPhone: '',
+    guestName: user ? `${user.first_name} ${user.last_name}`.trim() : '',
+    guestEmail: user?.email || '',
+    guestPhone: user?.phone_number || '',
     specialRequests: '',
     agreedToTerms: false,
   });
@@ -62,12 +61,8 @@ function BookingSummaryContent() {
   const checkOutDate = searchParams.get('check_out_date');
   const numberOfGuests = parseInt(searchParams.get('number_of_guests') || '2');
   const roomDataParam = searchParams.get('room_data');
-  console.log('hotelId: ', hotelId);
-  console.log('roomIds: ', roomIds);
-  console.log('checkInDate: ', checkInDate);
-  console.log('checkOutDate: ', checkOutDate);
-  console.log('numberOfGuests: ', numberOfGuests);
-  console.log('roomDataParam: ', roomDataParam);
+  console.log("User data:", user);
+
 
   // Validate required parameters
   if (!hotelId || !roomIds.length || !checkInDate || !checkOutDate) {
@@ -262,7 +257,7 @@ function BookingSummaryContent() {
   };
 
   const handleProceedToPayment = () => {
-    if (!session?.user) {
+    if (!user) {
       alert('Please sign in to continue with your booking');
       return;
     }
@@ -281,6 +276,7 @@ function BookingSummaryContent() {
     const params = new URLSearchParams({
       hotel_id: hotelId,
       room_ids: roomIds.join(','),
+      room_number: selectedRooms[0].room_number,
       check_in_date: checkInDate,
       check_out_date: checkOutDate,
       number_of_guests: numberOfGuests.toString(),
@@ -293,6 +289,7 @@ function BookingSummaryContent() {
       // Pass room data to payment page
       room_data: selectedRooms.length > 0 ? JSON.stringify({
         id: selectedRooms[0].id,
+        room_number: selectedRooms[0].room_number,
         room_type: selectedRooms[0].room_type,
         description: selectedRooms[0].description,
         max_occupancy: selectedRooms[0].max_occupancy,

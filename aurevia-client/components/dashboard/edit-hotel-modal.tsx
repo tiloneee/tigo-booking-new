@@ -49,7 +49,7 @@ export function EditHotelModal({ isOpen, onClose, hotel, accessToken, onSuccess 
     setError(null)
 
     try {
-      await hotelsApi.update(accessToken, hotel.id, formData)
+      await hotelsApi.update(hotel.id, formData)
       onSuccess()
       onClose()
     } catch (err) {

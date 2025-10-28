@@ -11,6 +11,7 @@ import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
 import { JwtStrategy } from '../../common/strategies/jwt.strategy';
+import { JwtRefreshStrategy } from '../../common/strategies/jwt-refresh.strategy';
 import { EmailService } from '../../common/services/email.service';
 
 @Module({
@@ -27,7 +28,7 @@ import { EmailService } from '../../common/services/email.service';
     }),
   ],
   controllers: [UserController, AuthController],
-  providers: [UserService, AuthService, JwtStrategy, EmailService],
+  providers: [UserService, AuthService, JwtStrategy, JwtRefreshStrategy, EmailService],
   exports: [UserService, AuthService],
 })
 export class UserModule {}

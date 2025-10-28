@@ -22,7 +22,9 @@ export declare class AuthService {
             email: string;
             first_name: string;
             last_name: string;
+            phone_number: string;
             roles: string[];
+            is_active: true;
         };
     }>;
     validateUser(email: string, password: string): Promise<import("../entities/user.entity").User>;
@@ -37,6 +39,10 @@ export declare class AuthService {
     }>;
     refreshToken(refreshToken: string): Promise<{
         access_token: string;
+    }>;
+    refreshTokenFromCookie(userId: string, refreshToken: string): Promise<{
+        access_token: string;
+        refresh_token: string;
     }>;
     logout(userId: string): Promise<{
         message: string;

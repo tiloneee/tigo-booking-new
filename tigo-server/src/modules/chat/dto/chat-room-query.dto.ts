@@ -1,6 +1,5 @@
-import { IsOptional, IsString, IsNumber, IsEnum, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsUUID } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { ChatRoomType } from '../entities/chat-room.entity';
 
 export class ChatRoomQueryDto {
   @IsOptional()
@@ -14,14 +13,14 @@ export class ChatRoomQueryDto {
   limit?: number = 20;
 
   @IsOptional()
-  @IsEnum(ChatRoomType)
-  type?: ChatRoomType;
-
-  @IsOptional()
   @IsUUID()
   participant_id?: string;
 
   @IsOptional()
   @IsString()
   search?: string;
+
+  @IsOptional()
+  @IsUUID()
+  booking_id?: string;
 }

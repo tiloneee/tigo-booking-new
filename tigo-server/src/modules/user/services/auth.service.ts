@@ -68,8 +68,8 @@ export class AuthService {
         email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,
+        phone_number: user.phone_number,
         roles: user.roles?.map((role) => role.name) || [],
-        accessToken: accessToken,
       },
     });
 
@@ -81,7 +81,9 @@ export class AuthService {
         email: user.email,
         first_name: user.first_name,
         last_name: user.last_name,
+        phone_number: user.phone_number,
         roles: user.roles?.map((role) => role.name) || [],
+        is_active: user.is_active,
       },
     };
   }
@@ -120,11 +122,7 @@ export class AuthService {
       const payload = this.jwtService.verify(refreshToken, {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
-      console.log('refreshToken: ', refreshToken);  
-      console.log('payload: ', payload);
       const user = await this.userService.findOne(payload.sub);
-      console.log('user: ', user);
-      console.log('user.refresh_token: ', user.refresh_token);
       if (!user.refresh_token) {
         throw new UnauthorizedException('Invalid refresh token');
       }
@@ -134,7 +132,7 @@ export class AuthService {
         refreshToken,
         user.refresh_token,
       );
-      console.log('isRefreshTokenValid: ', isRefreshTokenValid);
+      Logger.log(`isRefreshTokenValid: ${isRefreshTokenValid}`);
       if (!isRefreshTokenValid) {
         throw new UnauthorizedException('Invalid refresh token');
       }
@@ -146,9 +144,55 @@ export class AuthService {
       };
 
       const newAccessToken = this.jwtService.sign(newPayload);
-      console.log('newAccessToken: ', newAccessToken);
+      Logger.log(`User ${user.id} refreshed token!`);
       return {
         access_token: newAccessToken,
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
+  }
+
+  async refreshTokenFromCookie(userId: string, refreshToken: string) {
+    try {
+      const user = await this.userService.findOne(userId);
+      
+      if (!user.refresh_token) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      // Verify refresh token matches stored one
+      const isRefreshTokenValid = await bcrypt.compare(
+        refreshToken,
+        user.refresh_token,
+      );
+
+      if (!isRefreshTokenValid) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
+
+      const payload = {
+        email: user.email,
+        sub: user.id,
+        roles: user.roles?.map((role) => role.name) || [],
+      };
+
+      const newAccessToken = this.jwtService.sign(payload);
+      
+      // Optionally generate a new refresh token (token rotation)
+      const newRefreshToken = this.jwtService.sign(payload, {
+        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
+      });
+
+      // Update stored refresh token
+      await this.userService.updateRefreshToken(user.id, newRefreshToken);
+
+      Logger.log(`User ${user.id} refreshed token from cookie!`);
+      
+      return {
+        access_token: newAccessToken,
+        refresh_token: newRefreshToken,
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');

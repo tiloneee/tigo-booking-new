@@ -12,13 +12,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatRoomQueryDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
-const chat_room_entity_1 = require("../entities/chat-room.entity");
 class ChatRoomQueryDto {
     page = 1;
     limit = 20;
-    type;
     participant_id;
     search;
+    booking_id;
 }
 exports.ChatRoomQueryDto = ChatRoomQueryDto;
 __decorate([
@@ -35,11 +34,6 @@ __decorate([
 ], ChatRoomQueryDto.prototype, "limit", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
-    (0, class_validator_1.IsEnum)(chat_room_entity_1.ChatRoomType),
-    __metadata("design:type", String)
-], ChatRoomQueryDto.prototype, "type", void 0);
-__decorate([
-    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsUUID)(),
     __metadata("design:type", String)
 ], ChatRoomQueryDto.prototype, "participant_id", void 0);
@@ -48,4 +42,9 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], ChatRoomQueryDto.prototype, "search", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUUID)(),
+    __metadata("design:type", String)
+], ChatRoomQueryDto.prototype, "booking_id", void 0);
 //# sourceMappingURL=chat-room-query.dto.js.map

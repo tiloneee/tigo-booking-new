@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException, Inject, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
-import { ChatRoom, ChatRoomType } from '../entities/chat-room.entity';
+import { ChatRoom } from '../entities/chat-room.entity';
 import { ChatMessage, MessageStatus } from '../entities/chat-message.entity';
 import { User } from '../../user/entities/user.entity';
+import { HotelBooking } from '../../hotel/entities/hotel-booking.entity';
 import { UserService } from '../../user/services/user.service';
 import { CreateChatRoomDto } from '../dto/create-chat-room.dto';
 import { SendMessageDto } from '../dto/send-message.dto';
@@ -18,13 +19,15 @@ export class ChatService {
     private readonly chatRoomRepository: Repository<ChatRoom>,
     @InjectRepository(ChatMessage)
     private readonly chatMessageRepository: Repository<ChatMessage>,
+    @InjectRepository(HotelBooking)
+    private readonly hotelBookingRepository: Repository<HotelBooking>,
     private readonly userService: UserService,
     private readonly redisService: RedisService,
   ) {}
 
   async createOrGetChatRoom(createChatRoomDto: CreateChatRoomDto, currentUserId: string): Promise<ChatRoom> {
-    const { type, participant1_id, participant2_id, hotel_id } = createChatRoomDto;
-    console.log("currentUserId", currentUserId);
+    const { participant1_id, participant2_id, hotel_id, booking_id } = createChatRoomDto;
+    
     // Validate participants exist
     const [participant1, participant2] = await Promise.all([
       this.userService.findOne(participant1_id).catch(() => null),
@@ -37,37 +40,37 @@ export class ChatService {
 
     // Check if current user is one of the participants or admin
     const currentUser = await this.userService.findOne(currentUserId).catch(() => null);
-    console.log("currentUser", currentUser);
     const isAdmin = currentUser?.roles.some(role => role.name === 'Admin');
-    console.log("isAdmin", isAdmin);
     const isParticipant = [participant1_id, participant2_id].includes(currentUserId);
-    console.log("isParticipant", isParticipant);
+    
     if (!isAdmin && !isParticipant) {
       throw new ForbiddenException('You can only create chat rooms where you are a participant');
     }
 
-    // Validate chat room type based on user roles
-    await this.validateChatRoomType(type, participant1, participant2);
-
     // Check if chat room already exists (order-independent)
     let existingRoom = await this.chatRoomRepository.findOne({
       where: [
-        { type, participant1_id, participant2_id },
-        { type, participant1_id: participant2_id, participant2_id: participant1_id },
+        { participant1_id, participant2_id },
+        { participant1_id: participant2_id, participant2_id: participant1_id },
       ],
-      relations: ['participant1', 'participant2'],
+      relations: ['participant1', 'participant2', 'booking'],
     });
 
     if (existingRoom) {
+      // Update booking_id if provided and not already set
+      if (booking_id && !existingRoom.booking_id) {
+        existingRoom.booking_id = booking_id;
+        await this.chatRoomRepository.save(existingRoom);
+      }
       return existingRoom;
     }
 
     // Create new chat room
     const chatRoom = this.chatRoomRepository.create({
-      type,
       participant1_id,
       participant2_id,
       hotel_id,
+      booking_id,
     });
 
     const savedRoom = await this.chatRoomRepository.save(chatRoom);
@@ -75,7 +78,7 @@ export class ChatService {
     // Load relations for return
     const roomWithRelations = await this.chatRoomRepository.findOne({
       where: { id: savedRoom.id },
-      relations: ['participant1', 'participant2'],
+      relations: ['participant1', 'participant2', 'booking'],
     });
 
     if (!roomWithRelations) {
@@ -85,26 +88,65 @@ export class ChatService {
     return roomWithRelations;
   }
 
+  async createChatRoomFromBooking(bookingId: string, currentUserId: string): Promise<ChatRoom> {
+    // Fetch the booking with hotel and user relations
+    const booking = await this.hotelBookingRepository.findOne({
+      where: { id: bookingId },
+      relations: ['hotel', 'hotel.owner', 'user'],
+    });
+
+    if (!booking) {
+      throw new NotFoundException('Booking not found');
+    }
+
+    // Verify current user is either the customer or hotel owner
+    const isCustomer = booking.user_id === currentUserId;
+    const isHotelOwner = booking.hotel?.owner_id === currentUserId;
+    const currentUser = await this.userService.findOne(currentUserId).catch(() => null);
+    const isAdmin = currentUser?.roles.some(role => role.name === 'Admin');
+
+    if (!isCustomer && !isHotelOwner && !isAdmin) {
+      throw new ForbiddenException('You can only create chat rooms for your own bookings');
+    }
+
+    // Get the customer and hotel owner IDs
+    const customerId = booking.user_id;
+    const hotelOwnerId = booking.hotel?.owner_id;
+
+    if (!hotelOwnerId) {
+      throw new BadRequestException('Hotel owner not found for this booking');
+    }
+
+    // Create or get the chat room
+    return this.createOrGetChatRoom({
+      participant1_id: customerId,
+      participant2_id: hotelOwnerId,
+      hotel_id: booking.hotel_id,
+      booking_id: bookingId,
+    }, currentUserId);
+  }
+
   async getChatRooms(query: ChatRoomQueryDto, currentUserId: string): Promise<{ rooms: ChatRoom[], total: number }> {
-    const { page = 1, limit = 20, type, participant_id, search } = query;
+    const { page = 1, limit = 20, participant_id, search, booking_id } = query;
     const skip = (page - 1) * limit;
 
     let queryBuilder: SelectQueryBuilder<ChatRoom> = this.chatRoomRepository
       .createQueryBuilder('room')
       .leftJoinAndSelect('room.participant1', 'p1')
       .leftJoinAndSelect('room.participant2', 'p2')
+      .leftJoinAndSelect('room.booking', 'booking')
       .where('(room.participant1_id = :userId OR room.participant2_id = :userId)', { userId: currentUserId })
       .andWhere('room.is_active = true');
-
-    if (type) {
-      queryBuilder = queryBuilder.andWhere('room.type = :type', { type });
-    }
 
     if (participant_id) {
       queryBuilder = queryBuilder.andWhere(
         '(room.participant1_id = :participantId OR room.participant2_id = :participantId)',
         { participantId: participant_id }
       );
+    }
+
+    if (booking_id) {
+      queryBuilder = queryBuilder.andWhere('room.booking_id = :bookingId', { bookingId: booking_id });
     }
 
     if (search) {
@@ -126,7 +168,7 @@ export class ChatService {
   async getChatRoom(roomId: string, currentUserId: string): Promise<ChatRoom> {
     const room = await this.chatRoomRepository.findOne({
       where: { id: roomId },
-      relations: ['participant1', 'participant2'],
+      relations: ['participant1', 'participant2', 'booking'],
     });
 
     if (!room) {
@@ -291,40 +333,5 @@ export class ChatService {
       roomId: message.chat_room_id,
       data: { messageId, deletedBy: currentUserId },
     });
-  }
-
-  private async validateChatRoomType(type: ChatRoomType, participant1: User, participant2: User): Promise<void> {
-    // Roles are already loaded from userService.findOne()
-    const p1Roles = participant1.roles?.map(r => r.name) || [];
-    const p2Roles = participant2.roles?.map(r => r.name) || [];
-
-    switch (type) {
-      case ChatRoomType.CUSTOMER_HOTEL_OWNER:
-        const hasCustomer = p1Roles.includes('Customer') || p2Roles.includes('Customer');
-        const hasHotelOwner = p1Roles.includes('HotelOwner') || p2Roles.includes('HotelOwner');
-        if (!hasCustomer || !hasHotelOwner) {
-          throw new BadRequestException('Customer-Hotel Owner chat requires one customer and one hotel owner');
-        }
-        break;
-
-      case ChatRoomType.CUSTOMER_ADMIN:
-        const hasCustomerAdmin = p1Roles.includes('Customer') || p2Roles.includes('Customer');
-        const hasAdmin = p1Roles.includes('Admin') || p2Roles.includes('Admin');
-        if (!hasCustomerAdmin || !hasAdmin) {
-          throw new BadRequestException('Customer-Admin chat requires one customer and one admin');
-        }
-        break;
-
-      case ChatRoomType.HOTEL_OWNER_ADMIN:
-        const hasHotelOwnerAdmin = p1Roles.includes('HotelOwner') || p2Roles.includes('HotelOwner');
-        const hasAdminRole = p1Roles.includes('Admin') || p2Roles.includes('Admin');
-        if (!hasHotelOwnerAdmin || !hasAdminRole) {
-          throw new BadRequestException('Hotel Owner-Admin chat requires one hotel owner and one admin');
-        }
-        break;
-
-      default:
-        throw new BadRequestException('Invalid chat room type');
-    }
   }
 }

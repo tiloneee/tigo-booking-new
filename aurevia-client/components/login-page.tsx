@@ -1,13 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { signIn, getSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
+import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Plane, Eye, EyeOff, Mail, Lock, ArrowRight, Shield, AlertCircle, Facebook } from "lucide-react"
-// import { authApi } from "@/lib/api" // Uncomment if you want to use direct API calls
+import { Plane, Eye, EyeOff, Mail, Lock, ArrowRight, Shield, AlertCircle } from "lucide-react"
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -16,97 +15,50 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
+  const { login } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
+    
     if (!email || !password) {
       setError("Please fill in all fields")
-      return
+      return false
     }
 
     setIsLoading(true)
     setError("")
 
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (result?.error) {
-        // Handle specific backend errors with user-friendly messages
-        if (result.error.includes("Invalid credentials")) {
-          setError("Invalid email or password. Please check your credentials and try again.")
-        } else if (result.error.includes("activate your account")) {
-          setError("Please activate your account first. Check your email for activation instructions.")
-        } else if (result.error.includes("Email and password are required")) {
-          setError("Please fill in all fields")
-        } else {
-          // Generic error message for other cases
-          setError(result.error)
-        }
-      } else if (result?.ok) {
-        // Get the session to check user data
-        const session = await getSession()
-        if (session) {
-          router.push("/") // Redirect to dashboard
-        }
-      } else {
-        // This shouldn't happen, but just in case
-        setError("Login failed. Please try again.")
-      }
-    } catch (error) {
-      // Fallback error handling
-      setError("An unexpected error occurred during login")
-      console.error("Login error:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  /* 
-  Alternative approach using direct API calls for more granular error handling:
-  
-  const handleLoginDirect = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email || !password) {
-      setError("Please fill in all fields")
-      return
-    }
-
-    setIsLoading(true)
-    setError("")
-
-    try {
-      const authResponse = await authApi.login({ email, password })
-      
-      // Successfully logged in with authApi, now sign in with NextAuth
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      })
-
-      if (result?.ok) {
-        router.push("/dashboard")
-      } else {
-        setError("Authentication failed. Please try again.")
-      }
+      await login(email, password)
+      router.push("/") // Redirect to home page after successful login
     } catch (error: any) {
-      // Direct error handling from backend
-      if (error.message.includes("Invalid credentials")) {
+      console.error('Login error:', error)
+      
+      // Extract error message from various error formats
+      let errorMessage = "Login failed. Please try again."
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message
+      } else if (error.message) {
+        errorMessage = error.message
+      }
+      
+      // Handle specific backend errors with user-friendly messages
+      if (errorMessage.toLowerCase().includes("invalid credentials") || 
+          errorMessage.toLowerCase().includes("invalid email or password")) {
         setError("Invalid email or password. Please check your credentials and try again.")
-      } else if (error.message.includes("activate your account")) {
+      } else if (errorMessage.toLowerCase().includes("activate your account")) {
         setError("Please activate your account first. Check your email for activation instructions.")
       } else {
-        setError(error.message || "Login failed. Please try again.")
+        setError(errorMessage)
       }
     } finally {
       setIsLoading(false)
     }
+    
+    return false
   }
-  */
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-darkest relative overflow-hidden">
@@ -190,7 +142,7 @@ export default function LoginPage() {
                 </div>
               )}
 
-              <form onSubmit={handleLogin} className="space-y-6">
+              <form onSubmit={handleLogin} className="space-y-6" autoComplete="off" onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleLogin(e as any) } }}>
                 {/* Email Field */}
                 <div className="space-y-2">
                   <label className="text-cream-light font-cormorant text-vintage-base font-medium flex items-center space-x-2">
@@ -204,6 +156,7 @@ export default function LoginPage() {
                     placeholder="Enter your email address"
                     className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
                     required
+                    autoComplete="email"
                   />
                 </div>
 
@@ -221,6 +174,7 @@ export default function LoginPage() {
                       placeholder="Enter your password"
                       className="w-full px-4 py-3 pr-12 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
                       required
+                      autoComplete="current-password"
                     />
                     <button
                       type="button"

@@ -1,6 +1,6 @@
 "use client"
 
-import { useSession } from "next-auth/react"
+import { useAuth } from "@/lib/auth-context"
 import { useEffect, useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import ProtectedRoute from "@/components/auth/protected-route"
@@ -15,7 +15,7 @@ import HotelsTab from "@/components/dashboard/hotels-tab"
 type TabType = 'users' | 'hotels'
 
 export default function AdminDashboard() {
-  const { data: session, status } = useSession()
+  const { user, accessToken, isLoading } = useAuth()
   const router = useRouter()
   const [activeTab, setActiveTab] = useState<TabType>('users')
   const [users, setUsers] = useState<DashboardUser[]>([])
@@ -24,11 +24,11 @@ export default function AdminDashboard() {
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const isAdmin = session?.roles?.includes('Admin')
-  const isHotelOwner = session?.roles?.includes('HotelOwner')
+  const isAdmin = user?.roles?.includes('Admin')
+  const isHotelOwner = user?.roles?.includes('HotelOwner')
 
   const loadDashboardData = useCallback(async () => {
-    if (!session?.accessToken) return
+    if (!accessToken) return
 
     try {
       setLoading(true)
@@ -37,15 +37,15 @@ export default function AdminDashboard() {
       // Admin can see all data
       if (isAdmin) {
         const [usersData, hotelsData] = await Promise.all([
-          usersApi.getAll(session.accessToken).catch(() => []),
-          hotelsApi.getAll(session.accessToken).catch(() => []),
+          usersApi.getAll().catch(() => []),
+          hotelsApi.getAll().catch(() => []),
         ])
         setUsers(usersData)
         setHotels(hotelsData)
       } 
       // Hotel owner can only see their own hotels
       else if (isHotelOwner) {
-        const hotelsData = await hotelsApi.getOwned(session.accessToken)
+        const hotelsData = await hotelsApi.getOwned()
         setHotels(hotelsData)
         // Set active tab to hotels since hotel owners can't see users
         setActiveTab('hotels')
@@ -56,19 +56,19 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false)
     }
-  }, [session?.accessToken, isAdmin, isHotelOwner])
+  }, [accessToken, isAdmin, isHotelOwner])
 
   useEffect(() => {
     // Check if user has permission
-    if (status === 'authenticated' && !isAdmin && !isHotelOwner) {
+    if (user && !isAdmin && !isHotelOwner) {
       router.push('/')
       return
     }
 
-    if (status === 'authenticated' && session?.accessToken) {
+    if (user && accessToken) {
       loadDashboardData()
     }
-  }, [status, session?.accessToken, isAdmin, isHotelOwner, router, loadDashboardData])
+  }, [user, accessToken, isAdmin, isHotelOwner, router, loadDashboardData])
 
   const refreshData = () => {
     loadDashboardData()
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
     setSearchQuery('') // Clear search when switching tabs
   }
 
-  if (status === 'loading' || loading) {
+  if (isLoading || loading) {
     return (
       <ProtectedRoute allowedRoles={['Admin', 'HotelOwner']}>
         <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-darkest">
@@ -249,14 +249,14 @@ export default function AdminDashboard() {
               {activeTab === 'users' && isAdmin && (
                 <UsersTab 
                   users={filteredUsers} 
-                  accessToken={session?.accessToken || ''}
+                  accessToken={accessToken || ''}
                   onRefresh={refreshData}
                 />
               )}
               {activeTab === 'hotels' && (
                 <HotelsTab 
                   hotels={filteredHotels}
-                  accessToken={session?.accessToken || ''}
+                  accessToken={accessToken || ''}
                   isAdmin={isAdmin || false}
                   onRefresh={refreshData}
                 />
