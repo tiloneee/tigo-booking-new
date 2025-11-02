@@ -306,8 +306,7 @@ export function ManageAvailabilityModal({
                         <Button
                           onClick={cancelEditing}
                           size="sm"
-                          variant="outline"
-                          className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10"
+                          className="text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                           disabled={loading}
                         >
                           <X className="h-4 w-4 mr-1" />
@@ -351,8 +350,7 @@ export function ManageAvailabilityModal({
                           <Button
                             onClick={() => startEditing(avail)}
                             size="sm"
-                            variant="outline"
-                            className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10"
+                            className="text-yellow-400 border-yellow-400 bg-gradient-to-r from-yellow-400/10 to-yellow-400/30 font-cinzel font-bold rounded-lg hover:shadow-yellow-400/30 hover:bg-yellow-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -360,8 +358,7 @@ export function ManageAvailabilityModal({
                         <Button
                           onClick={() => handleDeleteAvailability(avail.id)}
                           size="sm"
-                          variant="outline"
-                          className="text-red-300 border-red-500/30 hover:bg-red-900/20"
+                          className="text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

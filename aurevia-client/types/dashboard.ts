@@ -11,6 +11,35 @@ export interface DashboardUser {
   updated_at: string
 }
 
+// Balance Request types
+export enum TopupStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
+export interface BalanceRequest {
+  id: string
+  user_id: string
+  user: {
+    id: string
+    first_name: string
+    last_name: string
+    email: string
+  }
+  amount: number
+  status: TopupStatus
+  admin_notes?: string
+  processed_by?: string
+  processor?: {
+    id: string
+    first_name: string
+    last_name: string
+  }
+  created_at: string
+  updated_at: string
+}
+
 // Hotel types
 export interface Hotel {
   id: string

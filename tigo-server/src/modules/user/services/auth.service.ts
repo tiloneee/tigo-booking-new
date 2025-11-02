@@ -70,6 +70,7 @@ export class AuthService {
         last_name: user.last_name,
         phone_number: user.phone_number,
         roles: user.roles?.map((role) => role.name) || [],
+        balance: user.balance,
       },
     });
 
@@ -84,6 +85,7 @@ export class AuthService {
         phone_number: user.phone_number,
         roles: user.roles?.map((role) => role.name) || [],
         is_active: user.is_active,
+        balance: user.balance,
       },
     };
   }

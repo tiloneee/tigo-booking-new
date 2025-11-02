@@ -9,10 +9,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BalanceTopup, TopupStatus } from '../entities/balance-topup.entity';
 import { User } from '../entities/user.entity';
+import { Role } from '../entities/role.entity';
 import { CreateTopupDto } from '../dto/create-topup.dto';
 import { UpdateTopupDto } from '../dto/update-topup.dto';
 import { NotificationEventService } from './../../notification/services/notification-event.service';
-import { create } from 'domain';
 
 @Injectable()
 export class BalanceService {
@@ -24,6 +24,9 @@ export class BalanceService {
         @InjectRepository(User)
         private userRepository: Repository<User>,
 
+        @InjectRepository(Role)
+        private roleRepository: Repository<Role>,
+
         private NotificationEventService: NotificationEventService,
     ) { }
 
@@ -33,6 +36,7 @@ export class BalanceService {
     ): Promise<BalanceTopup> {
         const user = await this.userRepository.findOne({
             where: { id: userId },
+            relations: ['roles'],
         });
 
         if (!user) {
@@ -55,6 +59,7 @@ export class BalanceService {
             throw new NotFoundException('Topup request not found after creation');
         }
 
+        // Send notification to the user who created the request
         if (topupWithUser.user_id) {
            try {
             await this.NotificationEventService.triggerTopupNotification(
@@ -68,16 +73,52 @@ export class BalanceService {
                     created_at: topupWithUser.created_at,
                 },
             );
+           } catch (error) {
+                this.logger.error('Failed to send topup notification to user', error);
            }
-              catch (error) {
-                this.logger.error('Failed to send topup notification', error);
-           }
+        }
+
+        // Send notifications to all admins about the new topup request
+        try {
+            const adminRole = await this.roleRepository.findOne({
+                where: { name: 'Admin' },
+                relations: ['users'],
+            });
+
+            if (adminRole && adminRole.users && adminRole.users.length > 0) {
+                const userName = `${user.first_name} ${user.last_name}`;
+                
+                // Send notification to each admin
+                for (const admin of adminRole.users) {
+                    try {
+                        await this.NotificationEventService.triggerTopupNotification(
+                            admin.id,
+                            'TOPUP_REQUEST',
+                            'New Topup Request',
+                            `${userName} has requested a topup of $${topupWithUser.amount}. Please review and approve.`,
+                            {
+                                topup_id: topupWithUser.id,
+                                amount: topupWithUser.amount,
+                                user_id: topupWithUser.user_id,
+                                user_name: userName,
+                                created_at: topupWithUser.created_at,
+                            },
+                        );
+                    } catch (error) {
+                        this.logger.error(`Failed to send notification to admin ${admin.id}`, error);
+                    }
+                }
+                
+                this.logger.log(`Sent topup request notifications to ${adminRole.users.length} admin(s)`);
+            } else {
+                this.logger.warn('No admin users found to notify about topup request');
+            }
+        } catch (error) {
+            this.logger.error('Failed to send notifications to admins', error);
         }
         
         return topupWithUser;
-    }
-
-    async getUserTopups(userId: string): Promise<BalanceTopup[]> {
+    }    async getUserTopups(userId: string): Promise<BalanceTopup[]> {
         return this.topupRepository.find({
             where: { user_id: userId },
             order: { created_at: 'DESC' },
@@ -146,6 +187,47 @@ export class BalanceService {
             user.balance = currentBalance + topupAmount;
 
             await this.userRepository.save(user);
+
+            // Send approval notification to user
+            try {
+                await this.NotificationEventService.triggerTopupNotification(
+                    topup.user_id,
+                    'TOPUP_APPROVED',
+                    'Topup Request Approved',
+                    `Your topup request of $${topup.amount} has been approved. Your new balance is $${user.balance}.${topup.admin_notes ? ` Admin notes: ${topup.admin_notes}` : ''}`,
+                    {
+                        topup_id: topup.id,
+                        amount: topup.amount,
+                        new_balance: user.balance,
+                        admin_notes: topup.admin_notes,
+                    },
+                );
+            } catch (error) {
+                this.logger.error(
+                    `Failed to send approval notification for topup ${topup.id}:`,
+                    error,
+                );
+            }
+        } else if (updateTopupDto.status === TopupStatus.REJECTED) {
+            // Send rejection notification to user
+            try {
+                await this.NotificationEventService.triggerTopupNotification(
+                    topup.user_id,
+                    'TOPUP_REJECTED',
+                    'Topup Request Rejected',
+                    `Your topup request of $${topup.amount} has been rejected.${topup.admin_notes ? ` Reason: ${topup.admin_notes}` : ''}`,
+                    {
+                        topup_id: topup.id,
+                        amount: topup.amount,
+                        admin_notes: topup.admin_notes,
+                    },
+                );
+            } catch (error) {
+                this.logger.error(
+                    `Failed to send rejection notification for topup ${topup.id}:`,
+                    error,
+                );
+            }
         }
 
         return this.topupRepository.save(topup);

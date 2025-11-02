@@ -1,4 +1,4 @@
-import type { DashboardUser, Hotel, Room, Booking, RoomAvailability } from '@/types/dashboard'
+import type { DashboardUser, Hotel, Room, Booking, RoomAvailability, BalanceRequest, TopupStatus } from '@/types/dashboard'
 import axiosInstance from '@/lib/axios'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'
@@ -208,6 +208,45 @@ export const bookingsApi = {
     return response.data;
   },
 }
+
+// Balance Request Management APIs (Admin only)
+export const balanceRequestsApi = {
+  // Get all balance requests
+  getAll: async (): Promise<BalanceRequest[]> => {
+    const response = await axiosInstance.get('/balance/topup/all');
+    return response.data;
+  },
+
+  // Get pending balance requests
+  getPending: async (): Promise<BalanceRequest[]> => {
+    const response = await axiosInstance.get('/balance/topup/pending');
+    return response.data;
+  },
+
+  // Get single balance request
+  getOne: async (requestId: string): Promise<BalanceRequest> => {
+    const response = await axiosInstance.get(`/balance/topup/${requestId}`);
+    return response.data;
+  },
+
+  // Process balance request (approve/reject)
+  process: async (
+    requestId: string,
+    data: {
+      status: TopupStatus.APPROVED | TopupStatus.REJECTED
+      admin_notes?: string
+    }
+  ): Promise<BalanceRequest> => {
+    const response = await axiosInstance.patch(
+      `/balance/topup/${requestId}/process`,
+      data
+    );
+    return response.data;
+  },
+}
+
+
+
 
 
 

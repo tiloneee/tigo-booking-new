@@ -7,10 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useNotifications } from '@/components/notifications/notification-provider'
 import { NotificationList } from '@/components/notifications/notification-list'
 import { NotificationSettings } from '@/components/notifications/notification-settings'
-import { NotificationTest } from '@/components/notifications/notification-test'
 import ProtectedRoute from '@/components/auth/protected-route'
 
-type TabType = 'all' | 'unread' | 'settings' | 'test'
+type TabType = 'all' | 'unread' | 'settings' 
 type FilterType = 'all' | 'CHAT_MESSAGE' | 'BOOKING_CONFIRMATION' | 'NEW_BOOKING' | 'BOOKING_CANCELLED' | 'REVIEW_RECEIVED' | 'SYSTEM_ANNOUNCEMENT'
 
 export default function NotificationsPage() {
@@ -163,7 +162,6 @@ export default function NotificationsPage() {
                   { key: 'all', label: 'All Notifications', count: state.notifications.length },
                   { key: 'unread', label: 'Unread', count: state.unreadCount },
                   { key: 'settings', label: 'Settings' },
-                  { key: 'test', label: 'Test' }
                 ].map((tab) => (
                   <Button
                     key={tab.key}
@@ -179,7 +177,7 @@ export default function NotificationsPage() {
                     {tab.key === 'settings' ? <Settings className="h-4 w-4 mr-2" /> : null}
                     {tab.label}
                     {tab.count !== undefined && tab.count > 0 && (
-                      <span className="ml-2 px-2 py-0.5 bg-copper-accent/20 text-copper-accent text-vintage-xs rounded-full">
+                      <span className="ml-2 px-2 py-0.5 bg-copper-accent/20 text-walnut-dark text-vintage-xs rounded-full">
                         {tab.count}
                       </span>
                     )}
@@ -188,7 +186,7 @@ export default function NotificationsPage() {
               </div>
 
               {/* Filters for notifications */}
-              {activeTab !== 'settings' && activeTab !== 'test' && (
+              {activeTab !== 'settings' && (
                 <div className="flex items-center space-x-3">
                   {/* Search */}
                   <div className="relative">
@@ -224,12 +222,10 @@ export default function NotificationsPage() {
           <div className="grid grid-cols-1 gap-6">
             {activeTab === 'settings' ? (
               <NotificationSettings />
-            ) : activeTab === 'test' ? (
-              <NotificationTest />
             ) : (
               <Card className="bg-walnut-dark/98 backdrop-blur-sm border-copper-accent/20">
                 <CardHeader className="border-b border-copper-accent/20">
-                  <CardTitle className="text-cream-light font-cormorant text-vintage-lg">
+                  <CardTitle className="text-cream-light font-cormorant text-[18px] font-bold flex items-center">
                     {activeTab === 'unread' ? 'Unread Notifications' : 'All Notifications'}
                     {filteredNotifications.length > 0 && (
                       <span className="ml-2 text-copper-accent text-vintage-sm font-normal">

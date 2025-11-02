@@ -147,7 +147,7 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
   return (
     <Card className={`bg-walnut-dark/98 backdrop-blur-sm border-copper-accent/20 ${className}`}>
       <CardHeader className="border-b border-copper-accent/20">
-        <CardTitle className="text-cream-light font-cormorant text-vintage-xl flex items-center">
+        <CardTitle className=" font-cormorant text-cream-light text-[18px] flex items-center">
           <Settings className="h-5 w-5 text-copper-accent mr-3" />
           Notification Preferences
           {saved && (

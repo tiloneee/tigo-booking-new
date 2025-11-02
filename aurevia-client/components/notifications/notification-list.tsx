@@ -64,13 +64,13 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
   const getNotificationColor = (type: string, status: string) => {
     const isUnread = status === 'UNREAD'
     
-    if (type === 'BOOKING_CANCELLED' || type === 'PAYMENT_FAILED' || type === 'HOTEL_REJECTED') {
+    if (type === 'BOOKING_CANCELLED' || type === 'PAYMENT_FAILED' || type === 'HOTEL_REJECTED' || type === 'TOPUP_REJECTED') {
       return isUnread 
         ? 'border-l-4 border-red-500/50 bg-red-500/5' 
         : 'border-l-4 border-red-500/20 bg-red-500/2'
     }
     
-    if (type === 'BOOKING_CONFIRMATION' || type === 'NEW_BOOKING' || type === 'PAYMENT_SUCCESS' || type === 'HOTEL_APPROVED') {
+    if (type === 'BOOKING_CONFIRMATION' || type === 'NEW_BOOKING' || type === 'PAYMENT_SUCCESS' || type === 'HOTEL_APPROVED' || type === 'TOPUP_APPROVED') {
       return isUnread 
         ? 'border-l-4 border-green-500/50 bg-green-500/5' 
         : 'border-l-4 border-green-500/20 bg-green-500/2'
@@ -102,8 +102,7 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
     } else if (notification.related_entity_type === 'hotel' && notification.related_entity_id) {
       // Navigate to hotel details
       router.push(`/hotels/${notification.related_entity_id}`)
-    }
-    
+    } 
     if (onClose) {
       onClose()
     }
@@ -173,7 +172,7 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
               <div className="flex-grow min-w-0">
                 <div className="flex items-start justify-between">
                   <div className="flex-grow">
-                    <p className="text-cream-light font-cormorant text-vintage-sm leading-5 mb-1">
+                    <p className="text-cream-light font-cormorant text-vintage-base font-bold leading-5 mb-1">
                       {notification.title}
                     </p>
                     <p className="text-cream-light/80 text-vintage-xs leading-4 mb-2">

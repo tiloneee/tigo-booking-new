@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { User, LogOut, MessageCircle, Calendar, LayoutDashboard, ChevronDown, FileText } from "lucide-react"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { useRouter } from 'next/navigation'
+import { hasRole } from "@/lib/api"
 
 
 export default function UserNav() {
@@ -74,11 +75,11 @@ export default function UserNav() {
     router.push("/")
   }
 
-  const isAdmin = user?.roles?.includes('Admin')
-  const isHotelOwner = user?.roles?.includes('HotelOwner')
+  const isAdmin = hasRole(user, 'Admin')
+  const isHotelOwner = hasRole(user, 'HotelOwner')
   const canAccessDashboard = isAdmin || isHotelOwner
   const canAccessBookingPage = isHotelOwner
-
+  
   return (
     <div className="flex items-center space-x-4">
       <NotificationBell />

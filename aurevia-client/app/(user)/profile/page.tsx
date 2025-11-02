@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { User, Mail, Phone, Calendar, MapPin, CreditCard, Clock, CheckCircle, XCircle, X, Eye, EyeOff, Edit3, Save, X as XIcon, ChevronLeft, ChevronRight, Bell, ArrowUpDown } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, CreditCard, Clock, CheckCircle, XCircle, X, Eye, EyeOff, Edit3, Save, X as XIcon, ChevronLeft, ChevronRight, Bell, ArrowUpDown, DollarSign, Receipt } from "lucide-react"
 import { authApi } from "@/lib/api"
 import { bookingsApi } from "@/lib/api/dashboard"
 import Header from "@/components/header"
@@ -16,6 +16,7 @@ import { access } from "fs"
 import { gu } from "date-fns/locale"
 import { useNotifications } from "@/components/notifications/notification-provider"
 import { NotificationList } from "@/components/notifications/notification-list"
+import axiosInstance from "@/lib/axios"
 
 // Use User type directly from API
 type UserProfile = ApiUser
@@ -23,13 +24,26 @@ type UserProfile = ApiUser
 // Use Booking type from dashboard
 type Booking = DashboardBooking
 
+// Topup request type
+interface TopupRequest {
+  id: string
+  user_id: string
+  amount: number
+  status: 'pending' | 'approved' | 'rejected'
+  admin_notes?: string
+  created_at: string
+  updated_at: string
+}
+
 type SortOption = 'date-desc' | 'date-asc' | 'price-desc' | 'price-asc' | 'status'
+type TabType = 'bookings' | 'topups'
 
 export default function ProfilePage() {
   const { user, accessToken, isLoading } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
+  const [topupRequests, setTopupRequests] = useState<TopupRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
@@ -43,6 +57,9 @@ export default function ProfilePage() {
   const [editLoading, setEditLoading] = useState(false)
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null)
   const hasFetchedData = useRef(false) // Track if we've already fetched data
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState<TabType>('bookings')
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
@@ -72,9 +89,13 @@ export default function ProfilePage() {
         setProfile(profileData)
 
 
-        // Fetch user bookingss
+        // Fetch user bookings
         const bookingsData = await bookingsApi.getByUser()
         setBookings(bookingsData)
+
+        // Fetch user topup requests
+        const topupsData = await axiosInstance.get<TopupRequest[]>('/balance/topup/my-requests')
+        setTopupRequests(topupsData.data)
 
         // Mark as fetched
         hasFetchedData.current = true
@@ -126,6 +147,19 @@ export default function ProfilePage() {
     }
   }
 
+  const getTopupStatusBadgeColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-900/60 text-yellow-300 border-yellow-400/70'
+      case 'approved':
+        return 'bg-green-900/60 text-green-300 border-green-400/70'
+      case 'rejected':
+        return 'bg-red-900/60 text-red-300 border-red-400/70'
+      default:
+        return 'bg-gray-900/50 text-gray-300 border-gray-400/70'
+    }
+  }
+
   // Sort bookings
   const sortedBookings = [...bookings].sort((a, b) => {
     switch (sortBy) {
@@ -144,11 +178,30 @@ export default function ProfilePage() {
     }
   })
 
-  // Pagination logic
+  // Sort topup requests
+  const sortedTopups = [...topupRequests].sort((a, b) => {
+    switch (sortBy) {
+      case 'date-desc':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      case 'date-asc':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      case 'price-desc':
+        return parseFloat(b.amount.toString()) - parseFloat(a.amount.toString())
+      case 'price-asc':
+        return parseFloat(a.amount.toString()) - parseFloat(b.amount.toString())
+      case 'status':
+        return a.status.localeCompare(b.status)
+      default:
+        return 0
+    }
+  })
+
+  // Get current items based on active tab
+  const currentItems = activeTab === 'bookings' ? sortedBookings : sortedTopups
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
-  const currentBookings = sortedBookings.slice(indexOfFirstItem, indexOfLastItem)
-  const totalPages = Math.ceil(sortedBookings.length / itemsPerPage)
+  const paginatedItems = currentItems.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(currentItems.length / itemsPerPage)
 
   const handlePageChange = (pageNumber: number) => {
     setCurrentPage(pageNumber)
@@ -158,6 +211,12 @@ export default function ProfilePage() {
   const handleSortChange = (newSort: SortOption) => {
     setSortBy(newSort)
     setCurrentPage(1) // Reset to first page when sorting changes
+  }
+
+  const handleTabChange = (tab: TabType) => {
+    setActiveTab(tab)
+    setCurrentPage(1) // Reset to first page when changing tabs
+    setSortBy('date-desc') // Reset sort when changing tabs
   }
 
 
@@ -451,6 +510,13 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-4">
                   <div className="flex items-center space-x-3">
+                    <DollarSign className="h-5 w-5 text-copper-accent" />
+                    <div>
+                      <p className="text-vintage-sm text-cream-light font-cormorant">Balance</p>
+                      <p className="text-vintage-base text-cream-light/80">{profile?.balance ? Number(profile.balance).toFixed(2) : '0.00'}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
                     <Mail className="h-5 w-5 text-copper-accent" />
                     <div>
                       <p className="text-vintage-sm text-cream-light font-cormorant">Email</p>
@@ -531,21 +597,47 @@ export default function ProfilePage() {
             </Card>
           </div>
 
-          {/* Right Column - Booking History */}
+          {/* Right Column - History Tabs */}
           <div className="lg:col-span-2 flex flex-col">
             <Card className="bg-walnut-dark/50 backdrop-blur-sm border-copper-accent/20 p-6 pb-13 flex flex-col">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-vintage-2xl font-playfair font-bold text-cream-light">
+              {/* Tab Navigation */}
+              <div className="flex gap-4 mb-6 border-b border-copper-accent/30">
+                <button
+                  onClick={() => handleTabChange('bookings')}
+                  className={`flex items-center gap-2 px-6 py-3 font-cormorant text-vintage-lg font-medium transition-all duration-300 ${
+                    activeTab === 'bookings'
+                      ? 'text-copper-accent border-b-2 border-copper-accent'
+                      : 'text-cream-light/60 hover:text-cream-light'
+                  }`}
+                >
+                  <Calendar className="h-5 w-5" />
                   Booking History
-                </h3>
-                <div className="text-right">
-                  <p className="text-vintage-sm text-copper-accent font-cormorant">Total Bookings</p>
-                  <p className="text-vintage-2xl font-bold text-cream-light">{bookings.length}</p>
-                </div>
+                  {bookings.length > 0 && (
+                    <Badge className="bg-copper-accent/20 text-copper-accent border-copper-accent/30 ml-2">
+                      {bookings.length}
+                    </Badge>
+                  )}
+                </button>
+                <button
+                  onClick={() => handleTabChange('topups')}
+                  className={`flex items-center gap-2 px-6 py-3 font-cormorant text-vintage-lg font-medium transition-all duration-300 ${
+                    activeTab === 'topups'
+                      ? 'text-copper-accent border-b-2 border-copper-accent'
+                      : 'text-cream-light/60 hover:text-cream-light'
+                  }`}
+                >
+                  <Receipt className="h-5 w-5" />
+                  Topup History
+                  {topupRequests.length > 0 && (
+                    <Badge className="bg-copper-accent/20 text-copper-accent border-copper-accent/30 ml-2">
+                      {topupRequests.length}
+                    </Badge>
+                  )}
+                </button>
               </div>
 
               {/* Sort and Filter Controls */}
-              {bookings.length > 0 && (
+              {currentItems.length > 0 && (
                 <div className="mb-4 flex items-center gap-3">
                   <div className="flex items-center gap-2">
                     <ArrowUpDown className="h-4 w-4 text-copper-accent" />
@@ -565,18 +657,30 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {bookings.length === 0 ? (
+              {/* Empty State */}
+              {currentItems.length === 0 ? (
                 <div className="text-center py-12 flex-grow flex items-center justify-center">
                   <div>
-                    <CreditCard className="h-16 w-16 text-copper-accent/50 mx-auto mb-4" />
-                    <p className="text-vintage-lg text-cream-light/60 font-cormorant mb-2">No bookings yet</p>
-                    <p className="text-vintage-sm text-cream-light/40">Start exploring our luxury hotels!</p>
+                    {activeTab === 'bookings' ? (
+                      <>
+                        <CreditCard className="h-16 w-16 text-copper-accent/50 mx-auto mb-4" />
+                        <p className="text-vintage-lg text-cream-light/60 font-cormorant mb-2">No bookings yet</p>
+                        <p className="text-vintage-sm text-cream-light/40">Start exploring our luxury hotels!</p>
+                      </>
+                    ) : (
+                      <>
+                        <Receipt className="h-16 w-16 text-copper-accent/50 mx-auto mb-4" />
+                        <p className="text-vintage-lg text-cream-light/60 font-cormorant mb-2">No topup requests yet</p>
+                        <p className="text-vintage-sm text-cream-light/40">Request a balance topup to get started!</p>
+                      </>
+                    )}
                   </div>
                 </div>
               ) : (
                 <>
                   <div className="space-y-4 flex-grow">
-                    {currentBookings.map((booking) => (
+                    {/* Booking History Content */}
+                    {activeTab === 'bookings' && (paginatedItems as Booking[]).map((booking) => (
                     <div key={booking.id} className="bg-walnut-light/30 border border-copper-accent/10 rounded-lg p-4 hover:bg-walnut-light/40 transition-colors duration-300">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
@@ -658,13 +762,68 @@ export default function ProfilePage() {
                       </div>
                     </div>
                   ))}
+
+                    {/* Topup History Content */}
+                    {activeTab === 'topups' && (paginatedItems as TopupRequest[]).map((topup) => (
+                      <div key={topup.id} className="bg-walnut-light/30 border border-copper-accent/10 rounded-lg p-4 hover:bg-walnut-light/40 transition-colors duration-300">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center flex-shrink-0">
+                              <DollarSign className="h-6 w-6 text-walnut-dark" />
+                            </div>
+                            <div>
+                              <h4 className="text-vintage-xl font-playfair font-semibold text-cream-light mb-1">
+                                ${Number(topup.amount).toFixed(2)}
+                              </h4>
+                              <p className="text-vintage-sm text-cream-light/60 font-cormorant">
+                                Requested on {formatDate(topup.created_at)}
+                              </p>
+                            </div>
+                          </div>
+                          <Badge className={`${getTopupStatusBadgeColor(topup.status)} font-cinzel uppercase tracking-wider`}>
+                            {topup.status}
+                          </Badge>
+                        </div>
+
+                        {topup.admin_notes && (
+                          <div className="mt-3 p-3 bg-walnut-darkest/50 border border-copper-accent/20 rounded-lg">
+                            <div className="flex items-start gap-2">
+                              <Receipt className="h-4 w-4 text-copper-accent mt-0.5 flex-shrink-0" />
+                              <div>
+                                <div className="text-vintage-xs text-copper-accent font-cinzel uppercase tracking-wider mb-1">
+                                  Admin Notes
+                                </div>
+                                <p className="text-vintage-sm text-cream-light/80 font-cormorant">
+                                  {topup.admin_notes}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="mt-3 pt-3 border-t border-copper-accent/10">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              {topup.status === 'pending' && <Clock className="h-4 w-4 text-yellow-500" />}
+                              {topup.status === 'approved' && <CheckCircle className="h-4 w-4 text-green-500" />}
+                              {topup.status === 'rejected' && <XCircle className="h-4 w-4 text-red-500" />}
+                              <span className="text-vintage-sm text-cream-light/60">
+                                {topup.status === 'pending' && 'Awaiting admin approval'}
+                                {topup.status === 'approved' && `Approved - Balance updated on ${formatDate(topup.updated_at)}`}
+                                {topup.status === 'rejected' && `Rejected on ${formatDate(topup.updated_at)}`}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   {/* Pagination Controls */}
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-copper-accent/20">
                       <div className="text-vintage-sm text-cream-light/60 font-cormorant">
-                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, sortedBookings.length)} of {sortedBookings.length} bookings
+                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, currentItems.length)} of {currentItems.length} {activeTab === 'bookings' ? 'bookings' : 'topup requests'}
                       </div>
                       <div className="flex items-center gap-2">
                         <Button

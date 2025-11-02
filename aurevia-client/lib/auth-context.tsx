@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback, useMemo, useRef } from 'react'
 import axiosInstance, { getAuthData, updateAuthData, clearAuthData } from './axios'
-import { User } from './api'
+import { User, Role } from './api'
 
 interface AuthResponse {
   access_token: string
@@ -26,6 +26,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 interface AuthProviderProps {
   children: ReactNode
+}
+
+// Helper function to normalize roles to string array
+const normalizeRoles = (roles: string[] | Role[] | undefined): string[] => {
+  if (!roles) return []
+  
+  // If it's already an array of strings, return it
+  if (typeof roles[0] === 'string') {
+    return roles as string[]
+  }
+  
+  // If it's an array of role objects, extract the name property
+  return (roles as Role[]).map(role => role.name)
+}
+
+// Helper function to normalize user data
+const normalizeUser = (user: User): User => {
+  return {
+    ...user,
+    roles: normalizeRoles(user.roles)
+  }
 }
 
 // Helper function to decode JWT token
@@ -110,7 +131,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         const storedData = getAuthData()
         if (storedData) {
-          setUser(storedData.user)
+          // Normalize user data when loading from localStorage
+          const normalizedUser = normalizeUser(storedData.user)
+          setUser(normalizedUser)
           setAccessToken(storedData.accessToken)
           // No refresh token in localStorage anymore
         }
@@ -147,7 +170,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           
           // Also update user if it changed (deep comparison)
           if (storedData.user && JSON.stringify(storedData.user) !== JSON.stringify(user)) {
-            setUser(storedData.user)
+            // Normalize user data when syncing from storage
+            const normalizedUser = normalizeUser(storedData.user)
+            setUser(normalizedUser)
           }
         }
       } else {
@@ -211,7 +236,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Refresh token is now in httpOnly cookie, not in response
       const { user, access_token } = response.data
       
-      setUser(user)
+      // Normalize user data to ensure roles are always string array
+      const normalizedUser = normalizeUser(user)
+      
+      setUser(normalizedUser)
       setAccessToken(access_token)
       // No need to set refresh token - it's in httpOnly cookie
     } catch (error: any) {
@@ -241,10 +269,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [accessToken])
 
   const updateUser = useCallback((updatedUser: User) => {
-    setUser(updatedUser)
+    // Normalize user data to ensure roles are always string array
+    const normalizedUser = normalizeUser(updatedUser)
+    setUser(normalizedUser)
     // Update in localStorage as well
     if (accessToken) {
-      updateAuthData({ user: updatedUser, accessToken })
+      updateAuthData({ user: normalizedUser, accessToken })
     }
   }, [accessToken])
 
@@ -256,9 +286,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = await axiosInstance.get<User>('/users/profile')
       const updatedUser = response.data
       
-      setUser(updatedUser)
+      // Normalize user data to ensure roles are always string array
+      const normalizedUser = normalizeUser(updatedUser)
+      
+      setUser(normalizedUser)
       // Update in localStorage as well
-      updateAuthData({ user: updatedUser, accessToken })
+      updateAuthData({ user: normalizedUser, accessToken })
     } catch (error) {
       console.error('Failed to refresh user data:', error)
     }

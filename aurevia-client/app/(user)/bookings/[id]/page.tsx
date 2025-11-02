@@ -25,6 +25,7 @@ import {
   Home
 } from "lucide-react"
 import type { Booking } from "@/types/dashboard"
+import { hasRole } from "@/lib/api"
 
 export default function BookingDetailsPage() {
   const params = useParams()
@@ -37,8 +38,8 @@ export default function BookingDetailsPage() {
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
 
-  const isHotelOwner = user?.roles?.includes('HotelOwner')
-  const isAdmin = user?.roles?.includes('Admin')
+  const isHotelOwner = hasRole(user, 'HotelOwner')
+  const isAdmin = hasRole(user, 'Admin')
   const canManageBooking = isHotelOwner || isAdmin
 
   useEffect(() => {

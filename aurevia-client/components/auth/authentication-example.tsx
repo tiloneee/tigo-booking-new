@@ -9,10 +9,10 @@
 import { useState } from 'react'
 import { useAuth } from '@/lib/auth-context'
 import axiosInstance from '@/lib/axios'
-import { authApi } from '@/lib/api'
+import { authApi, getRoleNames } from '@/lib/api'
 
 export default function AuthenticationExample() {
-  const { user, isAuthenticated, isLoading, login, logout } = useAuth()
+  const { user, isAuthenticated, isLoading, login, logout, refreshUser } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -25,6 +25,8 @@ export default function AuthenticationExample() {
 
     try {
       await login(email, password)
+      // Immediately refresh user data to ensure balance is up-to-date
+      await refreshUser()
       console.log('✅ Login successful! Tokens are automatically stored.')
     } catch (error: any) {
       setError(error.message)
@@ -150,7 +152,7 @@ export default function AuthenticationExample() {
               <strong>Email:</strong> {user.email}
             </p>
             <p>
-              <strong>Roles:</strong> {user.roles.join(', ')}
+              <strong>Roles:</strong> {getRoleNames(user).join(', ')}
             </p>
           </div>
         )}
