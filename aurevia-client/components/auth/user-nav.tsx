@@ -4,13 +4,13 @@ import { useState, useRef, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { User, LogOut, MessageCircle, Calendar, LayoutDashboard, ChevronDown } from "lucide-react"
+import { User, LogOut, MessageCircle, Calendar, LayoutDashboard, ChevronDown, FileText } from "lucide-react"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { useRouter } from 'next/navigation'
 
 
 export default function UserNav() {
-  const { user, isAuthenticated, isLoading, logout } = useAuth()
+  const { user, isAuthenticated, isLoading, logout, refreshUser } = useAuth()
   const router = useRouter()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
@@ -26,6 +26,18 @@ export default function UserNav() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // Periodically refresh user data to check for balance updates
+  useEffect(() => {
+    if (!isAuthenticated || !refreshUser) return
+
+    // Refresh user data every 30 seconds to check for balance updates
+    const interval = setInterval(() => {
+      refreshUser()
+    }, 30000) // 30 seconds
+
+    return () => clearInterval(interval)
+  }, [isAuthenticated, refreshUser])
 
   if (isLoading) {
     return (
@@ -86,11 +98,9 @@ export default function UserNav() {
               </p>
               <ChevronDown className={`h-4 w-4 text-cream-light ml-1 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </div>
-            {user?.roles && user.roles.length > 0 && (
-              <p className="text-copper-accent font-cinzel text-vintage-xs uppercase tracking-wider">
-                {user.roles.join(", ")}
-              </p>
-            )}
+            <p className="text-copper-accent font-cinzel font-semibold text-vintage-xs uppercase tracking-wider">
+              Balance: ${user?.balance ? Number(user.balance).toFixed(2) : '0.00'}
+            </p>
           </div>
         </button>
 
@@ -140,6 +150,16 @@ export default function UserNav() {
               >
                 <MessageCircle className="h-4 w-4 text-copper-accent" />
                 <span className="font-cormorant text-vintage-base">Chat</span>
+              </Link>
+
+              {/* Requests Link */}
+              <Link 
+                href="/requests"
+                onClick={() => setIsDropdownOpen(false)}
+                className="flex items-center space-x-3 px-4 py-3 text-cream-light hover:bg-copper-accent/10 transition-colors duration-200 border-b border-copper-accent/10"
+              >
+                <FileText className="h-4 w-4 text-copper-accent" />
+                <span className="font-cormorant text-vintage-base">Requests</span>
               </Link>
 
               {/* Sign Out */}

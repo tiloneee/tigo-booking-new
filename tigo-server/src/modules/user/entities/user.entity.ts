@@ -38,6 +38,9 @@ export class User {
   @Column({ type: 'text', nullable: true })
   activation_token: string | undefined;
 
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  balance: number;
+
   @ManyToMany(() => Role, (role) => role.users)
   @JoinTable({
     name: 'user_roles',

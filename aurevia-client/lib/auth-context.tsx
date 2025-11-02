@@ -19,6 +19,7 @@ interface AuthContextType {
   logout: () => Promise<void>
   updateUser: (user: User) => void
   refreshAccessToken: () => Promise<string | null>
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -247,6 +248,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [accessToken])
 
+  const refreshUser = useCallback(async () => {
+    try {
+      if (!accessToken) return
+      
+      // Fetch the latest user profile data
+      const response = await axiosInstance.get<User>('/users/profile')
+      const updatedUser = response.data
+      
+      setUser(updatedUser)
+      // Update in localStorage as well
+      updateAuthData({ user: updatedUser, accessToken })
+    } catch (error) {
+      console.error('Failed to refresh user data:', error)
+    }
+  }, [accessToken])
+
   // Memoize the context value to prevent unnecessary re-renders
   const value: AuthContextType = useMemo(() => ({
     user,
@@ -257,7 +274,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     logout,
     updateUser,
     refreshAccessToken,
-  }), [user, accessToken, isLoading, login, logout, updateUser, refreshAccessToken])
+    refreshUser,
+  }), [user, accessToken, isLoading, login, logout, updateUser, refreshAccessToken, refreshUser])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

@@ -48,6 +48,12 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
       case 'PAYMENT_SUCCESS':
       case 'PAYMENT_FAILED':
         return <CreditCard className="h-4 w-4 text-copper-accent" />
+      case 'TOPUP_APPROVED':
+        return <CreditCard className="h-4 w-4 text-copper-accent" />
+      case 'TOPUP_REJECTED':
+        return <CreditCard className="h-4 w-4 text-copper-accent" />
+      case 'TOPUP_PENDING':
+        return <CreditCard className="h-4 w-4 text-copper-accent" />
       case 'SYSTEM_ANNOUNCEMENT':
         return <Bell className="h-4 w-4 text-copper-accent" />
       default:

@@ -8,6 +8,7 @@ export interface User {
   phone_number?: string
   roles: string[]
   is_active: boolean
+  balance?: number
 }
 
 export interface AuthResponse {
