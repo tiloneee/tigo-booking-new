@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { RedisService } from '../../chat/services/redis.service';
+import { RedisService } from '../../../common/services/redis.service';
 import { NotificationService } from './notification.service';
 import { NotificationType } from '../entities/notification.entity';
 

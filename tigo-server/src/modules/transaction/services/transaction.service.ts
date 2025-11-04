@@ -18,10 +18,15 @@ import { CreateTopupDto } from '../dto/create-topup.dto';
 import { UpdateTransactionDto } from '../dto/update-transaction.dto';
 import { CreateTransactionDto } from '../dto/create-transaction.dto';
 import { NotificationEventService } from '../../notification/services/notification-event.service';
+import { RedisService } from '../../../common/services/redis.service';
+import { BalanceUpdateEvent, BalanceEventType } from '../events/balance-update.event';
 
 @Injectable()
 export class TransactionService {
   private readonly logger = new Logger(TransactionService.name);
+  private readonly BALANCE_CHANNEL = 'balance:updates';
+  private readonly USER_BALANCE_PREFIX = 'balance:user:';
+  private readonly BALANCE_CACHE_TTL = 3600; // 1 hour
 
   constructor(
     @InjectRepository(Transaction)
@@ -37,6 +42,7 @@ export class TransactionService {
     private roleRepository: Repository<Role>,
 
     private notificationEventService: NotificationEventService,
+    private redisService: RedisService,
     private dataSource: DataSource,
   ) {}
 
@@ -236,6 +242,12 @@ export class TransactionService {
 
       // If approved, update the balance snapshot
       if (updateTransactionDto.status === TransactionStatus.SUCCESS) {
+        // Get previous balance before update
+        const previousSnapshot = await queryRunner.manager.findOne(BalanceSnapshot, {
+          where: { user_id: transaction.user_id },
+        });
+        const previousBalance = previousSnapshot?.current_balance || 0;
+
         await this.updateBalanceSnapshot(
           transaction.user_id,
           parseFloat(transaction.amount.toString()),
@@ -245,21 +257,42 @@ export class TransactionService {
         await queryRunner.manager.save(transaction);
         await queryRunner.commitTransaction();
 
-        // Send approval notification to user
-        const snapshot = await queryRunner.manager.findOne(BalanceSnapshot, {
+        // Get new balance after update
+        const snapshot = await this.balanceSnapshotRepository.findOne({
           where: { user_id: transaction.user_id },
         });
+        const newBalance = snapshot?.current_balance || 0;
 
+        // Publish real-time balance update to Redis
+        await this.publishBalanceUpdate(
+          transaction.user_id,
+          newBalance,
+          transaction.id,
+          TransactionType.TOPUP,
+          parseFloat(transaction.amount.toString()),
+          previousBalance,
+        );
+
+        // Publish transaction completed event
+        await this.publishTransactionCompleted(
+          transaction.user_id,
+          transaction.id,
+          TransactionType.TOPUP,
+          parseFloat(transaction.amount.toString()),
+          newBalance,
+        );
+
+        // Send approval notification to user
         try {
           await this.notificationEventService.triggerTopupNotification(
             transaction.user_id,
             'TOPUP_APPROVED',
             'Topup Request Approved',
-            `Your topup request of $${transaction.amount} has been approved. Your new balance is $${snapshot?.current_balance || 0}.${transaction.admin_notes ? ` Admin notes: ${transaction.admin_notes}` : ''}`,
+            `Your topup request of $${transaction.amount} has been approved. Your new balance is $${newBalance}.${transaction.admin_notes ? ` Admin notes: ${transaction.admin_notes}` : ''}`,
             {
               transaction_id: transaction.id,
               amount: transaction.amount,
-              new_balance: snapshot?.current_balance || 0,
+              new_balance: newBalance,
               admin_notes: transaction.admin_notes,
             },
           );
@@ -270,6 +303,16 @@ export class TransactionService {
           );
         }
       } else if (updateTransactionDto.status === TransactionStatus.FAILED) {
+        await queryRunner.manager.save(transaction);
+        await queryRunner.commitTransaction();
+
+        // Publish transaction failed event
+        await this.publishTransactionFailed(
+          transaction.user_id,
+          transaction.id,
+          TransactionType.TOPUP,
+        );
+
         // Send rejection notification to user
         try {
           await this.notificationEventService.triggerTopupNotification(
@@ -289,6 +332,9 @@ export class TransactionService {
             error,
           );
         }
+      } else {
+        await queryRunner.manager.save(transaction);
+        await queryRunner.commitTransaction();
       }
 
       return transaction;
@@ -350,6 +396,12 @@ export class TransactionService {
         }
       }
 
+      // Get previous balance before update
+      const previousSnapshot = await queryRunner.manager.findOne(BalanceSnapshot, {
+        where: { user_id: createTransactionDto.user_id },
+      });
+      const previousBalance = previousSnapshot?.current_balance || 0;
+
       const transaction = queryRunner.manager.create(Transaction, {
         ...createTransactionDto,
         status: TransactionStatus.SUCCESS, // Auto-approve for system transactions
@@ -365,6 +417,31 @@ export class TransactionService {
       );
 
       await queryRunner.commitTransaction();
+
+      // Get new balance after update
+      const snapshot = await this.balanceSnapshotRepository.findOne({
+        where: { user_id: createTransactionDto.user_id },
+      });
+      const newBalance = snapshot?.current_balance || 0;
+
+      // Publish real-time balance update to Redis
+      await this.publishBalanceUpdate(
+        createTransactionDto.user_id,
+        newBalance,
+        transaction.id,
+        createTransactionDto.type,
+        createTransactionDto.amount,
+        previousBalance,
+      );
+
+      // Publish transaction completed event
+      await this.publishTransactionCompleted(
+        createTransactionDto.user_id,
+        transaction.id,
+        createTransactionDto.type,
+        createTransactionDto.amount,
+        newBalance,
+      );
 
       return transaction;
     } catch (error) {
@@ -463,6 +540,7 @@ export class TransactionService {
     }
 
     await manager.save(snapshot);
+    await this.clearBalanceCache(userId);
   }
 
   /**
@@ -742,5 +820,142 @@ export class TransactionService {
     }
 
     return result;
+  }
+
+  /**
+   * Publish balance update to Redis for real-time updates
+   */
+  private async publishBalanceUpdate(
+    userId: string,
+    newBalance: number,
+    transactionId?: string,
+    transactionType?: TransactionType,
+    amount?: number,
+    previousBalance?: number,
+  ): Promise<void> {
+    try {
+      // Update Redis cache
+      const cacheKey = `${this.USER_BALANCE_PREFIX}${userId}`;
+      await this.clearBalanceCache(userId);
+      await this.redisService.set(cacheKey, newBalance, this.BALANCE_CACHE_TTL);
+
+      // Publish event to Redis channel
+      const event: BalanceUpdateEvent = {
+        event: BalanceEventType.BALANCE_UPDATED,
+        userId,
+        newBalance,
+        previousBalance,
+        transactionId,
+        transactionType: transactionType?.toString(),
+        amount,
+        timestamp: new Date().toISOString(),
+      };
+
+      await this.redisService.publishMessage(this.BALANCE_CHANNEL, event);
+      
+      this.logger.log(
+        `Published balance update for user ${userId}: ${previousBalance ?? 'N/A'} -> ${newBalance}`,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to publish balance update for user ${userId}:`, error);
+    }
+  }
+
+  /**
+   * Publish transaction completed event
+   */
+  private async publishTransactionCompleted(
+    userId: string,
+    transactionId: string,
+    transactionType: TransactionType,
+    amount: number,
+    newBalance: number,
+  ): Promise<void> {
+    try {
+      const event: BalanceUpdateEvent = {
+        event: BalanceEventType.TRANSACTION_COMPLETED,
+        userId,
+        newBalance,
+        transactionId,
+        transactionType: transactionType.toString(),
+        amount,
+        timestamp: new Date().toISOString(),
+      };
+
+      await this.redisService.publishMessage(this.BALANCE_CHANNEL, event);
+      
+      this.logger.log(
+        `Published transaction completed event for user ${userId}: ${transactionType} of ${amount}`,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to publish transaction completed event:`, error);
+    }
+  }
+
+  /**
+   * Publish transaction failed event
+   */
+  private async publishTransactionFailed(
+    userId: string,
+    transactionId: string,
+    transactionType: TransactionType,
+  ): Promise<void> {
+    try {
+      const event: BalanceUpdateEvent = {
+        event: BalanceEventType.TRANSACTION_FAILED,
+        userId,
+        newBalance: 0, // Will be ignored
+        transactionId,
+        transactionType: transactionType.toString(),
+        timestamp: new Date().toISOString(),
+      };
+
+      await this.redisService.publishMessage(this.BALANCE_CHANNEL, event);
+      
+      this.logger.log(
+        `Published transaction failed event for user ${userId}: ${transactionType}`,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to publish transaction failed event:`, error);
+    }
+  }
+
+  /**
+   * Get balance from cache or database
+   */
+  async getCachedBalance(userId: string): Promise<number> {
+    try {
+      // Try cache first
+      const cacheKey = `${this.USER_BALANCE_PREFIX}${userId}`;
+      const cachedBalance = await this.redisService.get(cacheKey);
+      
+      if (cachedBalance !== null) {
+        return parseFloat(cachedBalance);
+      }
+
+      // Fetch from database
+      const balance = await this.getUserBalance(userId);
+      
+      // Update cache
+      await this.redisService.set(cacheKey, balance, this.BALANCE_CACHE_TTL);
+      
+      return balance;
+    } catch (error) {
+      this.logger.error(`Error getting cached balance for user ${userId}:`, error);
+      // Fallback to database
+      return this.getUserBalance(userId);
+    }
+  }
+
+  /**
+   * Clear balance cache for a user
+   */
+  private async clearBalanceCache(userId: string): Promise<void> {
+    try {
+      const cacheKey = `${this.USER_BALANCE_PREFIX}${userId}`;
+      await this.redisService.del(cacheKey);
+    } catch (error) {
+      this.logger.error(`Failed to clear balance cache for user ${userId}:`, error);
+    }
   }
 }

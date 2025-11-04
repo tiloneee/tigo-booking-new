@@ -11,7 +11,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Injectable, UseGuards, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { RedisService } from '../services/redis.service';
+import { RedisService } from '../../../common/services/redis.service';
 import { ChatService } from '../services/chat.service';
 import { SendMessageDto } from '../dto/send-message.dto';
 import { WsJwtAuthGuard } from '../guards/ws-jwt-auth.guard';

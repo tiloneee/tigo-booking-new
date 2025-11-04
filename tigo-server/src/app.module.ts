@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { CommonModule } from './common/common.module';
 import { UserModule } from './modules/user/user.module';
 import { HotelModule } from './modules/hotel/hotel.module';
 import { SearchModule } from './modules/search/search.module';
@@ -13,6 +14,7 @@ import { TransactionModule } from './modules/transaction/transaction.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    CommonModule, // Add CommonModule for shared services like Redis
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({

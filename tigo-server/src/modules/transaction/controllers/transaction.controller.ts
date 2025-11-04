@@ -38,6 +38,12 @@ export class TransactionController {
     return this.transactionService.getUserBalance(req.user.userId);
   }
 
+  @Get('balance/cached')
+  async getCachedBalance(@Request() req) {
+    const balance = await this.transactionService.getCachedBalance(req.user.userId);
+    return { balance, cached: true };
+  }
+
   @Get('balance/snapshot')
   getBalanceSnapshot(@Request() req) {
     return this.transactionService.getBalanceSnapshot(req.user.userId);

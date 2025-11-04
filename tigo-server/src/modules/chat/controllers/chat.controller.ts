@@ -14,7 +14,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 import { ChatService } from '../services/chat.service';
-import { RedisService } from '../services/redis.service';
+import { RedisService } from '../../../common/services/redis.service';
 import { CreateChatRoomDto } from '../dto/create-chat-room.dto';
 import { SendMessageDto } from '../dto/send-message.dto';
 import { ChatRoomQueryDto } from '../dto/chat-room-query.dto';
