@@ -110,6 +110,15 @@ export class BookingService {
         throw new BadRequestException('Check-in date cannot be in the past');
       }
 
+      // Get user and check balance
+      const user = await manager.findOne(User, {
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+
       // Verify room exists and belongs to the specified hotel
       const room = await manager.findOne(Room, {
         where: {
@@ -186,6 +195,24 @@ export class BookingService {
         );
       }, 0);
 
+      // Check if user has sufficient balance
+      const userBalance = parseFloat(user.balance.toString());
+      if (userBalance < totalPrice) {
+        throw new BadRequestException(
+          `Insufficient balance. Your balance: $${userBalance.toFixed(2)}, Required: $${totalPrice.toFixed(2)}`,
+        );
+      }
+
+      // Deduct the booking amount from user's balance
+      const newBalance = userBalance - totalPrice;
+      await manager.update(User, userId, {
+        balance: newBalance,
+      });
+
+      this.logger.log(
+        `User ${userId} balance updated: $${userBalance.toFixed(2)} -> $${newBalance.toFixed(2)} (Charged: $${totalPrice.toFixed(2)})`,
+      );
+
       // Create booking
       const bookingData = {
         hotel_id: createBookingDto.hotel_id,
@@ -196,6 +223,7 @@ export class BookingService {
         number_of_guests: createBookingDto.number_of_guests,
         units_requested: unitsRequested,
         total_price: totalPrice,
+        paid_amount: totalPrice,
         guest_name: createBookingDto.guest_name,
         guest_phone: createBookingDto.guest_phone,
         guest_email: createBookingDto.guest_email,
@@ -242,6 +270,7 @@ export class BookingService {
               number_of_guests: bookingWithRelations.number_of_guests,
               check_in_date: bookingWithRelations.check_in_date,
               check_out_date: bookingWithRelations.check_out_date,
+              paid_amount: bookingWithRelations.paid_amount,
               total_price: bookingWithRelations.total_price,
             },
           );
@@ -419,17 +448,63 @@ export class BookingService {
           updateBookingDto.cancelled_at = now;
           updateBookingDto.confirmed_at = undefined;
 
+          // Calculate refund based on cancellation timing
+          // Check-in date is stored as date only, but check-in time is always at 2 PM (14:00)
+          const checkInDate = new Date(booking.check_in_date);
+          checkInDate.setHours(14, 0, 0, 0); // Set to 2 PM (14:00)
+          
+          const hoursDiff = (checkInDate.getTime() - now.getTime()) / (1000 * 3600);
+          const paidAmount = parseFloat(booking.paid_amount.toString());
+          let refundAmt = 0;
+          let refundStatus: 'Refunded' | 'PartialRefund' = 'Refunded';
+
+          if (hoursDiff < 24) {
+            // Less than 1 day: 50% refund
+            refundAmt = paidAmount * 0.5;
+            refundStatus = 'PartialRefund';
+          } else {
+            // More than 1 day: Full refund
+            refundAmt = paidAmount;
+            refundStatus = 'Refunded';
+          }
+
+          updateBookingDto.payment_status = refundStatus;
+
+          // Refund the user's balance
+          if (refundAmt > 0 && booking.user_id) {
+            const user = await this.userRepository.findOne({
+              where: { id: booking.user_id },
+            });
+
+            if (user) {
+              const currentBalance = parseFloat(user.balance.toString());
+              const newBalance = currentBalance + refundAmt;
+              
+              await this.userRepository.update(booking.user_id, {
+                balance: newBalance,
+              });
+
+              this.logger.log(
+                `Refund processed for user ${booking.user_id}: $${refundAmt.toFixed(2)} (${refundStatus}). Balance: $${currentBalance.toFixed(2)} -> $${newBalance.toFixed(2)}`,
+              );
+            }
+          }
+
           // Restore availability when booking is cancelled
           await this.restoreAvailability(booking);
 
           // Send cancellation notification to customer
           if (booking.user_id) {
+            const refundMessage = refundStatus === 'PartialRefund'
+              ? `Refunded: $${refundAmt.toFixed(2)} (50% - cancelled within 24 hours)`
+              : `Refunded: $${refundAmt.toFixed(2)} (Full refund)`;
+
             try {
               await this.notificationEventService.triggerBookingNotification(
                 booking.user_id,
                 'BOOKING_CANCELLED',
                 'Booking Cancelled!',
-                `Your booking at ${booking.hotel.name} - Room ${booking.room?.room_number || 'N/A'} has been cancelled. Reason: ${updateBookingDto.cancellation_reason}`,
+                `Your booking at ${booking.hotel.name} - Room ${booking.room?.room_number || 'N/A'} has been cancelled. ${refundMessage}. Reason: ${updateBookingDto.cancellation_reason}`,
                 {
                   booking_id: booking.id,
                   hotel_id: booking.hotel_id,
@@ -438,6 +513,8 @@ export class BookingService {
                   check_out_date: booking.check_out_date,
                   cancellation_reason: updateBookingDto.cancellation_reason,
                   cancelled_by: isHotelOwner ? 'hotel_owner' : (isAdmin ? 'admin' : 'customer'),
+                  refund_amount: refundAmt,
+                  payment_status: refundStatus,
                 },
               );
             } catch (error) {
@@ -473,23 +550,63 @@ export class BookingService {
       throw new BadRequestException('Cannot cancel a completed booking');
     }
 
-    // Check cancellation policy (can be made configurable)
+    // Check cancellation policy and calculate refund
+    // Check-in date is stored as date only (e.g., 2025-10-13)
+    // Check-in time is always at 2 PM (14:00)
     const checkInDate = new Date(booking.check_in_date);
+    checkInDate.setHours(14, 0, 0, 0); // Set to 2 PM (14:00)
+    
     const now = new Date();
     const hoursDifference =
       (checkInDate.getTime() - now.getTime()) / (1000 * 3600);
 
-    // if (hoursDifference < 24) {
-    //   throw new BadRequestException(
-    //     'Cannot cancel booking less than 24 hours before check-in',
-    //   );
-    // }
+    // Determine refund amount and payment status based on cancellation timing
+    const paidAmount = parseFloat(booking.paid_amount.toString());
+    let refundAmount = 0;
+    let paymentStatus: 'Refunded' | 'PartialRefund' = 'Refunded';
+
+    if (hoursDifference < 24) {
+      // Less than 1 day before check-in: 50% refund
+      refundAmount = paidAmount * 0.5;
+      paymentStatus = 'PartialRefund';
+      this.logger.log(
+        `Cancellation within 24 hours of check-in (${checkInDate.toLocaleString()}). Partial refund (50%): $${refundAmount.toFixed(2)}`,
+      );
+    } else {
+      // More than 1 day before check-in: Full refund
+      refundAmount = paidAmount;
+      paymentStatus = 'Refunded';
+      this.logger.log(
+        `Cancellation more than 24 hours before check-in (${checkInDate.toLocaleString()}). Full refund: $${refundAmount.toFixed(2)}`,
+      );
+    }
 
     return this.dataSource.transaction(async (manager) => {
+      // Refund the user's balance
+      if (refundAmount > 0) {
+        const user = await manager.findOne(User, {
+          where: { id: userId },
+        });
+
+        if (user) {
+          const currentBalance = parseFloat(user.balance.toString());
+          const newBalance = currentBalance + refundAmount;
+          
+          await manager.update(User, userId, {
+            balance: newBalance,
+          });
+
+          this.logger.log(
+            `Refund processed for user ${userId}: $${refundAmount.toFixed(2)} (${paymentStatus}). Balance: $${currentBalance.toFixed(2)} -> $${newBalance.toFixed(2)}`,
+          );
+        }
+      }
+
       await manager.update(HotelBooking, id, {
         status: 'Cancelled',
         cancellation_reason: cancellationReason,
         cancelled_at: now,
+        payment_status: paymentStatus,
       });
 
       // Restore room availability
@@ -529,11 +646,15 @@ export class BookingService {
         }
         if (cancelledBooking.user_id) {
           try {
+            const refundMessage = paymentStatus === 'PartialRefund' 
+              ? `Refunded amount: $${refundAmount.toFixed(2)} (50% - cancelled within 24 hours of check-in)`
+              : `Refunded amount: $${refundAmount.toFixed(2)} (Full refund)`;
+            
             await this.notificationEventService.triggerBookingNotification(
               cancelledBooking.user_id,
               'BOOKING_CANCELLED',
               'Booking Cancelled',
-              `Your booking for ${cancelledBooking.hotel.name} - Room ${cancelledBooking.room?.room_number || 'N/A'} has been cancelled. Check-in date: ${new Date(cancelledBooking.check_in_date).toLocaleDateString()}`,
+              `Your booking for ${cancelledBooking.hotel.name} - Room ${cancelledBooking.room?.room_number || 'N/A'} has been cancelled. ${refundMessage}. Check-in date: ${new Date(cancelledBooking.check_in_date).toLocaleDateString()}`,
               {
                 booking_id: cancelledBooking.id,
                 hotel_id: cancelledBooking.hotel_id,
@@ -543,6 +664,8 @@ export class BookingService {
                 check_out_date: cancelledBooking.check_out_date,
                 cancellation_reason: cancellationReason || 'No reason provided',
                 cancelled_by: 'customer',
+                refund_amount: refundAmount,
+                payment_status: paymentStatus,
               },
             );
           } catch (error) {
