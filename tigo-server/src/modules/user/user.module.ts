@@ -5,14 +5,11 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserService } from './services/user.service';
 import { AuthService } from './services/auth.service';
-import { BalanceService } from './services/balance.service';
 import { UserController } from './controllers/user.controller';
 import { AuthController } from './controllers/auth.controller';
-import { BalanceController } from './controllers/balance.controller';
 import { User } from './entities/user.entity';
 import { Role } from './entities/role.entity';
 import { Permission } from './entities/permission.entity';
-import { BalanceTopup } from './entities/balance-topup.entity';
 import { JwtStrategy } from '../../common/strategies/jwt.strategy';
 import { JwtRefreshStrategy } from '../../common/strategies/jwt-refresh.strategy';
 import { EmailService } from '../../common/services/email.service';
@@ -20,7 +17,7 @@ import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Role, Permission, BalanceTopup,]),
+    TypeOrmModule.forFeature([User, Role, Permission]),
     PassportModule,
     forwardRef(() => NotificationModule),
     JwtModule.registerAsync({
@@ -32,16 +29,15 @@ import { NotificationModule } from '../notification/notification.module';
       inject: [ConfigService],
     }),
   ],
-  controllers: [UserController, AuthController, BalanceController],
+  controllers: [UserController, AuthController],
   providers: [
     UserService,
     AuthService,
-    BalanceService,
     JwtStrategy,
     JwtRefreshStrategy,
     EmailService,
   ],
 
-  exports: [UserService, AuthService, BalanceService],
+  exports: [UserService, AuthService],
 })
 export class UserModule {}

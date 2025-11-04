@@ -195,22 +195,24 @@ export class BookingService {
         );
       }, 0);
 
+      const finalPrice = totalPrice + (totalPrice * 0.1); // Including 10% tax or fees
+
       // Check if user has sufficient balance
       const userBalance = parseFloat(user.balance.toString());
-      if (userBalance < totalPrice) {
+      if (userBalance < finalPrice) {
         throw new BadRequestException(
-          `Insufficient balance. Your balance: $${userBalance.toFixed(2)}, Required: $${totalPrice.toFixed(2)}`,
+          `Insufficient balance. Your balance: $${userBalance.toFixed(2)}, Required: $${finalPrice.toFixed(2)}`,
         );
       }
 
       // Deduct the booking amount from user's balance
-      const newBalance = userBalance - totalPrice;
+      const newBalance = userBalance - finalPrice;
       await manager.update(User, userId, {
         balance: newBalance,
       });
 
       this.logger.log(
-        `User ${userId} balance updated: $${userBalance.toFixed(2)} -> $${newBalance.toFixed(2)} (Charged: $${totalPrice.toFixed(2)})`,
+        `User ${userId} balance updated: $${userBalance.toFixed(2)} -> $${newBalance.toFixed(2)} (Charged: $${finalPrice.toFixed(2)})`,
       );
 
       // Create booking
@@ -223,7 +225,7 @@ export class BookingService {
         number_of_guests: createBookingDto.number_of_guests,
         units_requested: unitsRequested,
         total_price: totalPrice,
-        paid_amount: totalPrice,
+        paid_amount: finalPrice,
         guest_name: createBookingDto.guest_name,
         guest_phone: createBookingDto.guest_phone,
         guest_email: createBookingDto.guest_email,

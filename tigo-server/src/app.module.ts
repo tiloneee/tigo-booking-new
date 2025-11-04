@@ -6,6 +6,7 @@ import { HotelModule } from './modules/hotel/hotel.module';
 import { SearchModule } from './modules/search/search.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { TransactionModule } from './modules/transaction/transaction.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { NotificationModule } from './modules/notification/notification.module';
     SearchModule,
     ChatModule,
     NotificationModule,
+    TransactionModule,
   ],
 })
 export class AppModule {}

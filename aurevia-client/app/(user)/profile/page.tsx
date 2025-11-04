@@ -715,7 +715,7 @@ export default function ProfilePage() {
                         <div>
                           <p className="text-cream-light/60 font-cormorant mb-1">Total Amount</p>
                           <p className="text-vintage-lg font-semibold text-copper-accent">
-                            {formatCurrency(booking.total_price)}
+                            {formatCurrency(booking.paid_amount)}
                           </p>
                         </div>
                       </div>
@@ -957,7 +957,7 @@ export default function ProfilePage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Total Amount</p>
-                      <p className="text-vintage-2xl font-bold text-copper-accent">{formatCurrency(selectedBooking.total_price)}</p>
+                      <p className="text-vintage-2xl font-bold text-copper-accent">{formatCurrency(selectedBooking.paid_amount)}</p>
                     </div>
                     <div className="text-right">
                       <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Status</p>
