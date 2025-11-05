@@ -99,9 +99,6 @@ export default function UserNav() {
               </p>
               <ChevronDown className={`h-4 w-4 text-cream-light ml-1 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </div>
-            <p className="text-copper-accent font-cinzel font-semibold text-vintage-xs uppercase tracking-wider">
-              Balance: ${user?.balance ? Number(user.balance).toFixed(2) : '0.00'}
-            </p>
           </div>
         </button>
 

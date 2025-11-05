@@ -352,13 +352,19 @@ export class TransactionService {
   async getUserBalance(userId: string): Promise<number> {
     const snapshot = await this.balanceSnapshotRepository.findOne({
       where: { user_id: userId },
-      lock: { mode: 'pessimistic_write' },
     });
 
     if (!snapshot) {
       // Initialize snapshot if not exists
       await this.initializeBalanceSnapshot(userId);
-      return 0;
+      await this.recalculateBalanceSnapshot(userId);
+      const newSnapshot = await this.balanceSnapshotRepository.findOne({
+        where: { user_id: userId },
+      });
+      if (!newSnapshot) {
+        throw new Error('Failed to create balance snapshot');
+      }
+      return parseFloat(newSnapshot.current_balance.toString());
     }
 
     return parseFloat(snapshot.current_balance.toString());
@@ -541,6 +547,7 @@ export class TransactionService {
 
     await manager.save(snapshot);
     await this.clearBalanceCache(userId);
+    await this.publishBalanceUpdate(userId, snapshot.current_balance);
   }
 
   /**

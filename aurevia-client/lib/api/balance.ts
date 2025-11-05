@@ -21,45 +21,51 @@ export interface UpdateTopupRequest {
 }
 
 export const balanceApi = {
-  // Create a topup request
+  // Create a topup request (now handled by transaction module)
   createTopupRequest: async (data: CreateTopupRequest): Promise<BalanceTopup> => {
-    const response = await axiosInstance.post('/balance/topup', data)
+    const response = await axiosInstance.post('/transactions/topup', data)
     return response.data
   },
 
-  // Get current user's balance
+  // Get current user's balance (now from transaction module)
   getCurrentBalance: async (): Promise<number> => {
-    const response = await axiosInstance.get('/balance/current')
+    const response = await axiosInstance.get('/transactions/balance')
+    return response.data
+  },
+
+  // Get cached balance (from Redis cache)
+  getCachedBalance: async (): Promise<{ balance: number; cached: boolean }> => {
+    const response = await axiosInstance.get('/transactions/balance/cached')
     return response.data
   },
 
   // Get current user's topup requests
   getMyTopups: async (): Promise<BalanceTopup[]> => {
-    const response = await axiosInstance.get('/balance/topup/my-requests')
+    const response = await axiosInstance.get('/transactions/user')
     return response.data
   },
 
-  // Get specific topup by ID
+  // Get specific transaction by ID
   getTopupById: async (id: string): Promise<BalanceTopup> => {
-    const response = await axiosInstance.get(`/balance/topup/${id}`)
+    const response = await axiosInstance.get(`/transactions/${id}`)
     return response.data
   },
 
   // Admin: Get all pending topups
   getPendingTopups: async (): Promise<BalanceTopup[]> => {
-    const response = await axiosInstance.get('/balance/topup/pending')
+    const response = await axiosInstance.get('/transactions/topup/pending')
     return response.data
   },
 
   // Admin: Get all topups
   getAllTopups: async (): Promise<BalanceTopup[]> => {
-    const response = await axiosInstance.get('/balance/topup/all')
+    const response = await axiosInstance.get('/transactions/topup/all')
     return response.data
   },
 
   // Admin: Process a topup request
   processTopup: async (id: string, data: UpdateTopupRequest): Promise<BalanceTopup> => {
-    const response = await axiosInstance.patch(`/balance/topup/${id}/process`, data)
+    const response = await axiosInstance.patch(`/transactions/topup/${id}/process`, data)
     return response.data
   },
 }

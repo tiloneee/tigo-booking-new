@@ -17,6 +17,8 @@ import { CreateBookingDto } from '../dto/booking/create-booking.dto';
 import { UpdateBookingDto } from '../dto/booking/update-booking.dto';
 import { SearchBookingDto } from '../dto/booking/search-booking.dto';
 import { NotificationEventService } from '../../notification/services/notification-event.service';
+import { TransactionService } from '../../transaction/services/transaction.service';
+import { TransactionType } from '../../transaction/entities/transaction.entity';
 
 @Injectable()
 export class BookingService {
@@ -61,6 +63,7 @@ export class BookingService {
 
     private dataSource: DataSource,
     private notificationEventService: NotificationEventService,
+    private transactionService: TransactionService,
   ) { }
 
   /**
@@ -197,25 +200,15 @@ export class BookingService {
 
       const finalPrice = totalPrice + (totalPrice * 0.1); // Including 10% tax or fees
 
-      // Check if user has sufficient balance
-      const userBalance = parseFloat(user.balance.toString());
+      // Check if user has sufficient balance using transaction service
+      const userBalance = await this.transactionService.getUserBalance(userId);
       if (userBalance < finalPrice) {
         throw new BadRequestException(
           `Insufficient balance. Your balance: $${userBalance.toFixed(2)}, Required: $${finalPrice.toFixed(2)}`,
         );
       }
 
-      // Deduct the booking amount from user's balance
-      const newBalance = userBalance - finalPrice;
-      await manager.update(User, userId, {
-        balance: newBalance,
-      });
-
-      this.logger.log(
-        `User ${userId} balance updated: $${userBalance.toFixed(2)} -> $${newBalance.toFixed(2)} (Charged: $${finalPrice.toFixed(2)})`,
-      );
-
-      // Create booking
+      // Create booking first
       const bookingData = {
         hotel_id: createBookingDto.hotel_id,
         room_id: createBookingDto.room_id,
@@ -236,6 +229,20 @@ export class BookingService {
 
       const booking = manager.create(HotelBooking, bookingData);
       const savedBooking = await manager.save(booking);
+
+      // Now deduct the booking amount from user's balance using transaction service with booking reference
+      await this.transactionService.deductBalance(
+        userId,
+        finalPrice,
+        TransactionType.BOOKING_PAYMENT,
+        `Booking payment for ${room.hotel.name} - Room ${room.room_number}`,
+        savedBooking.id, // Link transaction to booking
+        'booking',
+      );
+
+      this.logger.log(
+        `User ${userId} balance deducted: $${finalPrice.toFixed(2)} for booking ${savedBooking.id}`,
+      );
 
       // Update availability (decrement available units)
       for (const availRecord of availability) {
@@ -472,24 +479,20 @@ export class BookingService {
 
           updateBookingDto.payment_status = refundStatus;
 
-          // Refund the user's balance
+          // Refund the user's balance using transaction service
           if (refundAmt > 0 && booking.user_id) {
-            const user = await this.userRepository.findOne({
-              where: { id: booking.user_id },
-            });
+            await this.transactionService.addBalance(
+              booking.user_id,
+              refundAmt,
+              TransactionType.REFUND,
+              `Refund for cancelled booking at ${booking.hotel.name} - Room ${booking.room.room_number} (${refundStatus === 'PartialRefund' ? '50% refund - cancelled within 24 hours' : 'Full refund'})`,
+              booking.id,
+              'booking',
+            );
 
-            if (user) {
-              const currentBalance = parseFloat(user.balance.toString());
-              const newBalance = currentBalance + refundAmt;
-              
-              await this.userRepository.update(booking.user_id, {
-                balance: newBalance,
-              });
-
-              this.logger.log(
-                `Refund processed for user ${booking.user_id}: $${refundAmt.toFixed(2)} (${refundStatus}). Balance: $${currentBalance.toFixed(2)} -> $${newBalance.toFixed(2)}`,
-              );
-            }
+            this.logger.log(
+              `Refund processed for user ${booking.user_id}: $${refundAmt.toFixed(2)} (${refundStatus})`,
+            );
           }
 
           // Restore availability when booking is cancelled
@@ -584,24 +587,20 @@ export class BookingService {
     }
 
     return this.dataSource.transaction(async (manager) => {
-      // Refund the user's balance
+      // Refund the user's balance using transaction service
       if (refundAmount > 0) {
-        const user = await manager.findOne(User, {
-          where: { id: userId },
-        });
+        await this.transactionService.addBalance(
+          userId,
+          refundAmount,
+          TransactionType.REFUND,
+          `Refund for cancelled booking at ${booking.hotel.name} - Room ${booking.room.room_number} (${paymentStatus === 'PartialRefund' ? '50% refund - cancelled within 24 hours' : 'Full refund'})${cancellationReason ? ` - Reason: ${cancellationReason}` : ''}`,
+          booking.id,
+          'booking',
+        );
 
-        if (user) {
-          const currentBalance = parseFloat(user.balance.toString());
-          const newBalance = currentBalance + refundAmount;
-          
-          await manager.update(User, userId, {
-            balance: newBalance,
-          });
-
-          this.logger.log(
-            `Refund processed for user ${userId}: $${refundAmount.toFixed(2)} (${paymentStatus}). Balance: $${currentBalance.toFixed(2)} -> $${newBalance.toFixed(2)}`,
-          );
-        }
+        this.logger.log(
+          `Refund processed for user ${userId}: $${refundAmount.toFixed(2)} (${paymentStatus})`,
+        );
       }
 
       await manager.update(HotelBooking, id, {

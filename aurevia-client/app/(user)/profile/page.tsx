@@ -94,8 +94,8 @@ export default function ProfilePage() {
         setBookings(bookingsData)
 
         // Fetch user topup requests
-        const topupsData = await axiosInstance.get<TopupRequest[]>('/balance/topup/my-requests')
-        setTopupRequests(topupsData.data)
+        // const topupsData = await axiosInstance.get<TopupRequest[]>('/balance/topup/my-requests')
+        // setTopupRequests(topupsData.data)
 
         // Mark as fetched
         hasFetchedData.current = true
@@ -509,13 +509,6 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <DollarSign className="h-5 w-5 text-copper-accent" />
-                    <div>
-                      <p className="text-vintage-sm text-cream-light font-cormorant">Balance</p>
-                      <p className="text-vintage-base text-cream-light/80">{profile?.balance ? Number(profile.balance).toFixed(2) : '0.00'}</p>
-                    </div>
-                  </div>
                   <div className="flex items-center space-x-3">
                     <Mail className="h-5 w-5 text-copper-accent" />
                     <div>

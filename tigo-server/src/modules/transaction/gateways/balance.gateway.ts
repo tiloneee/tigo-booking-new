@@ -124,7 +124,8 @@ export class BalanceGateway implements OnGatewayInit, OnGatewayConnection, OnGat
    */
   private async subscribeToBalanceEvents() {
     try {
-      await this.redisService.subscribe(this.BALANCE_CHANNEL, (event: BalanceUpdateEvent) => {
+      await this.redisService.subscribe(this.BALANCE_CHANNEL, (message: string) => {
+        const event: BalanceUpdateEvent = JSON.parse(message);
         this.handleBalanceUpdateEvent(event);
       });
       this.logger.log('Successfully subscribed to Redis balance update events');

@@ -17,7 +17,6 @@ export interface User {
   phone_number?: string
   roles: string[] | Role[]  // Backend may return either format, but will be normalized to string[]
   is_active: boolean
-  balance?: number
 }
 
 // Helper function to check if user has a specific role

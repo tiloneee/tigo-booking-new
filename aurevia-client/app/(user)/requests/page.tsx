@@ -118,32 +118,18 @@ export default function RequestPage() {
                       </div>
 
                       <form onSubmit={handleTopupSubmit} className="space-y-6">
-                        {/* Current Balance Display */}
+                        {/* Current Balance Display - Note: Balance is now managed by transaction system */}
                         <div className="bg-copper-accent/10 border border-copper-accent/30 rounded-lg p-6">
                           <div className="flex items-center justify-between">
                             <div className="flex-1">
                               <p className="text-cream-light/60 font-cormorant text-vintage-sm mb-1">
-                                Current Balance
+                                Balance Information
                               </p>
-                              <p className="text-vintage-2xl font-playfair font-bold text-copper-accent">
-                                ${user?.balance ? Number(user.balance).toFixed(2) : '0.00'}
+                              <p className="text-vintage-base font-cormorant text-cream-light/80">
+                                Check transaction history for current balance
                               </p>
                             </div>
                             <div className="flex items-center gap-3">
-                              <Button
-                                type="button"
-                                onClick={async () => {
-                                  if (refreshUser) {
-                                    await refreshUser()
-                                    toast.success("Balance refreshed!")
-                                  }
-                                }}
-                                variant="outline"
-                                size="sm"
-                                className="bg-walnut-dark/50 border-copper-accent/30 text-copper-accent hover:bg-copper-accent/20 hover:text-copper-accent"
-                              >
-                                <RefreshCw className="h-4 w-4" />
-                              </Button>
                               <div className="w-16 h-16 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center">
                                 <Wallet className="h-8 w-8 text-walnut-dark" />
                               </div>

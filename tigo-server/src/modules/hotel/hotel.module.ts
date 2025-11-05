@@ -13,6 +13,7 @@ import { User } from '../user/entities/user.entity';
 // Modules
 import { SearchModule } from '../search/search.module';
 import { NotificationModule } from '../notification/notification.module';
+import { TransactionModule } from '../transaction/transaction.module';
 
 // Services
 import { HotelService } from './services/hotel.service';
@@ -54,6 +55,7 @@ import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
     ]),
     SearchModule,
     NotificationModule,
+    TransactionModule,
   ],
   controllers: [
     HotelController,
