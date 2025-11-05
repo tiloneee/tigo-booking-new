@@ -6,16 +6,19 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { User, Mail, Phone, Calendar, MapPin, CreditCard, Clock, CheckCircle, XCircle, X, Eye, EyeOff, Edit3, Save, X as XIcon, ChevronLeft, ChevronRight, Bell, ArrowUpDown, DollarSign, Receipt } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, CreditCard, Clock, CheckCircle, XCircle, X, Eye, EyeOff, Edit3, Save, X as XIcon, ChevronLeft, ChevronRight, Bell, ArrowUpDown, DollarSign, Receipt, Wallet, RefreshCw } from "lucide-react"
 import { authApi } from "@/lib/api"
 import { bookingsApi } from "@/lib/api/dashboard"
+import { balanceApi } from "@/lib/api/balance"
 import Header from "@/components/header"
 import type { User as ApiUser } from "@/lib/api"
 import type { Booking as DashboardBooking } from "@/types/dashboard"
+import type { Transaction } from "@/lib/api/balance"
 import { access } from "fs"
 import { gu } from "date-fns/locale"
 import { useNotifications } from "@/components/notifications/notification-provider"
 import { NotificationList } from "@/components/notifications/notification-list"
+import { useBalanceWebSocket } from "@/lib/hooks/use-balance-websocket"
 import axiosInstance from "@/lib/axios"
 
 // Use User type directly from API
@@ -24,26 +27,15 @@ type UserProfile = ApiUser
 // Use Booking type from dashboard
 type Booking = DashboardBooking
 
-// Topup request type
-interface TopupRequest {
-  id: string
-  user_id: string
-  amount: number
-  status: 'pending' | 'approved' | 'rejected'
-  admin_notes?: string
-  created_at: string
-  updated_at: string
-}
-
 type SortOption = 'date-desc' | 'date-asc' | 'price-desc' | 'price-asc' | 'status'
-type TabType = 'bookings' | 'topups'
+type TabType = 'bookings' | 'transactions'
 
 export default function ProfilePage() {
   const { user, accessToken, isLoading } = useAuth()
   const router = useRouter()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
-  const [topupRequests, setTopupRequests] = useState<TopupRequest[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
@@ -57,6 +49,9 @@ export default function ProfilePage() {
   const [editLoading, setEditLoading] = useState(false)
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null)
   const hasFetchedData = useRef(false) // Track if we've already fetched data
+  
+  // WebSocket for real-time balance
+  const { currentBalance, isConnected, refreshBalance } = useBalanceWebSocket()
   
   // Tab state
   const [activeTab, setActiveTab] = useState<TabType>('bookings')
@@ -88,14 +83,13 @@ export default function ProfilePage() {
         const profileData = await authApi.getProfile()
         setProfile(profileData)
 
-
         // Fetch user bookings
         const bookingsData = await bookingsApi.getByUser()
         setBookings(bookingsData)
 
-        // Fetch user topup requests
-        // const topupsData = await axiosInstance.get<TopupRequest[]>('/balance/topup/my-requests')
-        // setTopupRequests(topupsData.data)
+        // Fetch user transactions (replaces topup requests)
+        const transactionsData = await balanceApi.getMyTransactions()
+        setTransactions(transactionsData)
 
         // Mark as fetched
         hasFetchedData.current = true
@@ -147,16 +141,31 @@ export default function ProfilePage() {
     }
   }
 
-  const getTopupStatusBadgeColor = (status: string) => {
+  const getTransactionStatusBadgeColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'pending':
         return 'bg-yellow-900/60 text-yellow-300 border-yellow-400/70'
-      case 'approved':
+      case 'success':
         return 'bg-green-900/60 text-green-300 border-green-400/70'
-      case 'rejected':
+      case 'failed':
         return 'bg-red-900/60 text-red-300 border-red-400/70'
       default:
         return 'bg-gray-900/50 text-gray-300 border-gray-400/70'
+    }
+  }
+
+  const getTransactionTypeColor = (type: string) => {
+    switch (type.toLowerCase()) {
+      case 'topup':
+        return 'text-green-400'
+      case 'booking_payment':
+        return 'text-red-400'
+      case 'refund':
+        return 'text-green-400'
+      case 'cancellation_refund':
+        return 'text-purple-400'
+      default:
+        return 'text-gray-400'
     }
   }
 
@@ -178,17 +187,17 @@ export default function ProfilePage() {
     }
   })
 
-  // Sort topup requests
-  const sortedTopups = [...topupRequests].sort((a, b) => {
+  // Sort transactions
+  const sortedTransactions = [...transactions].sort((a, b) => {
     switch (sortBy) {
       case 'date-desc':
         return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       case 'date-asc':
         return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
       case 'price-desc':
-        return parseFloat(b.amount.toString()) - parseFloat(a.amount.toString())
+        return Math.abs(parseFloat(b.amount.toString())) - Math.abs(parseFloat(a.amount.toString()))
       case 'price-asc':
-        return parseFloat(a.amount.toString()) - parseFloat(b.amount.toString())
+        return Math.abs(parseFloat(a.amount.toString())) - Math.abs(parseFloat(b.amount.toString()))
       case 'status':
         return a.status.localeCompare(b.status)
       default:
@@ -197,7 +206,7 @@ export default function ProfilePage() {
   })
 
   // Get current items based on active tab
-  const currentItems = activeTab === 'bookings' ? sortedBookings : sortedTopups
+  const currentItems = activeTab === 'bookings' ? sortedBookings : sortedTransactions
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
   const paginatedItems = currentItems.slice(indexOfFirstItem, indexOfLastItem)
@@ -509,6 +518,34 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="space-y-4">
+                  {/* Real-time Balance Display */}
+                  <div className="flex items-center justify-between p-4 bg-copper-accent/10 border border-copper-accent/30 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <Wallet className="h-5 w-5 text-copper-accent" />
+                      <div>
+                        <p className="text-vintage-sm text-cream-light font-cormorant">Current Balance</p>
+                        <p className="text-vintage-xl font-playfair font-bold text-copper-accent">
+                          ${currentBalance !== null ? Number(currentBalance).toFixed(2) : 'Loading...'}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-2">
+                      <button
+                        onClick={refreshBalance}
+                        className="p-2 hover:bg-copper-accent/10 rounded transition-colors"
+                        title="Refresh balance"
+                      >
+                        <RefreshCw className="h-4 w-4 text-copper-accent" />
+                      </button>
+                      {isConnected && (
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                          <span className="text-vintage-xs text-green-400">Live</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="flex items-center space-x-3">
                     <Mail className="h-5 w-5 text-copper-accent" />
                     <div>
@@ -612,18 +649,18 @@ export default function ProfilePage() {
                   )}
                 </button>
                 <button
-                  onClick={() => handleTabChange('topups')}
+                  onClick={() => handleTabChange('transactions')}
                   className={`flex items-center gap-2 px-6 py-3 font-cormorant text-vintage-lg font-medium transition-all duration-300 ${
-                    activeTab === 'topups'
+                    activeTab === 'transactions'
                       ? 'text-copper-accent border-b-2 border-copper-accent'
                       : 'text-cream-light/60 hover:text-cream-light'
                   }`}
                 >
                   <Receipt className="h-5 w-5" />
-                  Topup History
-                  {topupRequests.length > 0 && (
+                  Transaction History
+                  {transactions.length > 0 && (
                     <Badge className="bg-copper-accent/20 text-copper-accent border-copper-accent/30 ml-2">
-                      {topupRequests.length}
+                      {transactions.length}
                     </Badge>
                   )}
                 </button>
@@ -663,8 +700,8 @@ export default function ProfilePage() {
                     ) : (
                       <>
                         <Receipt className="h-16 w-16 text-copper-accent/50 mx-auto mb-4" />
-                        <p className="text-vintage-lg text-cream-light/60 font-cormorant mb-2">No topup requests yet</p>
-                        <p className="text-vintage-sm text-cream-light/40">Request a balance topup to get started!</p>
+                        <p className="text-vintage-lg text-cream-light/60 font-cormorant mb-2">No transactions yet</p>
+                        <p className="text-vintage-sm text-cream-light/40">Your transaction history will appear here!</p>
                       </>
                     )}
                   </div>
@@ -756,67 +793,67 @@ export default function ProfilePage() {
                     </div>
                   ))}
 
-                    {/* Topup History Content */}
-                    {activeTab === 'topups' && (paginatedItems as TopupRequest[]).map((topup) => (
-                      <div key={topup.id} className="bg-walnut-light/30 border border-copper-accent/10 rounded-lg p-4 hover:bg-walnut-light/40 transition-colors duration-300">
+                    {/* Transaction History Content */}
+                    {activeTab === 'transactions' && (paginatedItems as Transaction[]).map((transaction) => (
+                      <div key={transaction.id} className="bg-walnut-light/30 border border-copper-accent/10 rounded-lg p-4 hover:bg-walnut-light/40 transition-colors duration-300">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center flex-shrink-0">
-                              <DollarSign className="h-6 w-6 text-walnut-dark" />
+                            <div className={`w-12 h-12 bg-gradient-to-br ${
+                              (transaction.status === 'success') ? (parseFloat(transaction.amount.toString()) >= 0
+                                ? 'from-green-500 to-green-600'
+                                : 'from-red-500 to-red-600') : 'bg-yellow-500'
+                            } rounded-full flex items-center justify-center flex-shrink-0`}>
+                              <Receipt className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                              <h4 className="text-vintage-xl font-playfair font-semibold text-cream-light mb-1">
-                                ${Number(topup.amount).toFixed(2)}
+                              <h4 className={`text-vintage-2xl font-playfair font-semibold mb-1 ${(transaction.status === 'pending') ? 'text-yellow-400' : getTransactionTypeColor(transaction.type)}`}>
+                                {(parseFloat(transaction.amount.toString()) >= 0 ? '+' : '-')}${Math.abs(parseFloat(transaction.amount.toString())).toFixed(2)}
                               </h4>
-                              <p className="text-vintage-sm text-cream-light/60 font-cormorant">
-                                Requested on {formatDate(topup.created_at)}
+                              <p className="text-vintage-base text-cream-light/60 font-cormorant">
+                                {transaction.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                              </p>
+                              <p className="text-vintage-sm text-cream-light/50 font-cormorant">
+                                {formatDate(transaction.created_at)}
                               </p>
                             </div>
                           </div>
-                          <Badge className={`${getTopupStatusBadgeColor(topup.status)} font-cinzel uppercase tracking-wider`}>
-                            {topup.status}
-                          </Badge>
+                          <div className="flex flex-col items-end gap-2">
+                            <Badge className={`${getTransactionStatusBadgeColor(transaction.status)} font-cinzel uppercase tracking-wider px-3 py-1`}>
+                              {transaction.status.toUpperCase()}
+                            </Badge>
+                          </div>
                         </div>
-
-                        {topup.admin_notes && (
-                          <div className="mt-3 p-3 bg-walnut-darkest/50 border border-copper-accent/20 rounded-lg">
-                            <div className="flex items-start gap-2">
-                              <Receipt className="h-4 w-4 text-copper-accent mt-0.5 flex-shrink-0" />
-                              <div>
-                                <div className="text-vintage-xs text-copper-accent font-cinzel uppercase tracking-wider mb-1">
-                                  Admin Notes
-                                </div>
-                                <p className="text-vintage-sm text-cream-light/80 font-cormorant">
-                                  {topup.admin_notes}
-                                </p>
-                              </div>
-                            </div>
+                        {transaction.description && (
+                          <div className="mt-3 pt-3 border-t border-copper-accent/10">
+                            <p className="text-vintage-base text-cream-light/70 font-cormorant">
+                              {transaction.description}
+                            </p>
                           </div>
                         )}
-
-                        <div className="mt-3 pt-3 border-t border-copper-accent/10">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              {topup.status === 'pending' && <Clock className="h-4 w-4 text-yellow-500" />}
-                              {topup.status === 'approved' && <CheckCircle className="h-4 w-4 text-green-500" />}
-                              {topup.status === 'rejected' && <XCircle className="h-4 w-4 text-red-500" />}
-                              <span className="text-vintage-sm text-cream-light/60">
-                                {topup.status === 'pending' && 'Awaiting admin approval'}
-                                {topup.status === 'approved' && `Approved - Balance updated on ${formatDate(topup.updated_at)}`}
-                                {topup.status === 'rejected' && `Rejected on ${formatDate(topup.updated_at)}`}
-                              </span>
-                            </div>
+                        {transaction.admin_notes && (
+                          <div className="mt-2 p-3 bg-copper-accent/5 rounded border border-copper-accent/20">
+                            <p className="text-vintage-sm text-copper-accent font-cormorant font-semibold mb-1">Admin Notes:</p>
+                            <p className="text-vintage-base text-cream-light/80 font-cormorant">
+                              {transaction.admin_notes}
+                            </p>
                           </div>
-                        </div>
+                        )}
+                        {transaction.reference_id && (
+                          <div className="mt-2 flex items-center gap-2 text-vintage-xs text-cream-light/50">
+                            <span>Ref: {transaction.reference_id.slice(0, 8)}...</span>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
+                
 
+                {/* Pagination */}
                   {/* Pagination Controls */}
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-copper-accent/20">
                       <div className="text-vintage-sm text-cream-light/60 font-cormorant">
-                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, currentItems.length)} of {currentItems.length} {activeTab === 'bookings' ? 'bookings' : 'topup requests'}
+                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, currentItems.length)} of {currentItems.length} {activeTab === 'bookings' ? 'bookings' : 'transactions'}
                       </div>
                       <div className="flex items-center gap-2">
                         <Button

@@ -164,7 +164,7 @@ export class TransactionService {
   async getAllTopupTransactions(): Promise<Transaction[]> {
     return this.transactionRepository.find({
       where: { type: TransactionType.TOPUP },
-      relations: ['user'],
+      relations: ['user', 'processor'],
       order: { created_at: 'DESC' },
     });
   }
@@ -178,7 +178,7 @@ export class TransactionService {
         type: TransactionType.TOPUP,
         status: TransactionStatus.PENDING,
       },
-      relations: ['user'],
+      relations: ['user', 'processor'],
       order: { created_at: 'ASC' },
     });
   }
@@ -212,9 +212,9 @@ export class TransactionService {
     await queryRunner.startTransaction();
 
     try {
+      // First, lock the transaction without relations (to avoid LEFT JOIN with FOR UPDATE)
       const transaction = await queryRunner.manager.findOne(Transaction, {
         where: { id: transactionId },
-        relations: ['user'],
         lock: { mode: 'pessimistic_write' },
       });
 
@@ -337,7 +337,13 @@ export class TransactionService {
         await queryRunner.commitTransaction();
       }
 
-      return transaction;
+      // Load the relations after committing to return complete data to frontend
+      const updatedTransaction = await this.transactionRepository.findOne({
+        where: { id: transaction.id },
+        relations: ['user', 'processor'],
+      });
+
+      return updatedTransaction || transaction;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;

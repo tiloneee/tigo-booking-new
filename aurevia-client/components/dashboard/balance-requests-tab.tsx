@@ -5,19 +5,19 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DollarSign, Check, X, User, Calendar, ChevronDown, MessageSquare } from "lucide-react"
-import { BalanceRequest, TopupStatus } from "@/types/dashboard"
 import { balanceRequestsApi } from "@/lib/api/dashboard"
+import { Transaction } from "@/lib/api/balance"
 
 interface BalanceRequestsTabProps {
-  requests: BalanceRequest[]
+  requests: Transaction[]
   accessToken: string
   onRefresh: () => void
-  onUpdateRequest: (requestId: string, updatedRequest: BalanceRequest) => void
+  onUpdateRequest: (requestId: string, updatedRequest: Transaction) => void
 }
 
 type SortField = 'created_at' | 'amount' | 'status'
 type SortOrder = 'asc' | 'desc'
-type FilterStatus = 'all' | TopupStatus
+type FilterStatus = 'all' | 'pending' | 'success' | 'failed'
 
 export default function BalanceRequestsTab({ 
   requests, 
@@ -32,12 +32,12 @@ export default function BalanceRequestsTab({
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all')
 
-  const handleProcess = async (requestId: string, status: TopupStatus.APPROVED | TopupStatus.REJECTED) => {
+  const handleProcess = async (requestId: string, status: 'success' | 'failed' | 'cancelled') => {
     if (processingId) return
 
     try {
       setProcessingId(requestId)
-      const updatedRequest = await balanceRequestsApi.process(requestId, {
+      const updatedRequest = await balanceRequestsApi.processTopup(requestId, {
         status,
         admin_notes: adminNotes[requestId] || undefined
       })
@@ -59,13 +59,15 @@ export default function BalanceRequestsTab({
     }
   }
 
-  const getStatusBadge = (status: TopupStatus) => {
-    switch (status) {
-      case TopupStatus.PENDING:
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
         return 'bg-yellow-900/40 text-yellow-300 border-yellow-400/60'
-      case TopupStatus.APPROVED:
+      case 'success':
+      case 'approved':
         return 'bg-green-900/40 text-green-300 border-green-400/60'
-      case TopupStatus.REJECTED:
+      case 'failed':
+      case 'rejected':
         return 'bg-red-900/40 text-red-300 border-red-400/60'
       default:
         return 'bg-gray-900/40 text-gray-300 border-gray-400/60'
@@ -157,9 +159,9 @@ export default function BalanceRequestsTab({
                 className="px-3 py-2 bg-walnut-darkest border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-sm focus:outline-none focus:ring-2 focus:ring-copper-accent/50"
               >
                 <option value="all">All Status</option>
-                <option value={TopupStatus.PENDING}>Pending</option>
-                <option value={TopupStatus.APPROVED}>Approved</option>
-                <option value={TopupStatus.REJECTED}>Rejected</option>
+                <option value="pending">Pending</option>
+                <option value="success">Success</option>
+                <option value="failed">Failed</option>
               </select>
             </div>
 
@@ -232,11 +234,13 @@ export default function BalanceRequestsTab({
                       </div>
                       
                       <div className="mt-2 space-y-1">
-                        <div className="flex items-center gap-2 text-cream-light/80 text-vintage-sm font-cormorant">
-                          <User className="h-4 w-4" />
-                          <span>{request.user.first_name} {request.user.last_name}</span>
-                          <span className="text-cream-light/60">({request.user.email})</span>
-                        </div>
+                        {request.user && (
+                          <div className="flex items-center gap-2 text-cream-light/80 text-vintage-sm font-cormorant">
+                            <User className="h-4 w-4" />
+                            <span>{request.user.first_name} {request.user.last_name}</span>
+                            <span className="text-cream-light/60">({request.user.email})</span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-2 text-cream-light/80 text-vintage-sm font-cormorant">
                           <Calendar className="h-4 w-4" />
                           <span>{formatDate(request.created_at)}</span>
@@ -270,10 +274,10 @@ export default function BalanceRequestsTab({
                   </div>
 
                   {/* Action Buttons */}
-                  {request.status === TopupStatus.PENDING && (
+                  {request.status === 'pending' && (
                     <div className="flex flex-col gap-2 flex-shrink-0">
                       <Button
-                        onClick={() => handleProcess(request.id, TopupStatus.APPROVED)}
+                        onClick={() => handleProcess(request.id, 'success')}
                         disabled={processingId === request.id}
                         className="text-emerald-200 border-green-400 bg-gradient-to-r from-green-400/30 to-green-400/80 font-cinzel font-bold rounded-lg hover:shadow-green-400/30 hover:bg-green-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                       >
@@ -281,7 +285,7 @@ export default function BalanceRequestsTab({
                         Approve
                       </Button>
                       <Button
-                        onClick={() => handleProcess(request.id, TopupStatus.REJECTED)}
+                        onClick={() => handleProcess(request.id, 'failed')}
                         disabled={processingId === request.id}
                         className="text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                       >
@@ -301,7 +305,7 @@ export default function BalanceRequestsTab({
                 </div>
 
                 {/* Admin Notes Input (Expanded) */}
-                {expandedId === request.id && request.status === TopupStatus.PENDING && (
+                {expandedId === request.id && request.status === 'pending' && (
                   <div className="mt-4 p-4 bg-walnut-darkest/50 border border-copper-accent/20 rounded-lg">
                     <label className="block text-vintage-sm text-cream-light/80 font-cormorant mb-2">
                       Add admin notes (optional):

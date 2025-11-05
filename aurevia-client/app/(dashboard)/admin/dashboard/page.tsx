@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Users, Building2, AlertCircle, Search, X, DollarSign } from "lucide-react"
 import { usersApi, hotelsApi, balanceRequestsApi } from "@/lib/api/dashboard"
 import { getRoleName, hasRole } from "@/lib/api"
-import type { DashboardUser, Hotel, BalanceRequest } from "@/types/dashboard"
+import type { DashboardUser, Hotel } from "@/types/dashboard"
+import type { Transaction } from "@/lib/api/balance"
 import UsersTab from "@/components/dashboard/users-tab"
 import HotelsTab from "@/components/dashboard/hotels-tab"
 import BalanceRequestsTab from "@/components/dashboard/balance-requests-tab"
@@ -22,7 +23,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('users')
   const [users, setUsers] = useState<DashboardUser[]>([])
   const [hotels, setHotels] = useState<Hotel[]>([])
-  const [balanceRequests, setBalanceRequests] = useState<BalanceRequest[]>([])
+  const [balanceRequests, setBalanceRequests] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -43,7 +44,7 @@ export default function AdminDashboard() {
         const [usersData, hotelsData, balanceRequestsData] = await Promise.all([
           usersApi.getAll().catch(() => []),
           hotelsApi.getAll().catch(() => []),
-          balanceRequestsApi.getAll().catch(() => []),
+          balanceRequestsApi.getAllTopups().catch(() => []),
         ])
         setUsers(usersData)
         setHotels(hotelsData)
@@ -88,7 +89,7 @@ export default function AdminDashboard() {
     loadDashboardData()
   }
 
-  const handleUpdateBalanceRequest = (requestId: string, updatedRequest: BalanceRequest) => {
+  const handleUpdateBalanceRequest = (requestId: string, updatedRequest: Transaction) => {
     setBalanceRequests(prev => 
       prev.map(req => req.id === requestId ? updatedRequest : req)
     )
@@ -131,9 +132,9 @@ export default function AdminDashboard() {
     
     const query = searchQuery.toLowerCase()
     return (
-      request.user.first_name.toLowerCase().includes(query) ||
-      request.user.last_name.toLowerCase().includes(query) ||
-      request.user.email.toLowerCase().includes(query) ||
+      request.user?.first_name.toLowerCase().includes(query) ||
+      request.user?.last_name.toLowerCase().includes(query) ||
+      request.user?.email.toLowerCase().includes(query) ||
       request.amount.toString().includes(query) ||
       request.status.toLowerCase().includes(query)
     )

@@ -70,9 +70,18 @@ export class TransactionController {
     return this.transactionService.getAllTransactions();
   }
 
-  @Get(':id')
-  getTransactionById(@Param('id') id: string) {
-    return this.transactionService.getTransactionById(id);
+  @Get('verify/:userId')
+  @UseGuards(RolesGuard)
+  @Roles('Admin')
+  verifyUserBalance(@Param('userId') userId: string) {
+    return this.transactionService.verifyBalanceSnapshot(userId);
+  }
+
+  @Get('audit')
+  @UseGuards(RolesGuard)
+  @Roles('Admin')
+  auditAllBalances() {
+    return this.transactionService.auditAllBalanceSnapshots();
   }
 
   @Patch('topup/:id/process')
@@ -104,17 +113,9 @@ export class TransactionController {
     return this.transactionService.recalculateAllBalanceSnapshots();
   }
 
-  @Get('verify/:userId')
-  @UseGuards(RolesGuard)
-  @Roles('Admin')
-  verifyUserBalance(@Param('userId') userId: string) {
-    return this.transactionService.verifyBalanceSnapshot(userId);
-  }
-
-  @Get('audit')
-  @UseGuards(RolesGuard)
-  @Roles('Admin')
-  auditAllBalances() {
-    return this.transactionService.auditAllBalanceSnapshots();
+  // Must be last - catches all /transactions/:id routes
+  @Get(':id')
+  getTransactionById(@Param('id') id: string) {
+    return this.transactionService.getTransactionById(id);
   }
 }

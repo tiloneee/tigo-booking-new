@@ -4,10 +4,11 @@ import { useState, useRef, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { User, LogOut, MessageCircle, Calendar, LayoutDashboard, ChevronDown, FileText } from "lucide-react"
+import { User, LogOut, MessageCircle, Calendar, LayoutDashboard, ChevronDown, FileText, Wallet, RefreshCw } from "lucide-react"
 import { NotificationBell } from "@/components/notifications/notification-bell"
 import { useRouter } from 'next/navigation'
 import { hasRole } from "@/lib/api"
+import { useBalanceWebSocket } from "@/lib/hooks/use-balance-websocket"
 
 
 export default function UserNav() {
@@ -15,6 +16,9 @@ export default function UserNav() {
   const router = useRouter()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  // WebSocket for real-time balance updates
+  const { currentBalance, isConnected, refreshBalance } = useBalanceWebSocket()
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -27,18 +31,6 @@ export default function UserNav() {
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
-
-  // Periodically refresh user data to check for balance updates
-  useEffect(() => {
-    if (!isAuthenticated || !refreshUser) return
-
-    // Refresh user data every 30 seconds to check for balance updates
-    const interval = setInterval(() => {
-      refreshUser()
-    }, 30000) // 30 seconds
-
-    return () => clearInterval(interval)
-  }, [isAuthenticated, refreshUser])
 
   if (isLoading) {
     return (
@@ -99,6 +91,16 @@ export default function UserNav() {
               </p>
               <ChevronDown className={`h-4 w-4 text-cream-light ml-1 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </div>
+            {/* Real-time balance display */}
+            <div className="flex items-center gap-1">
+              <Wallet className="h-3 w-3 text-copper-accent" />
+              <p className="text-copper-accent font-cinzel font-semibold text-vintage-xs uppercase tracking-wider">
+                ${currentBalance !== null ? Number(currentBalance).toFixed(2) : '---'}
+              </p>
+              {isConnected && (
+                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" title="Live updates active" />
+              )}
+            </div>
           </div>
         </button>
 
@@ -106,6 +108,37 @@ export default function UserNav() {
         {isDropdownOpen && (
           <div className="absolute right-0 top-full mt-2 w-56 z-50">
             <div className="bg-walnut-dark/98 backdrop-blur-sm border border-copper-accent/20 rounded-lg shadow-2xl overflow-hidden">
+              {/* Balance Display with Refresh */}
+              <div className="px-4 py-3 bg-copper-accent/5 border-b border-copper-accent/10">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Wallet className="h-4 w-4 text-copper-accent" />
+                    <div>
+                      <p className="text-cream-light/60 font-cormorant text-vintage-xs">Balance</p>
+                      <p className="text-copper-accent font-cinzel font-bold text-vintage-base">
+                        ${currentBalance !== null ? Number(currentBalance).toFixed(2) : 'Loading...'}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      refreshBalance()
+                    }}
+                    className="p-1.5 hover:bg-copper-accent/10 rounded transition-colors"
+                    title="Refresh balance"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5 text-copper-accent" />
+                  </button>
+                </div>
+                {isConnected && (
+                  <p className="text-green-400 text-vintage-xs mt-1 flex items-center gap-1">
+                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+                    Live updates active
+                  </p>
+                )}
+              </div>
+
               {/* Profile Link */}
               <Link 
                 href="/profile"
