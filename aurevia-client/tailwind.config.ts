@@ -19,30 +19,24 @@ const config: Config = {
     },
     extend: {
       colors: {
-        // Darker vintage luxury color palette
-        "walnut-darkest": "#1A0F08",
-        "walnut-dark": "#241611",
-        "walnut-medium": "#2F1D15",
-        "walnut-light": "#3A251A",
-        "walnut-lightest": "#453025",
-        "copper-dark": "#B87333",
-        "copper-accent": "#CD7F32",
-        "copper-light": "#D2B48C",
-        "cream-light": "#FFF8DC",
-        "cream-medium": "#F5F5DC",
-        "cream-dark": "#E6E6D4",
+        // New warm vintage color palette
+        "terracotta-rose": "#B77466",
+        "ash-brown": "#957C62",
+        "creamy-white": "#FFE1AF",
+        "soft-beige": "#E2B59A",
+        "deep-brown": "#4A3B2F",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#CD7F32",
-          foreground: "#1A0F08",
+          DEFAULT: "#B77466", // Terracotta Rose
+          foreground: "#FFE1AF", // Creamy White
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "#957C62", // Ash Brown
+          foreground: "#FFE1AF", // Creamy White
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -66,14 +60,11 @@ const config: Config = {
         },
       },
       fontFamily: {
-        // Vintage font families
-        playfair: ["Playfair Display", "serif"],
-        cormorant: ["Cormorant Garamond", "serif"],
-        crimson: ["Crimson Text", "serif"],
-        "great-vibes": ["Great Vibes", "cursive"],
-        cinzel: ["Cinzel", "serif"],
+        // Primary font families
         libre: ["Libre Baskerville", "serif"],
-        serif: ["Playfair Display", "Georgia", "Times New Roman", "serif"],
+        varela: ["Varela Round", "sans-serif"],
+        serif: ["Libre Baskerville", "Georgia", "Times New Roman", "serif"],
+        sans: ["Varela Round", "system-ui", "sans-serif"],
       },
       fontSize: {
         "vintage-xs": ["0.75rem", { lineHeight: "1.2", letterSpacing: "0.05em" }],
