@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -13,11 +13,13 @@ import { Permission } from './entities/permission.entity';
 import { JwtStrategy } from '../../common/strategies/jwt.strategy';
 import { JwtRefreshStrategy } from '../../common/strategies/jwt-refresh.strategy';
 import { EmailService } from '../../common/services/email.service';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Role, Permission]),
     PassportModule,
+    forwardRef(() => NotificationModule),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -28,7 +30,14 @@ import { EmailService } from '../../common/services/email.service';
     }),
   ],
   controllers: [UserController, AuthController],
-  providers: [UserService, AuthService, JwtStrategy, JwtRefreshStrategy, EmailService],
+  providers: [
+    UserService,
+    AuthService,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    EmailService,
+  ],
+
   exports: [UserService, AuthService],
 })
 export class UserModule {}

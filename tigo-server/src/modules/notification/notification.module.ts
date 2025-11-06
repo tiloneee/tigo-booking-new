@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -21,7 +21,6 @@ import { DebugController } from './controllers/debug.controller';
 import { NotificationGateway } from './gateways/notification.gateway';
 
 // Import other modules
-import { ChatModule } from '../chat/chat.module';
 import { UserModule } from '../user/user.module';
 import { EmailService } from '../../common/services/email.service';
 
@@ -32,8 +31,7 @@ import { EmailService } from '../../common/services/email.service';
       NotificationTemplate,
       NotificationPreference,
     ]),
-    ChatModule, // Import for Redis service
-    UserModule, // Import for User entity
+    forwardRef(() => UserModule), // Use forwardRef to resolve circular dependency
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

@@ -323,8 +323,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                           <Button
                             onClick={() => setEditHotelModal({ isOpen: true, hotel })}
                             size="sm"
-                            variant="outline"
-                            className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10"
+                            className="text-yellow-400 border-yellow-400 bg-gradient-to-r from-yellow-400/10 to-yellow-400/30 font-cinzel font-bold rounded-lg hover:shadow-yellow-400/30 hover:bg-yellow-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                           >
                             <Edit className="h-4 w-4 mr-2" />
                             Edit Hotel
@@ -399,8 +398,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                       <Button
                                         onClick={() => setEditRoomModal({ isOpen: true, room })}
                                         size="sm"
-                                        variant="outline"
-                                        className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10"
+                                        className="text-yellow-400 border-yellow-400 bg-gradient-to-r from-yellow-400/20 to-yellow-400/50 font-cinzel font-bold rounded-lg hover:shadow-yellow-400/30 hover:bg-yellow-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                                       >
                                         <Edit className="h-4 w-4" />
                                       </Button>
@@ -411,16 +409,14 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                           availability: roomAvailability[room.id] || []
                                         })}
                                         size="sm"
-                                        variant="outline"
-                                        className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10"
+                                        className="text-yellow-400 border-yellow-400 bg-gradient-to-r from-yellow-400/20 to-yellow-400/50 font-cinzel font-bold rounded-lg hover:shadow-yellow-400/30 hover:bg-yellow-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                                       >
                                         <Settings className="h-4 w-4" />
                                       </Button>
                                       <Button
                                         onClick={() => toggleRoom(room.id)}
                                         size="sm"
-                                        variant="outline"
-                                        className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10"
+                                        className="text-yellow-400 border-yellow-400 bg-gradient-to-r from-yellow-400/20 to-yellow-400/50 font-cinzel font-bold rounded-lg hover:shadow-yellow-400/30 hover:bg-yellow-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                                       >
                                         {expandedRooms.has(room.id) ? (
                                           <ChevronUp className="h-4 w-4" />
@@ -570,7 +566,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                           <Button
                                             onClick={() => confirmBooking(booking.id, hotel.id)}
                                             size="sm"
-                                            className="bg-green-600 hover:bg-green-700 text-white font-cinzel text-vintage-xs"
+                                            className="text-green-400 border-green-400 bg-gradient-to-r from-green-400/20 to-green-400/50 font-cinzel font-bold rounded-lg hover:shadow-green-400/30 hover:bg-green-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                                           >
                                             <CheckCircle className="h-3 w-3 mr-1" />
                                             Confirm
@@ -578,8 +574,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                           <Button
                                             onClick={() => cancelBooking(booking.id, hotel.id)}
                                             size="sm"
-                                            variant="outline"
-                                            className="border-red-500 text-red-400 hover:bg-red-500/10 font-cinzel text-vintage-xs"
+                                            className="text-red-400 border-red-400 bg-gradient-to-r from-red-400/20 to-red-400/50 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                                           >
                                             <XCircle className="h-3 w-3 mr-1" />
                                             Cancel
@@ -592,8 +587,7 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                           <Button
                                             onClick={() => cancelBooking(booking.id, hotel.id)}
                                             size="sm"
-                                            variant="outline"
-                                            className="border-red-500 text-red-400 hover:bg-red-500/10 font-cinzel text-vintage-xs"
+                                            className="text-red-400 border-red-400 bg-gradient-to-r from-red-400/20 to-red-400/50 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                                           >
                                             <XCircle className="h-3 w-3 mr-1" />
                                             Cancel

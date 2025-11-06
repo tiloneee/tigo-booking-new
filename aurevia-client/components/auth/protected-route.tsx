@@ -3,6 +3,7 @@
 import { useAuth } from "@/lib/auth-context"
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
+import { hasRole } from "@/lib/api"
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -27,10 +28,7 @@ export default function ProtectedRoute({
     }
 
     if (allowedRoles.length > 0 && user) {
-      const userRoles = user.roles || []
-      const hasRequiredRole = allowedRoles.some(role => 
-        userRoles.includes(role)
-      )
+      const hasRequiredRole = allowedRoles.some(role => hasRole(user, role))
 
       if (!hasRequiredRole) {
         router.push("/unauthorized")
@@ -55,10 +53,7 @@ export default function ProtectedRoute({
   }
 
   if (allowedRoles.length > 0 && user) {
-    const userRoles = user.roles || []
-    const hasRequiredRole = allowedRoles.some(role => 
-      userRoles.includes(role)
-    )
+    const hasRequiredRole = allowedRoles.some(role => hasRole(user, role))
 
     if (!hasRequiredRole) {
       return null // Will redirect in useEffect
@@ -66,4 +61,4 @@ export default function ProtectedRoute({
   }
 
   return <>{children}</>
-} 
+}

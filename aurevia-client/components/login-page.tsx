@@ -15,7 +15,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const router = useRouter()
-  const { login } = useAuth()
+  const { login, refreshUser } = useAuth()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,6 +31,8 @@ export default function LoginPage() {
 
     try {
       await login(email, password)
+      // Immediately refresh user data to ensure balance is up-to-date
+      await refreshUser()
       router.push("/") // Redirect to home page after successful login
     } catch (error: any) {
       console.error('Login error:', error)

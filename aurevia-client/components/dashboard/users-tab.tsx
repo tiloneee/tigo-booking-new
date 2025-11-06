@@ -137,8 +137,7 @@ export default function UsersTab({ users, accessToken, onRefresh }: UsersTabProp
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10"
+                        className="text-yellow-400 border-yellow-400 bg-gradient-to-r from-yellow-400/20 to-yellow-400/50 font-cinzel font-bold rounded-lg hover:shadow-yellow-400/30 hover:bg-yellow-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                         disabled
                       >
                         <Edit className="h-4 w-4 mr-2" />
@@ -146,8 +145,7 @@ export default function UsersTab({ users, accessToken, onRefresh }: UsersTabProp
                       </Button>
                       <Button
                         size="sm"
-                        variant="outline"
-                        className="text-red-300 border-red-500/30 hover:bg-red-900/20"
+                        className="text-red-400 border-red-400 bg-gradient-to-r from-red-400/20 to-red-400/50 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleDeleteUser(user.id)

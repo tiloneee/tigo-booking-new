@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { AuthProvider } from "@/lib/auth-context"
 import { NotificationProvider } from "@/components/notifications/notification-provider"
+import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -32,6 +33,23 @@ export default function RootLayout({
         <AuthProvider>
           <NotificationProvider>
             {children}
+            <Toaster 
+              position="top-right"
+              style={{
+                marginTop: '6rem',
+              }}
+              toastOptions={{
+                style: {
+                  background: '#3d2419',
+                  color: '#f5f1e8',
+                  border: '1px solid rgba(205, 127, 50, 0.3)',
+                },
+                classNames: {
+                  error: 'toast-error',
+                  success: 'toast-success',
+                },
+              }}
+            />
           </NotificationProvider>
         </AuthProvider>
       </body>

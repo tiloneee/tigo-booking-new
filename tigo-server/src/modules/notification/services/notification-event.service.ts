@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { RedisService } from '../../chat/services/redis.service';
+import { RedisService } from '../../../common/services/redis.service';
 import { NotificationService } from './notification.service';
 import { NotificationType } from '../entities/notification.entity';
 
@@ -66,6 +66,15 @@ export class NotificationEventService implements OnModuleInit {
         break;
       case 'SYSTEM_ANNOUNCEMENT':
         notificationType = NotificationType.SYSTEM_ANNOUNCEMENT;
+        break;
+      case 'TOPUP_REQUEST':
+        notificationType = NotificationType.TOPUP_REQUEST;
+        break;
+      case 'TOPUP_APPROVED':
+        notificationType = NotificationType.TOPUP_APPROVED;
+        break; 
+      case 'TOPUP_REJECTED':
+        notificationType = NotificationType.TOPUP_REJECTED;
         break;
       case 'PAYMENT_SUCCESS':
         notificationType = NotificationType.PAYMENT_SUCCESS;
@@ -148,6 +157,18 @@ export class NotificationEventService implements OnModuleInit {
       metadata,
       related_entity_type: 'payment',
       related_entity_id: metadata.payment_id,
+    });
+  }
+
+  async triggerTopupNotification(userId: string, type: 'TOPUP_REQUEST' | 'TOPUP_APPROVED' | 'TOPUP_REJECTED', title: string, message: string, metadata: any) {
+    await this.redisService.publishMessage('notification:events', {
+      type,
+      user_id: userId,
+      title,
+      message,
+      metadata,
+      related_entity_type: 'topup',
+      related_entity_id: metadata.topup_id,
     });
   }
 

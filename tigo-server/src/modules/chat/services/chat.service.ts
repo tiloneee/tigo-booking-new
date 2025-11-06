@@ -10,7 +10,7 @@ import { CreateChatRoomDto } from '../dto/create-chat-room.dto';
 import { SendMessageDto } from '../dto/send-message.dto';
 import { ChatRoomQueryDto } from '../dto/chat-room-query.dto';
 import { MessageQueryDto } from '../dto/message-query.dto';
-import { RedisService } from './redis.service';
+import { RedisService } from '../../../common/services/redis.service';
 
 @Injectable()
 export class ChatService {

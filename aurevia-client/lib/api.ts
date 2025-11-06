@@ -1,13 +1,46 @@
 import axiosInstance from './axios'
 
+export interface Role {
+  id: string
+  name: string
+  description?: string  // Make description optional
+  permissions?: any[]
+  created_at?: string
+  updated_at?: string
+}
+
 export interface User {
   id: string
   email: string
   first_name: string
   last_name: string
   phone_number?: string
-  roles: string[]
+  roles: string[] | Role[]  // Backend may return either format, but will be normalized to string[]
   is_active: boolean
+}
+
+// Helper function to check if user has a specific role
+export const hasRole = (user: User | null, roleName: string): boolean => {
+  if (!user?.roles) return false
+  
+  // Handle both string array and Role object array
+  if (typeof user.roles[0] === 'string') {
+    return (user.roles as string[]).includes(roleName)
+  }
+  
+  return (user.roles as Role[]).some(role => role.name === roleName)
+}
+
+// Helper function to get role name (handles both string and Role object)
+export const getRoleName = (role: string | Role): string => {
+  return typeof role === 'string' ? role : role.name
+}
+
+// Helper function to get all role names as strings
+export const getRoleNames = (user: User | null): string[] => {
+  if (!user?.roles) return []
+  
+  return user.roles.map(role => getRoleName(role))
 }
 
 export interface AuthResponse {
