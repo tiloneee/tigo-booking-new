@@ -44,7 +44,7 @@ export default function UserNav() {
         <Link href="/auth/login">
           <Button 
             size="sm"
-            className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-playfair border-copper-accent/30 font-semibold  hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 text-vintage-base tracking-wider"
+            className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange/80 text-dark-brown font-varela border-accent/30 font-semibold hover:shadow-accent/30 transition-all duration-300 hover:scale-105 tracking-wider"
           >
             Sign In
           </Button>
@@ -52,7 +52,7 @@ export default function UserNav() {
         <Link href="/auth/register">
           <Button 
             size="sm"
-            className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-playfair border-copper-accent/30 font-semibold  hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 text-vintage-base tracking-wider"
+            className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange/80 text-dark-brown font-varela border-accent/30 font-semibold hover:shadow-accent/30 transition-all duration-300 hover:scale-105 tracking-wider"
           >
             Sign Up
           </Button>
@@ -81,24 +81,24 @@ export default function UserNav() {
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className="flex items-center space-x-2 group cursor-pointer"
         >
-          <div className="w-8 h-8 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center group-hover:shadow-lg group-hover:shadow-copper-accent/30 transition-all duration-300">
+          <div className="w-8 h-8 bg-gradient-to-br from-terracotta-rose to-terracotta-orange rounded-full flex items-center justify-center group-hover:shadow-lg group-hover:shadow-terracotta-rose/70 transition-all duration-300">
             <User className="h-4 w-4 text-walnut-dark" />
           </div>
           <div className="hidden md:block">
             <div className="flex items-center">
-              <p className="text-cream-light font-cormorant text-vintage-sm font-medium group-hover:text-copper-accent transition-colors duration-300">
+              <p className="text-creamy-yellow font-varela text-vintage-sm font-medium group-hover:text-creamy-white transition-colors duration-300">
                 {user?.first_name} {user?.last_name}
               </p>
-              <ChevronDown className={`h-4 w-4 text-cream-light ml-1 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-4 w-4 text-creamy-yellow ml-1 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
             </div>
             {/* Real-time balance display */}
             <div className="flex items-center gap-1">
-              <Wallet className="h-3 w-3 text-copper-accent" />
-              <p className="text-copper-accent font-cinzel font-semibold text-vintage-xs uppercase tracking-wider">
+              <Wallet className="h-3 w-3 text-creamy-yellow" />
+              <p className="text-creamy-yellow font-varela font-semibold text-vintage-xs uppercase tracking-wider">
                 ${currentBalance !== null ? Number(currentBalance).toFixed(2) : '---'}
               </p>
               {isConnected && (
-                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" title="Live updates active" />
+                <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse font-varela font-light" title="Live updates active" />
               )}
             </div>
           </div>
@@ -107,15 +107,15 @@ export default function UserNav() {
         {/* Dropdown Menu */}
         {isDropdownOpen && (
           <div className="absolute right-0 top-full mt-2 w-56 z-50">
-            <div className="bg-walnut-dark/98 backdrop-blur-sm border border-copper-accent/20 rounded-lg shadow-2xl overflow-hidden">
+            <div className="bg-deep-brown/98 backdrop-blur-sm border border-terracotta-rose/70 rounded-lg shadow-2xl overflow-hidden">
               {/* Balance Display with Refresh */}
-              <div className="px-4 py-3 bg-copper-accent/5 border-b border-copper-accent/10">
+              <div className="px-4 py-3 bg-deep-brown/5 border-b rounded-b-md border-terracotta-rose/80">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Wallet className="h-4 w-4 text-copper-accent" />
+                    <Wallet className="h-4 w-4 text-creamy-yellow" />
                     <div>
-                      <p className="text-cream-light/60 font-cormorant text-vintage-xs">Balance</p>
-                      <p className="text-copper-accent font-cinzel font-bold text-vintage-base">
+                      <p className="text-creamy-yellow/60 font-varela text-vintage-xs">Balance</p>
+                      <p className="text-creamy-yellow font-varela font-bold text-vintage-base">
                         ${currentBalance !== null ? Number(currentBalance).toFixed(2) : 'Loading...'}
                       </p>
                     </div>
@@ -125,14 +125,14 @@ export default function UserNav() {
                       e.stopPropagation()
                       refreshBalance()
                     }}
-                    className="p-1.5 hover:bg-copper-accent/10 rounded transition-colors"
+                    className="p-1.5 hover:bg-deep-brown/90 rounded transition-colors"
                     title="Refresh balance"
                   >
-                    <RefreshCw className="h-3.5 w-3.5 text-copper-accent" />
+                    <RefreshCw className="h-3.5 w-3.5 text-creamy-yellow" />
                   </button>
                 </div>
                 {isConnected && (
-                  <p className="text-green-400 text-vintage-xs mt-1 flex items-center gap-1">
+                  <p className="text-green-400 font-varela font-light text-vintage-xs mt-1 flex items-center gap-1">
                     <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                     Live updates active
                   </p>
@@ -143,10 +143,10 @@ export default function UserNav() {
               <Link 
                 href="/profile"
                 onClick={() => setIsDropdownOpen(false)}
-                className="flex items-center space-x-3 px-4 py-3 text-cream-light hover:bg-copper-accent/10 transition-colors duration-200 border-b border-copper-accent/10"
+                className="flex items-center space-x-3 px-4 py-3 text-creamy-yellow hover:bg-terracotta-rose/10 transition-colors duration-200 "
               >
-                <User className="h-4 w-4 text-copper-accent" />
-                <span className="font-cormorant text-vintage-base">Profile</span>
+                <User className="h-4 w-4 text-creamy-yellow" />
+                <span className="font-varela font-medium text-vintage-base">Profile</span>
               </Link>
 
               {/* Dashboard Link - Only for Admin/HotelOwner */}
@@ -154,10 +154,10 @@ export default function UserNav() {
                 <Link 
                   href="/admin/dashboard"
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center space-x-3 px-4 py-3 text-cream-light hover:bg-copper-accent/10 transition-colors duration-200 border-b border-copper-accent/10"
+                  className="flex items-center space-x-3 px-4 py-3 text-creamy-yellow hover:bg-terracotta-rose/10 transition-colors duration-200"
                 >
-                  <LayoutDashboard className="h-4 w-4 text-copper-accent" />
-                  <span className="font-cormorant text-vintage-base">Dashboard</span>
+                  <LayoutDashboard className="h-4 w-4 text-creamy-yellow" />
+                  <span className="font-varela text-vintage-base">Dashboard</span>
                 </Link>
               )}
 
@@ -166,40 +166,40 @@ export default function UserNav() {
                 <Link 
                   href="/bookings"
                   onClick={() => setIsDropdownOpen(false)}
-                  className="flex items-center space-x-3 px-4 py-3 text-cream-light hover:bg-copper-accent/10 transition-colors duration-200 border-b border-copper-accent/10"
+                  className="flex items-center space-x-3 px-4 py-3 text-creamy-yellow hover:bg-terracotta-rose/10 transition-colors duration-200"
                 >
-                  <Calendar className="h-4 w-4 text-copper-accent" />
-                <span className="font-cormorant text-vintage-base">Bookings</span>
-              </Link>
-            )}
+                  <Calendar className="h-4 w-4 text-creamy-yellow" />
+                  <span className="font-varela text-vintage-base">Bookings</span>
+                </Link>
+              )}
 
               {/* Chat Link */}
               <Link 
                 href="/chat"
                 onClick={() => setIsDropdownOpen(false)}
-                className="flex items-center space-x-3 px-4 py-3 text-cream-light hover:bg-copper-accent/10 transition-colors duration-200 border-b border-copper-accent/10"
+                className="flex items-center space-x-3 px-4 py-3 text-creamy-yellow hover:bg-terracotta-rose/10 transition-colors duration-200"
               >
-                <MessageCircle className="h-4 w-4 text-copper-accent" />
-                <span className="font-cormorant text-vintage-base">Chat</span>
+                <MessageCircle className="h-4 w-4 text-creamy-yellow" />
+                <span className="font-varela text-vintage-base">Chat</span>
               </Link>
 
               {/* Requests Link */}
               <Link 
                 href="/requests"
                 onClick={() => setIsDropdownOpen(false)}
-                className="flex items-center space-x-3 px-4 py-3 text-cream-light hover:bg-copper-accent/10 transition-colors duration-200 border-b border-copper-accent/10"
+                className="flex items-center space-x-3 px-4 py-3 text-creamy-yellow hover:bg-terracotta-rose/10 transition-colors duration-200"
               >
-                <FileText className="h-4 w-4 text-copper-accent" />
-                <span className="font-cormorant text-vintage-base">Requests</span>
+                <FileText className="h-4 w-4 text-creamy-yellow" />
+                <span className="font-varela text-vintage-base">Requests</span>
               </Link>
 
               {/* Sign Out */}
               <button
                 onClick={handleLogout}
-                className="flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors duration-200 w-full text-left"
+                className="flex items-center space-x-3 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors duration-200 rounded-t-lg border-t-2 border-terracotta-rose/90 w-full text-left"
               >
-                <LogOut className="h-4 w-4" />
-                <span className="font-cormorant text-vintage-base">Sign Out</span>
+                <LogOut className="h-4 w-4 " />
+                <span className="font-varela font-bold text-vintage-base">Sign Out</span>
               </button>
             </div>
           </div>

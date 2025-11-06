@@ -33,31 +33,31 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'CHAT_MESSAGE':
-        return <MessageCircle className="h-4 w-4 text-copper-accent" />
+        return <MessageCircle className="h-4 w-4 text-creamy-yellow" />
       case 'BOOKING_CONFIRMATION':
       case 'BOOKING_CANCELLED':
-        return <Calendar className="h-4 w-4 text-copper-accent" />
+        return <Calendar className="h-4 w-4 text-creamy-yellow" />
       case 'BOOKING_REMINDER':
       case 'NEW_BOOKING':
-        return <Calendar className="h-4 w-4 text-copper-accent" />
+        return <Calendar className="h-4 w-4 text-creamy-yellow" />
       case 'REVIEW_RECEIVED':
-        return <Star className="h-4 w-4 text-copper-accent" />
+        return <Star className="h-4 w-4 text-creamy-yellow" />
       case 'HOTEL_APPROVED':
       case 'HOTEL_REJECTED':
-        return <Building2 className="h-4 w-4 text-copper-accent" />
+        return <Building2 className="h-4 w-4 text-creamy-yellow" />
       case 'PAYMENT_SUCCESS':
       case 'PAYMENT_FAILED':
-        return <CreditCard className="h-4 w-4 text-copper-accent" />
+        return <CreditCard className="h-4 w-4 text-creamy-yellow" />
       case 'TOPUP_APPROVED':
-        return <CreditCard className="h-4 w-4 text-copper-accent" />
+        return <CreditCard className="h-4 w-4 text-creamy-yellow" />
       case 'TOPUP_REJECTED':
-        return <CreditCard className="h-4 w-4 text-copper-accent" />
+        return <CreditCard className="h-4 w-4 text-creamy-yellow" />
       case 'TOPUP_PENDING':
-        return <CreditCard className="h-4 w-4 text-copper-accent" />
+        return <CreditCard className="h-4 w-4 text-creamy-yellow" />
       case 'SYSTEM_ANNOUNCEMENT':
-        return <Bell className="h-4 w-4 text-copper-accent" />
+        return <Bell className="h-4 w-4 text-creamy-yellow" />
       default:
-        return <Bell className="h-4 w-4 text-copper-accent" />
+        return <Bell className="h-4 w-4 text-creamy-yellow" />
     }
   }
 
@@ -123,11 +123,11 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
   if (displayNotifications.length === 0) {
     return (
       <div className="p-6 text-center">
-        <Bell className="h-12 w-12 text-copper-accent/50 mx-auto mb-3" />
-        <p className="text-cream-light/70 font-cormorant text-vintage-base">
+        <Bell className="h-12 w-12 text-creamy-yellow/50 mx-auto mb-3" />
+        <p className="text-creamy-yellow/70 font-varela text-vintage-base">
           No notifications yet
         </p>
-        <p className="text-cream-light/50 text-vintage-sm mt-1">
+        <p className="text-creamy-yellow/50 text-vintage-sm mt-1">
           We'll notify you when something happens
         </p>
       </div>
@@ -138,9 +138,9 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
     <div style={{ maxHeight }} className="overflow-y-auto">
       {/* Header with mark all read button */}
       {state.unreadCount > 0 && (
-        <div className="px-3 pb-3 border-b border-copper-accent/10">
+        <div className="px-3 pb-3 border-b border-terracotta-rose/10">
           <Button
-            className="px-8 py-4 w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+            className="px-8 py-4 w-full bg-gradient-to-r from-terracotta-rose/70 to-terracotta-orange/80 text-dark-brown font-varela font-bold rounded-lg shadow-2xl hover:shadow-terracotta-rose/40 transition-all duration-200 hover:scale-102 disabled:opacity-50"
             size="sm"
             onClick={handleMarkAllRead}
             // className="w-full text-vintage-md bg-walnut-medium border border-copper-accent/30 text-copper-accent hover:text-cream-light hover:bg-copper-accent/20 font-cormorant"
@@ -152,12 +152,12 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
       )}
 
       {/* Notifications */}
-      <div className="divide-y divide-copper-accent/10">
+      <div className="divide-y divide-terracotta-rose/60">
         {displayNotifications.map((notification) => (
           <div
             key={notification.id}
             onClick={() => handleNotificationClick(notification)}
-            className={`group p-4 cursor-pointer hover:bg-copper-accent/10 transition-all duration-200 ${getNotificationColor(
+            className={`group p-4 cursor-pointer hover:bg-terracotta-rose/10 transition-all duration-200 ${getNotificationColor(
               notification.type,
               notification.status
             )} ${notification.status === 'UNREAD' ? 'font-medium' : 'opacity-75'}`}
@@ -172,14 +172,14 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
               <div className="flex-grow min-w-0">
                 <div className="flex items-start justify-between">
                   <div className="flex-grow">
-                    <p className="text-cream-light font-cormorant text-vintage-base font-bold leading-5 mb-1">
+                    <p className="text-creamy-yellow font-varela text-vintage-base font-medium leading-5 mb-1">
                       {notification.title}
                     </p>
-                    <p className="text-cream-light/80 text-vintage-xs leading-4 mb-2">
+                    <p className="text-creamy-yellow/90 text-vintage-xs leading-4 mb-2">
                       {notification.message}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="text-copper-accent/80 text-vintage-xs font-cinzel uppercase tracking-wider">
+                      <span className="text-creamy-white/80 text-vintage-xs font-varela uppercase tracking-wider">
                         {(() => {
                           try {
                             const date = new Date(notification.created_at)
@@ -213,7 +213,7 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
 
                 {/* Metadata display for chat messages */}
                 {notification.type === 'CHAT_MESSAGE' && notification.metadata?.sender_name && (
-                  <div className="mt-2 text-copper-accent/60 text-vintage-xs">
+                  <div className="mt-2 text-creamy-yellow/60 text-vintage-xs">
                     From: {notification.metadata.sender_name}
                   </div>
                 )}
@@ -224,11 +224,11 @@ export function NotificationList({ maxHeight = '600px', onClose, notifications }
       </div>
 
       {/* Footer */}
-      <div className="p-3 border-t border-copper-accent/10 text-center">
+      <div className="p-3 border-t border-terracotta-rose/10 text-center">
         <Button
           variant="link"
           size="sm"
-          className="text-vintage-sm text-md text-copper-accent hover:text-cream-light font-cormorant font-bold"
+          className="text-vintage-sm text-md text-creamy-yellow hover:text-creamy-white font-varela font-bold"
           onClick={() => {
             router.push('/notifications')
             if (onClose) onClose()

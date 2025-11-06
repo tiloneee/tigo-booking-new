@@ -21,10 +21,13 @@ const config: Config = {
       colors: {
         // New warm vintage color palette
         "terracotta-rose": "#B77466",
+        "terracotta-orange": "#F59C5D",
         "ash-brown": "#957C62",
-        "creamy-white": "#FFE1AF",
+        "creamy-yellow": "#FFE1AF",
+        "creamy-white": "#FFEFD4",
         "soft-beige": "#E2B59A",
         "deep-brown": "#4A3B2F",
+        "dark-brown": "#3D2D25",
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

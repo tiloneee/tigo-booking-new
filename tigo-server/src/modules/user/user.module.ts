@@ -14,12 +14,14 @@ import { JwtStrategy } from '../../common/strategies/jwt.strategy';
 import { JwtRefreshStrategy } from '../../common/strategies/jwt-refresh.strategy';
 import { EmailService } from '../../common/services/email.service';
 import { NotificationModule } from '../notification/notification.module';
+import { TransactionModule } from '../transaction/transaction.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, Role, Permission]),
     PassportModule,
     forwardRef(() => NotificationModule),
+    forwardRef(() => TransactionModule),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({

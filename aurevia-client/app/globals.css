@@ -73,20 +73,20 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a0f08;
+  background: #FFE1AF;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cd7f32;
+  background: #B77466;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d2b48c;
+  background: #957C62;
 }
 
 ::-webkit-calendar-picker-indicator {
- background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNjZDdmMzIiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWNhbGVuZGFyLWljb24gbHVjaWRlLWNhbGVuZGFyIj48cGF0aCBkPSJNOCAydjQiLz48cGF0aCBkPSJNMTYgMnY0Ii8+PHJlY3Qgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB4PSIzIiB5PSI0IiByeD0iMiIvPjxwYXRoIGQ9Ik0zIDEwaDE4Ii8+PC9zdmc+);
+ background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IiNCNzc0NjYiIHN0cm9rZS13aWR0aD0iMS41IiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIGNsYXNzPSJsdWNpZGUgbHVjaWRlLWNhbGVuZGFyLWljb24gbHVjaWRlLWNhbGVuZGFyIj48cGF0aCBkPSJNOCAydjQiLz48cGF0aCBkPSJNMTYgMnY0Ii8+PHJlY3Qgd2lkdGg9IjE4IiBoZWlnaHQ9IjE4IiB4PSIzIiB5PSI0IiByeD0iMiIvPjxwYXRoIGQ9Ik0zIDEwaDE4Ii8+PC9zdmc+);
 }
 
 /* Smooth scrolling */
@@ -96,26 +96,26 @@ html {
 
 /* Custom vintage typography effects */
 .text-shadow-vintage {
-  text-shadow: 2px 2px 4px rgba(26, 15, 8, 0.3);
+  text-shadow: 2px 2px 4px rgba(74, 59, 47, 0.3);
 }
 
 .drop-cap::first-letter {
   float: left;
-  font-family: "Playfair Display", serif;
+  font-family: "Libre Baskerville", serif;
   font-size: 4rem;
   line-height: 3rem;
   padding-right: 8px;
   margin-top: 4px;
-  color: #cd7f32;
+  color: #B77466;
 }
 
 /* Custom glow effects */
 .glow-copper {
-  box-shadow: 0 0 20px rgba(205, 127, 50, 0.3);
+  box-shadow: 0 0 20px rgba(183, 116, 102, 0.3);
 }
 
 .glow-copper:hover {
-  box-shadow: 0 0 30px rgba(205, 127, 50, 0.5);
+  box-shadow: 0 0 30px rgba(183, 116, 102, 0.5);
 }
 
 /* Vintage decorative elements */
@@ -132,14 +132,14 @@ html {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(to right, transparent, #cd7f32, transparent);
+  background: linear-gradient(to right, transparent, #B77466, transparent);
 }
 
 .vintage-divider span {
-  background: #1a0f08;
+  background: #FFE1AF;
   padding: 0 1rem;
-  color: #cd7f32;
-  font-family: "Great Vibes", cursive;
+  color: #B77466;
+  font-family: "Libre Baskerville", serif;
 }
 
 /* Animation delays for staggered effects */
@@ -179,8 +179,8 @@ html {
 
 /* Toast Notification Styles */
 .toast-success {
-  background: #1a4d2e !important;
-  color: #d1f2d8 !important;
+  background: #D4E8D4 !important;
+  color: #1a4d2e !important;
   border: 1px solid rgba(34, 197, 94, 0.5) !important;
 }
 
@@ -189,8 +189,8 @@ html {
 }
 
 .toast-error {
-  background: #4d1a1a !important;
-  color: #f2d1d1 !important;
+  background: #F5D4D4 !important;
+  color: #4d1a1a !important;
   border: 1px solid rgba(239, 68, 68, 0.5) !important;
 }
 

@@ -157,17 +157,18 @@ export default function ProfilePage() {
   const getTransactionTypeColor = (type: string) => {
     switch (type.toLowerCase()) {
       case 'topup':
-        return 'text-green-400'
+        return 'text-green-600'
       case 'booking_payment':
-        return 'text-red-400'
+        return 'text-red-600'
       case 'refund':
-        return 'text-green-400'
+        return 'text-green-600'
       case 'cancellation_refund':
-        return 'text-purple-400'
+        return 'text-purple-600'
       default:
-        return 'text-gray-400'
+        return 'text-gray-600'
     }
   }
+
 
   // Sort bookings
   const sortedBookings = [...bookings].sort((a, b) => {
@@ -365,13 +366,13 @@ export default function ProfilePage() {
 
   if (isLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
+      <div className="min-h-screen bg-gradient-to-br from-creamy-yellow to-creamy-white">
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
-              <div className="w-16 h-16 border-4 border-copper-accent/30 border-t-copper-accent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-cream-light font-cormorant text-vintage-lg">Loading your profile...</p>
+              <div className="w-16 h-16 border-4 border-terracotta-rose/30 border-t-terracotta-rose rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-deep-brown font-varela text-vintage-lg">Loading your profile...</p>
             </div>
           </div>
         </div>
@@ -381,12 +382,12 @@ export default function ProfilePage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
+      <div className="min-h-screen bg-gradient-to-br from-creamy-yellow to-creamy-white">
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg max-w-md mx-auto">
-              <p className="font-cormorant text-vintage-lg">{error}</p>
+              <p className="font-varela text-vintage-lg">{error}</p>
             </div>
           </div>
         </div>
@@ -396,12 +397,12 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
+      <div className="min-h-screen bg-gradient-to-br from-creamy-yellow to-creamy-white">
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded-lg max-w-md mx-auto">
-              <p className="font-cormorant text-vintage-lg">Please sign in to view your profile</p>
+              <p className="font-varela text-vintage-lg">Please sign in to view your profile</p>
             </div>
           </div>
         </div>
@@ -410,20 +411,16 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
+    <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white">
       <Header />
-
-      {/* Warm lighting effects */}
-      <div className="absolute top-0 left-1/4 w-80 h-80 bg-copper-accent/4 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-copper-light/3 rounded-full blur-3xl"></div>
 
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-vintage-4xl font-playfair font-bold text-cream-light mb-2">
+          <h1 className="text-vintage-4xl font-libre font-bold text-deep-brown mb-2">
             My Profile
           </h1>
-          <p className="text-vintage-lg text-copper-accent font-cormorant">
+          <p className="text-vintage-lg text-terracotta-rose font-varela">
             Manage your account and view your booking history
           </p>
         </div>
@@ -432,15 +429,15 @@ export default function ProfilePage() {
           {/* Left Column - Profile Information and Notifications */}
           <div className="lg:col-span-1 space-y-8">
             {/* Profile Information */}
-            <Card className="bg-walnut-dark/50 backdrop-blur-sm border-copper-accent/20 p-6">
+            <Card className="bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border-terracotta-rose/30 p-6">
               <div className="text-center mb-6">
-                <div className="w-24 h-24 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center mx-auto mb-4">
-                  <User className="h-12 w-12 text-walnut-dark" />
+                <div className="w-24 h-24 bg-gradient-to-br from-terracotta-rose to-terracotta-orange rounded-full flex items-center justify-center mx-auto mb-4">
+                  <User className="h-12 w-12 text-creamy-white" />
                 </div>
-                <h2 className="text-vintage-2xl font-playfair font-bold text-cream-light mb-1">
+                <h2 className="text-vintage-2xl font-libre font-bold text-terracotta-rose mb-1">
                   {profile?.first_name} {profile?.last_name}
                 </h2>
-                <p className="text-vintage-sm text-copper-accent font-cinzel uppercase tracking-wider">
+                <p className="text-vintage-sm text-terracotta-rose font-varela uppercase tracking-wider">
                   {Array.isArray(profile?.roles) && profile.roles.length > 0
                     ? (profile.roles as any[]).map(role => typeof role === 'string' ? role : role.name).join(", ")
                     : "User"}
@@ -449,42 +446,42 @@ export default function ProfilePage() {
 
               {isEditingProfile ? (
                 <div className="space-y-4">
-                  <div className="bg-walnut-light/20 border border-copper-accent/20 rounded-lg p-4">
-                    <h4 className="text-vintage-lg font-playfair font-semibold text-cream-light mb-4 flex items-center">
-                      <Edit3 className="h-5 w-5 text-copper-accent mr-2" />
+                  <div className="bg-creamy-yellow/80 border border-terracotta-rose/30 rounded-lg p-4">
+                    <h4 className="text-vintage-lg font-libre font-semibold text-deep-brown mb-4 flex items-center">
+                      <Edit3 className="h-5 w-5 text-terracotta-rose mr-2" />
                       Edit Profile
                     </h4>
 
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-vintage-sm text-cream-light font-cormorant mb-2">First Name</label>
+                        <label className="block text-vintage-sm text-deep-brown font-varela mb-2">First Name</label>
                         <input
                           type="text"
                           value={editForm.first_name}
                           onChange={(e) => handleEditFormChange('first_name', e.target.value)}
-                          className="w-full px-3 py-2 bg-walnut-dark/50 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 focus:border-copper-accent focus:outline-none"
+                          className="w-full px-3 py-2 bg-creamy-white/80 border border-terracotta-rose/30 rounded-lg text-deep-brown placeholder-ash-brown/50 focus:border-terracotta-rose focus:outline-none"
                           placeholder="Enter first name"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-vintage-sm text-cream-light font-cormorant mb-2">Last Name</label>
+                        <label className="block text-vintage-sm text-deep-brown font-varela mb-2">Last Name</label>
                         <input
                           type="text"
                           value={editForm.last_name}
                           onChange={(e) => handleEditFormChange('last_name', e.target.value)}
-                          className="w-full px-3 py-2 bg-walnut-dark/50 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 focus:border-copper-accent focus:outline-none"
+                          className="w-full px-3 py-2 bg-creamy-white/80 border border-terracotta-rose/30 rounded-lg text-deep-brown placeholder-ash-brown/50 focus:border-terracotta-rose focus:outline-none"
                           placeholder="Enter last name"
                         />
                       </div>
 
                       <div>
-                        <label className="block text-vintage-sm text-cream-light font-cormorant mb-2">Phone Number</label>
+                        <label className="block text-vintage-sm text-deep-brown font-varela mb-2">Phone Number</label>
                         <input
                           type="tel"
                           value={editForm.phone_number}
                           onChange={(e) => handleEditFormChange('phone_number', e.target.value)}
-                          className="w-full px-3 py-2 bg-walnut-dark/50 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 focus:border-copper-accent focus:outline-none"
+                          className="w-full px-3 py-2 bg-creamy-white/80 border border-terracotta-rose/30 rounded-lg text-deep-brown placeholder-ash-brown/50 focus:border-terracotta-rose focus:outline-none"
                           placeholder="Enter phone number"
                         />
                       </div>
@@ -495,7 +492,7 @@ export default function ProfilePage() {
                         size="sm"
                         variant="outline"
                         onClick={cancelEditingProfile}
-                        className="text-cream-light border-cream-light/30 hover:bg-cream-light/10"
+                        className="text-deep-brown border-terracotta-rose/30 hover:bg-terracotta-rose/10"
                       >
                         <XIcon className="h-4 w-4 mr-1" />
                         Cancel
@@ -504,10 +501,10 @@ export default function ProfilePage() {
                         size="sm"
                         onClick={saveProfileChanges}
                         disabled={editLoading}
-                        className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-playfair border-copper-accent/30 font-semibold hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                        className="bg-gradient-to-br from-terracotta-rose/70 to-terracotta-orange/80 text-deep-brown font-varela border-terracotta-rose/30 font-semibold hover:shadow-terracotta-rose/30 transition-all duration-300 hover:scale-105 disabled:opacity-50"
                       >
                         {editLoading ? (
-                          <div className="w-4 h-4 border-2 border-walnut-dark/30 border-t-walnut-dark rounded-full animate-spin mr-1" />
+                          <div className="w-4 h-4 border-2 border-terracotta-rose/30 border-t-terracotta-rose rounded-full animate-spin mr-1" />
                         ) : (
                           <Save className="h-4 w-4 mr-1" />
                         )}
@@ -519,12 +516,12 @@ export default function ProfilePage() {
               ) : (
                 <div className="space-y-4">
                   {/* Real-time Balance Display */}
-                  <div className="flex items-center justify-between p-4 bg-copper-accent/10 border border-copper-accent/30 rounded-lg">
+                  <div className="flex items-center justify-between p-4 bg-creamy-yellow/40 border border-terracotta-rose/30 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      <Wallet className="h-5 w-5 text-copper-accent" />
+                      <Wallet className="h-5 w-5 text-creamy-yellow" />
                       <div>
-                        <p className="text-vintage-sm text-cream-light font-cormorant">Current Balance</p>
-                        <p className="text-vintage-xl font-playfair font-bold text-copper-accent">
+                        <p className="text-vintage-sm text-creamy-yellow font-varela">Current Balance</p>
+                        <p className="text-vintage-xl font-libre font-bold text-dark-brown">
                           ${currentBalance !== null ? Number(currentBalance).toFixed(2) : 'Loading...'}
                         </p>
                       </div>
@@ -532,10 +529,10 @@ export default function ProfilePage() {
                     <div className="flex flex-col items-end gap-2">
                       <button
                         onClick={refreshBalance}
-                        className="p-2 hover:bg-copper-accent/10 rounded transition-colors"
+                        className="p-2 hover:bg-creamy-yellow/10 rounded transition-colors"
                         title="Refresh balance"
                       >
-                        <RefreshCw className="h-4 w-4 text-copper-accent" />
+                        <RefreshCw className="h-4 w-4 text-deep-brown" />
                       </button>
                       {isConnected && (
                         <div className="flex items-center gap-1">
@@ -547,37 +544,37 @@ export default function ProfilePage() {
                   </div>
 
                   <div className="flex items-center space-x-3">
-                    <Mail className="h-5 w-5 text-copper-accent" />
+                    <Mail className="h-5 w-5 text-creamy-yellow" />
                     <div>
-                      <p className="text-vintage-sm text-cream-light font-cormorant">Email</p>
-                      <p className="text-vintage-base text-cream-light/80">{profile?.email}</p>
+                      <p className="text-vintage-sm text-creamy-yellow font-varela">Email</p>
+                      <p className="text-vintage-base text-creamy-yellow">{profile?.email}</p>
                     </div>
                   </div>
 
                   {profile?.phone_number && (
                     <div className="flex items-center space-x-3">
-                      <Phone className="h-5 w-5 text-copper-accent" />
+                      <Phone className="h-5 w-5 text-creamy-yellow" />
                       <div>
-                        <p className="text-vintage-sm text-cream-light font-cormorant">Phone</p>
-                        <p className="text-vintage-base text-cream-light/80">{profile.phone_number}</p>
+                        <p className="text-vintage-sm text-creamy-yellow font-varela">Phone</p>
+                        <p className="text-vintage-base text-creamy-yellow">{profile.phone_number}</p>
                       </div>
                     </div>
                   )}
 
                   <div className="flex items-center space-x-3">
-                    <Calendar className="h-5 w-5 text-copper-accent" />
+                    <Calendar className="h-5 w-5 text-creamy-yellow" />
                     <div>
-                      <p className="text-vintage-sm text-cream-light font-cormorant">Member Since</p>
-                      <p className="text-vintage-base text-cream-light/80">
+                      <p className="text-vintage-sm text-creamy-yellow font-varela">Member Since</p>
+                      <p className="text-vintage-base text-creamy-yellow">
                         {new Date().getFullYear()}
                       </p>
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-copper-accent/20">
+                  <div className="pt-4 border-t-2 border-terracotta-rose">
                     <div className="flex items-center justify-between">
-                      <span className="text-vintage-lg text-cream-light font-cormorant">Status</span>
-                      <Badge className={profile?.is_active ? "bg-green-900/60 text-green-300 border-green-400/70 font-cinzel uppercase tracking-wider" : "bg-red-900/60 text-red-300 border-red-400/70 font-cinzel uppercase tracking-wider"}>
+                      <span className="text-vintage-lg text-creamy-yellow font-varela">Status</span>
+                      <Badge className={profile?.is_active ? "bg-green-900/60 text-green-300 border-green-400/70 font-varela uppercase tracking-wider" : "bg-red-900/60 text-red-300 border-red-400/70 font-varela uppercase tracking-wider"}>
                         {profile?.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </div>
@@ -590,7 +587,7 @@ export default function ProfilePage() {
                 <div className="mt-6">
                   <Button
                     onClick={startEditingProfile}
-                    className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-playfair border-copper-accent/30 font-semibold hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105 py-3"
+                    className="w-full bg-gradient-to-r from-terracotta-rose/70 to-terracotta-orange/80 text-dark-brown font-varela border-terracotta-rose/30 font-semibold hover:shadow-terracotta-rose/30 transition-all duration-300 hover:scale-105 py-3"
                   >
                     <Edit3 className="h-5 w-5 mr-2" />
                     Edit Profile
@@ -600,14 +597,14 @@ export default function ProfilePage() {
             </Card>
 
             {/* Notifications Section */}
-            <Card className="bg-walnut-dark/50 backdrop-blur-sm border-copper-accent/20 p-6">
+            <Card className="bg-gradient-to-r from-dark-brown/90 to-deep-brown backdrop-blur-sm border-terracotta-rose/20 p-6">
               <div className="flex items-center justify-between mb-">
-                <h3 className="text-vintage-2xl font-playfair font-bold text-cream-light flex items-center gap-2">
-                  <Bell className="h-6 w-6 text-copper-accent" />
+                <h3 className="text-vintage-2xl font-libre font-bold text-creamy-yellow flex items-center gap-2">
+                  <Bell className="h-6 w-6 text-creamy-yellow" />
                   Notifications
                 </h3>
                 {notificationState.unreadCount > 0 && (
-                  <Badge className="bg-red-500/20 text-red-300 border-red-400/50 font-cinzel">
+                  <Badge className="bg-red-500/20 text-red-300 border-red-400/50 font-libre">
                     {notificationState.unreadCount} Unread
                   </Badge>
                 )}
@@ -615,12 +612,12 @@ export default function ProfilePage() {
 
               {notificationState.notifications.length === 0 ? (
                 <div className="text-center py-12">
-                  <Bell className="h-16 w-16 text-copper-accent/50 mx-auto mb-4" />
-                  <p className="text-vintage-lg text-cream-light/60 font-cormorant mb-2">No notifications</p>
-                  <p className="text-vintage-sm text-cream-light/40">You're all caught up!</p>
+                  <Bell className="h-16 w-16 text-creamy-yellow/50 mx-auto mb-4" />
+                  <p className="text-vintage-lg text-creamy-yellow/60 font-libre mb-2">No notifications</p>
+                  <p className="text-vintage-sm text-creamy-yellow/40">You're all caught up!</p>
                 </div>
               ) : (
-                <div className="bg-walnut-light/20 border border-copper-accent/10 rounded-lg overflow-hidden">
+                <div className="bg-deep-brown border border-terracotta-rose/40 rounded-lg overflow-hidden">
                   <NotificationList maxHeight="700px" />
                 </div>
               )}
@@ -629,37 +626,37 @@ export default function ProfilePage() {
 
           {/* Right Column - History Tabs */}
           <div className="lg:col-span-2 flex flex-col">
-            <Card className="bg-walnut-dark/50 backdrop-blur-sm border-copper-accent/20 p-6 pb-13 flex flex-col">
+            <Card className="bg-gradient-to-r from-dark-brown/90 to-deep-brown backdrop-blur-sm border-terracotta-rose/30 p-6 pb-13 flex flex-col">
               {/* Tab Navigation */}
-              <div className="flex gap-4 mb-6 border-b border-copper-accent/30">
+              <div className="flex gap-4 mb-2 border-b border-terracotta-rose/50">
                 <button
                   onClick={() => handleTabChange('bookings')}
-                  className={`flex items-center gap-2 px-6 py-3 font-cormorant text-vintage-lg font-medium transition-all duration-300 ${
+                  className={`flex items-center gap-2 px-6 py-3 font-varela text-vintage-lg font-medium transition-all duration-300 ${
                     activeTab === 'bookings'
-                      ? 'text-copper-accent border-b-2 border-copper-accent'
-                      : 'text-cream-light/60 hover:text-cream-light'
+                      ? 'text-terracotta-rose border-b-2 border-terracotta-rose'
+                      : 'text-creamy-yellow/60 hover:text-creamy-yellow'
                   }`}
                 >
                   <Calendar className="h-5 w-5" />
                   Booking History
                   {bookings.length > 0 && (
-                    <Badge className="bg-copper-accent/20 text-copper-accent border-copper-accent/30 ml-2">
+                    <Badge className="bg-terracotta-rose/70 text-dark-brown border-terracotta-rose/30 ml-2">
                       {bookings.length}
                     </Badge>
                   )}
                 </button>
                 <button
                   onClick={() => handleTabChange('transactions')}
-                  className={`flex items-center gap-2 px-6 py-3 font-cormorant text-vintage-lg font-medium transition-all duration-300 ${
+                  className={`flex items-center gap-2 px-6 py-3 font-varela text-vintage-lg font-medium transition-all duration-300 ${
                     activeTab === 'transactions'
-                      ? 'text-copper-accent border-b-2 border-copper-accent'
-                      : 'text-cream-light/60 hover:text-cream-light'
+                      ? 'text-terracotta-rose border-b-2 border-terracotta-rose'
+                      : 'text-creamy-yellow/60 hover:text-creamy-yellow'
                   }`}
                 >
                   <Receipt className="h-5 w-5" />
                   Transaction History
                   {transactions.length > 0 && (
-                    <Badge className="bg-copper-accent/20 text-copper-accent border-copper-accent/30 ml-2">
+                    <Badge className="bg-terracotta-rose/70 text-dark-brown border-terracotta-rose/30 ml-2">
                       {transactions.length}
                     </Badge>
                   )}
@@ -670,13 +667,13 @@ export default function ProfilePage() {
               {currentItems.length > 0 && (
                 <div className="mb-4 flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <ArrowUpDown className="h-4 w-4 text-copper-accent" />
-                    <span className="text-vintage-sm text-cream-light/80 font-cormorant">Sort by:</span>
+                    <ArrowUpDown className="h-4 w-4 text-terracotta-rose" />
+                    <span className="text-vintage-sm text-creamy-yellow/80 font-varela">Sort by:</span>
                   </div>
                   <select
                     value={sortBy}
                     onChange={(e) => handleSortChange(e.target.value as SortOption)}
-                    className="bg-walnut-medium/50 border border-copper-accent/30 rounded-lg px-3 py-2 text-vintage-sm text-cream-light font-cormorant focus:outline-none focus:border-copper-accent transition-colors"
+                    className="bg-creamy-yellow border border-terracotta-rose/30 rounded-lg px-3 py-2 text-vintage-sm text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose transition-colors"
                   >
                     <option value="date-desc">Newest First</option>
                     <option value="date-asc">Oldest First</option>
@@ -693,15 +690,15 @@ export default function ProfilePage() {
                   <div>
                     {activeTab === 'bookings' ? (
                       <>
-                        <CreditCard className="h-16 w-16 text-copper-accent/50 mx-auto mb-4" />
-                        <p className="text-vintage-lg text-cream-light/60 font-cormorant mb-2">No bookings yet</p>
-                        <p className="text-vintage-sm text-cream-light/40">Start exploring our luxury hotels!</p>
+                        <CreditCard className="h-16 w-16 text-terracotta-rose/50 mx-auto mb-4" />
+                        <p className="text-vintage-lg text-creamy-yellow/60 font-cormorant mb-2">No bookings yet</p>
+                        <p className="text-vintage-sm text-creamy-yellow/40">Start exploring our luxury hotels!</p>
                       </>
                     ) : (
                       <>
-                        <Receipt className="h-16 w-16 text-copper-accent/50 mx-auto mb-4" />
-                        <p className="text-vintage-lg text-cream-light/60 font-cormorant mb-2">No transactions yet</p>
-                        <p className="text-vintage-sm text-cream-light/40">Your transaction history will appear here!</p>
+                        <Receipt className="h-16 w-16 text-terracotta-rose/50 mx-auto mb-4" />
+                        <p className="text-vintage-lg text-creamy-yellow/60 font-cormorant mb-2">No transactions yet</p>
+                        <p className="text-vintage-sm text-creamy-yellow/40">Your transaction history will appear here!</p>
                       </>
                     )}
                   </div>
@@ -711,22 +708,22 @@ export default function ProfilePage() {
                   <div className="space-y-4 flex-grow">
                     {/* Booking History Content */}
                     {activeTab === 'bookings' && (paginatedItems as Booking[]).map((booking) => (
-                    <div key={booking.id} className="bg-walnut-light/30 border border-copper-accent/10 rounded-lg p-4 hover:bg-walnut-light/40 transition-colors duration-300">
+                    <div key={booking.id} className="bg-creamy-yellow/90 border border-terracotta-rose/60 rounded-lg p-4 hover:bg-creamy-yellow/80 transition-colors duration-300">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h4 className="text-vintage-lg font-playfair font-semibold text-cream-light mb-1">
+                          <h4 className="text-vintage-lg font-libre font-semibold text-deep-brown mb-1">
                             {booking.hotel?.name || 'Hotel Information Unavailable'}
                           </h4>
-                          <div className="flex items-center text-vintage-sm text-copper-accent mb-2">
+                          <div className="flex items-center text-vintage-sm text-terracotta-rose mb-2">
                             <MapPin className="h-4 w-4 mr-1" />
                             {booking.hotel?.address || 'Address not available'}
                           </div>
-                          <p className="text-vintage-sm text-cream-light/80">
+                          <p className="text-vintage-sm text-ash-brown">
                             {booking.room?.room_type || 'Room'} - Room {booking.room?.room_number || 'N/A'}
                           </p>
                         </div>
                         <div className="text-right flex flex-col gap-2 mt-2 items-end">
-                          <Badge className={`${getStatusBadgeColor(booking.status)} font-cinzel uppercase tracking-wider`}>
+                          <Badge className={`${getStatusBadgeColor(booking.status)} font-varela uppercase tracking-wider`}>
                             {booking.status}
                           </Badge>
 
@@ -735,33 +732,33 @@ export default function ProfilePage() {
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-vintage-sm">
                         <div>
-                          <p className="text-cream-light/60 font-cormorant mb-1">Check-in</p>
-                          <p className="text-cream-light">{formatDate(booking.check_in_date)}</p>
+                          <p className="text-ash-brown/90 font-varela mb-1">Check-in</p>
+                          <p className="text-deep-brown">{formatDate(booking.check_in_date)}</p>
                         </div>
                         <div>
-                          <p className="text-cream-light/60 font-cormorant mb-1">Check-out</p>
-                          <p className="text-cream-light">{formatDate(booking.check_out_date)}</p>
+                          <p className="text-ash-brown/90 font-varela mb-1">Check-out</p>
+                          <p className="text-deep-brown">{formatDate(booking.check_out_date)}</p>
                         </div>
                         <div>
-                          <p className="text-cream-light/60 font-cormorant mb-1">Total Amount</p>
-                          <p className="text-vintage-lg font-semibold text-copper-accent">
+                          <p className="text-ash-brown/90 font-varela mb-1">Total Amount</p>
+                          <p className="text-vintage-lg font-semibold text-terracotta-rose">
                             {formatCurrency(booking.paid_amount)}
                           </p>
                         </div>
                       </div>
 
-                      <div className="mt-3 pt-3 border-t border-copper-accent/10">
+                      <div className="mt-3 pt-3 border-t border-terracotta-rose/40">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-2">
                             {getStatusIcon(booking.status)}
-                            <span className="text-vintage-sm text-cream-light/60">
+                            <span className="text-vintage-sm text-ash-brown/80 font-varela">
                               Booked on {formatDate(booking.created_at)}
                             </span>
                           </div>
                           <div className="flex gap-2">
                             <Button
                               size="sm"
-                              className="px-8 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                              className="px-8 py-4 bg-gradient-to-r from-terracotta-rose/70 to-terracotta-orange/80 text-deep-brown font-varela font-bold rounded-lg shadow-2xl hover:shadow-terracotta-rose/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
                               onClick={() => handleViewDetails(booking)}
                             >
                               <Eye className="h-4 w-4 mr-1" />
@@ -770,7 +767,7 @@ export default function ProfilePage() {
                             {(booking.status === 'Pending' || booking.status === 'Confirmed') && (
                               <Button
                                 size="sm"
-                                className="px-8 py-4 text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                                className="px-8 py-4 text-red-800 border-red-400 bg-gradient-to-br from-red-400 to-red-400/60 font-varela font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-105 disabled:opacity-50"
                                 onClick={() => handleCancelBooking(booking.id)}
                                 disabled={cancellingBookingId === booking.id}
                               >
@@ -795,7 +792,7 @@ export default function ProfilePage() {
 
                     {/* Transaction History Content */}
                     {activeTab === 'transactions' && (paginatedItems as Transaction[]).map((transaction) => (
-                      <div key={transaction.id} className="bg-walnut-light/30 border border-copper-accent/10 rounded-lg p-4 hover:bg-walnut-light/40 transition-colors duration-300">
+                      <div key={transaction.id} className="bg-creamy-yellow/90 border border-terracotta-rose/20 rounded-lg p-4 hover:bg-creamy-yellow/80 transition-colors duration-300">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-4">
                             <div className={`w-12 h-12 bg-gradient-to-br ${
@@ -806,41 +803,42 @@ export default function ProfilePage() {
                               <Receipt className="h-6 w-6 text-white" />
                             </div>
                             <div>
-                              <h4 className={`text-vintage-2xl font-playfair font-semibold mb-1 ${(transaction.status === 'pending') ? 'text-yellow-400' : getTransactionTypeColor(transaction.type)}`}>
+                              <h4 className={`text-vintage-2xl font-libre font-semibold mb-1 ${(transaction.status === 'pending') ? 'text-yellow-700' : getTransactionTypeColor(transaction.type)}`}>
                                 {(parseFloat(transaction.amount.toString()) >= 0 ? '+' : '-')}${Math.abs(parseFloat(transaction.amount.toString())).toFixed(2)}
                               </h4>
-                              <p className="text-vintage-base text-cream-light/60 font-cormorant">
+                              <p className="text-vintage-base text-ash-brown font-varela">
                                 {transaction.type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                               </p>
-                              <p className="text-vintage-sm text-cream-light/50 font-cormorant">
+                              <p className="text-vintage-sm text-ash-brown/80 font-varela">
                                 {formatDate(transaction.created_at)}
                               </p>
                             </div>
                           </div>
                           <div className="flex flex-col items-end gap-2">
-                            <Badge className={`${getTransactionStatusBadgeColor(transaction.status)} font-cinzel uppercase tracking-wider px-3 py-1`}>
+                            <Badge className={`${getTransactionStatusBadgeColor(transaction.status)} font-varela uppercase tracking-wider px-3 py-1`}>
                               {transaction.status.toUpperCase()}
                             </Badge>
                           </div>
                         </div>
                         {transaction.description && (
-                          <div className="mt-3 pt-3 border-t border-copper-accent/10">
-                            <p className="text-vintage-base text-cream-light/70 font-cormorant">
+                         <div className="mt-2 p-3 bg-terracotta-rose/30 rounded-lg border border-terracotta-rose/20">
+                            <p className="text-vintage-sm text-terracotta-rose font-varela font-semibold mb-1">Description:</p>
+                            <p className="text-vintage-base text-deep-brown/80 font-varela">
                               {transaction.description}
                             </p>
                           </div>
                         )}
                         {transaction.admin_notes && (
-                          <div className="mt-2 p-3 bg-copper-accent/5 rounded border border-copper-accent/20">
-                            <p className="text-vintage-sm text-copper-accent font-cormorant font-semibold mb-1">Admin Notes:</p>
-                            <p className="text-vintage-base text-cream-light/80 font-cormorant">
+                          <div className="mt-2 p-3 bg-terracotta-rose/30 rounded-lg border border-terracotta-rose/20">
+                            <p className="text-vintage-sm text-terracotta-rose font-varela font-semibold mb-1">Admin Notes:</p>
+                            <p className="text-vintage-base text-deep-brown/80 font-varela">
                               {transaction.admin_notes}
                             </p>
                           </div>
                         )}
                         {transaction.reference_id && (
-                          <div className="mt-2 flex items-center gap-2 text-vintage-xs text-cream-light/50">
-                            <span>Ref: {transaction.reference_id.slice(0, 8)}...</span>
+                          <div className="mt-2 flex items-center gap-2 text-vintage-xs text-ash-brown/60">
+                            <span>Ref: {transaction.reference_id}</span>
                           </div>
                         )}
                       </div>
@@ -851,8 +849,8 @@ export default function ProfilePage() {
                 {/* Pagination */}
                   {/* Pagination Controls */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-copper-accent/20">
-                      <div className="text-vintage-sm text-cream-light/60 font-cormorant">
+                    <div className="flex items-center justify-between mt-6 pt-4 border-t border-terracotta-rose/20">
+                      <div className="text-vintage-sm text-ash-brown/80 font-varela">
                         Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, currentItems.length)} of {currentItems.length} {activeTab === 'bookings' ? 'bookings' : 'transactions'}
                       </div>
                       <div className="flex items-center gap-2">
@@ -860,7 +858,7 @@ export default function ProfilePage() {
                           size="sm"
                           onClick={() => handlePageChange(currentPage - 1)}
                           disabled={currentPage === 1}
-                          className="bg-walnut-medium/50 border border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-terracotta-rose border border-terracotta-rose/30 text-black hover:bg-terracotta-rose/40 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <ChevronLeft className="h-4 w-4" />
                         </Button>
@@ -872,8 +870,8 @@ export default function ProfilePage() {
                             onClick={() => handlePageChange(page)}
                             className={`${
                               currentPage === page
-                                ? 'bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-bold'
-                                : 'bg-walnut-medium/50 border border-copper-accent/30 text-cream-light hover:bg-copper-accent/20'
+                                ? 'bg-gradient-to-br from-terracotta-rose/70 to-terracotta-orange/80 text-walnut-dark font-bold'
+                                : 'bg-terracotta-rose/20 border border-terracotta-rose/20 text-cream-light hover:bg-terracotta-rose/40'
                             }`}
                           >
                             {page}
@@ -884,7 +882,7 @@ export default function ProfilePage() {
                           size="sm"
                           onClick={() => handlePageChange(currentPage + 1)}
                           disabled={currentPage === totalPages}
-                          className="bg-walnut-medium/50 border border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="bg-terracotta-rose border border-terracotta-rose/30 text-black hover:bg-terracotta-rose/40 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <ChevronRight className="h-4 w-4" />
                         </Button>
@@ -901,18 +899,17 @@ export default function ProfilePage() {
       {/* Booking Details Modal */}
       {showBookingDetails && selectedBooking && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-walnut-dark/95 backdrop-blur-sm border border-copper-accent/20 rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-creamy-yellow/85 backdrop-blur-lg border border-terracotta-rose/60 rounded-lg max-w-5xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               {/* Modal Header */}
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-vintage-2xl font-playfair font-bold text-cream-light">
+                <h3 className="text-vintage-2xl font-libre font-bold text-deep-brown">
                   Booking Details
                 </h3>
                 <Button
                   size="sm"
-                  variant="outline"
                   onClick={closeBookingDetails}
-                  className="text-copper-accent border-copper-accent/30 hover:bg-copper-accent/10"
+                  className="text-black border-terracotta-rose/30 hover:bg-terracotta-rose/80"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -921,77 +918,77 @@ export default function ProfilePage() {
               {/* Booking Information */}
               <div className="space-y-6">
                 {/* Hotel Information */}
-                <div className="bg-walnut-light/20 border border-copper-accent/10 rounded-lg p-4">
-                  <h4 className="text-vintage-lg font-playfair font-semibold text-cream-light mb-3 flex items-center">
-                    <MapPin className="h-5 w-5 text-copper-accent mr-2" />
+                <div className="bg-terracotta-rose/40 border border-terracotta-rose/10 rounded-lg p-4">
+                  <h4 className="text-vintage-lg font-libre font-semibold text-deep-brown mb-3 flex items-center">
+                    <MapPin className="h-5 w-5 text-deep-brown mr-2" />
                     Hotel Information
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Hotel Name</p>
-                      <p className="text-vintage-base text-cream-light font-semibold">{selectedBooking.hotel?.name || 'Hotel Information Unavailable'}</p>
+                      <p className="text-vintage-sm text-dark-brown/60 font-varela ">Hotel Name</p>
+                      <p className="text-vintage-base text-dark-brown font-semibold">{selectedBooking.hotel?.name || 'Hotel Information Unavailable'}</p>
                     </div>
                     <div>
-                      <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Address</p>
-                      <p className="text-vintage-base text-cream-light">{selectedBooking.hotel?.address || 'Address not available'}</p>
+                      <p className="text-vintage-sm text-dark-brown/60 font-varela mb-1">Address</p>
+                      <p className="text-vintage-base text-dark-brown">{selectedBooking.hotel?.address || 'Address not available'}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Room Information */}
-                <div className="bg-walnut-light/20 border border-copper-accent/10 rounded-lg p-4">
-                  <h4 className="text-vintage-lg font-playfair font-semibold text-cream-light mb-3 flex items-center">
-                    <User className="h-5 w-5 text-copper-accent mr-2" />
+                <div className="bg-terracotta-rose/40 border border-terracotta-rose/10 rounded-lg p-4">
+                  <h4 className="text-vintage-lg font-libre font-semibold text-deep-brown mb-3 flex items-center">
+                    <User className="h-5 w-5 text-deep-brown mr-2" />
                     Room Information
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Room Type</p>
-                      <p className="text-vintage-base text-cream-light font-semibold">{selectedBooking.room?.room_type || 'Room type not available'}</p>
+                      <p className="text-vintage-sm text-dark-brown/60 font-varela mb-1">Room Type</p>
+                      <p className="text-vintage-base text-dark-brown font-semibold">{selectedBooking.room?.room_type || 'Room type not available'}</p>
                     </div>
                     <div>
-                      <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Room Number</p>
-                      <p className="text-vintage-base text-cream-light">{selectedBooking.room?.room_number || 'N/A'}</p>
+                      <p className="text-vintage-sm text-dark-brown/60 font-varela mb-1">Room Number</p>
+                      <p className="text-vintage-base text-dark-brown font-semibold">{selectedBooking.room?.room_number || 'N/A'}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Booking Dates */}
-                <div className="bg-walnut-light/20 border border-copper-accent/10 rounded-lg p-4">
-                  <h4 className="text-vintage-lg font-playfair font-semibold text-cream-light mb-3 flex items-center">
-                    <Calendar className="h-5 w-5 text-copper-accent mr-2" />
+                <div className="bg-terracotta-rose/40 border border-terracotta-rose/10 rounded-lg p-4">
+                  <h4 className="text-vintage-lg font-libre font-semibold text-deep-brown mb-3 flex items-center">
+                    <Calendar className="h-5 w-5 text-deep-brown mr-2" />
                     Booking Dates
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Check-in Date</p>
-                      <p className="text-vintage-base text-cream-light font-semibold">{formatDate(selectedBooking.check_in_date)}</p>
+                      <p className="text-vintage-sm text-dark-brown/60 font-varela mb-1">Check-in Date</p>
+                      <p className="text-vintage-base text-dark-brown font-semibold">{formatDate(selectedBooking.check_in_date)}</p>
                     </div>
                     <div>
-                      <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Check-out Date</p>
-                      <p className="text-vintage-base text-cream-light font-semibold">{formatDate(selectedBooking.check_out_date)}</p>
+                      <p className="text-vintage-sm text-dark-brown/60 font-varela mb-1">Check-out Date</p>
+                      <p className="text-vintage-base text-dark-brown font-semibold">{formatDate(selectedBooking.check_out_date)}</p>
                     </div>
                     <div>
-                      <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Booking Date</p>
-                      <p className="text-vintage-base text-cream-light">{formatDate(selectedBooking.created_at)}</p>
+                      <p className="text-vintage-sm text-dark-brown/60 font-varela mb-1">Booking Date</p>
+                      <p className="text-vintage-base text-dark-brown font-semibold">{formatDate(selectedBooking.created_at)}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Payment Information */}
-                <div className="bg-walnut-light/20 border border-copper-accent/10 rounded-lg p-4">
-                  <h4 className="text-vintage-lg font-playfair font-semibold text-cream-light mb-3 flex items-center">
-                    <CreditCard className="h-5 w-5 text-copper-accent mr-2" />
+                <div className="bg-terracotta-rose/40 border border-terracotta-rose/10 rounded-lg p-4">
+                  <h4 className="text-vintage-lg font-libre font-semibold text-deep-brown mb-3 flex items-center">
+                    <CreditCard className="h-5 w-5 text-deep-brown mr-2" />
                     Payment Information
                   </h4>
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Total Amount</p>
-                      <p className="text-vintage-2xl font-bold text-copper-accent">{formatCurrency(selectedBooking.paid_amount)}</p>
+                      <p className="text-vintage-sm text-dark-brown/60 font-varela mb-1">Total Amount</p>
+                      <p className="text-vintage-2xl font-bold text-dark-brown">{formatCurrency(selectedBooking.paid_amount)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-vintage-sm text-cream-light/60 font-cormorant mb-1">Status</p>
-                      <Badge className={`${getStatusBadgeColor(selectedBooking.status)} font-cinzel uppercase tracking-wider`}>
+                      <p className="text-vintage-sm text-dark-brown/60 font-varela mb-1">Status</p>
+                      <Badge className={`${getStatusBadgeColor(selectedBooking.status)} font-varela uppercase tracking-wider`}>
                         {selectedBooking.status}
                       </Badge>
                     </div>
@@ -999,21 +996,21 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Booking ID */}
-                <div className="bg-walnut-light/20 border border-copper-accent/10 rounded-lg p-4">
-                  <h4 className="text-vintage-lg font-playfair font-semibold text-cream-light mb-3">Booking Reference</h4>
-                  <p className="text-vintage-base text-cream-light font-mono bg-walnut-dark/50 px-3 py-2 rounded border border-copper-accent/20">
+                <div className="bg-terracotta-rose/40 border border-terracotta-rose/10 rounded-lg p-4">
+                  <h4 className="text-vintage-lg font-libre font-semibold text-deep-brown mb-3">Booking Reference</h4>
+                  <p className="text-vintage-base text-deep-brown font-mono bg-walnut-dark/50 px-3 py-2 rounded border border-dark-brown/90">
                     {selectedBooking.id}
                   </p>
                 </div>
               </div>
 
               {/* Modal Footer */}
-              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-copper-accent/20">
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-dark-brown/20">
                 {(selectedBooking.status === 'Pending' || selectedBooking.status === 'Confirmed') && (
                   <Button
                     onClick={() => handleCancelBooking(selectedBooking.id)}
                     disabled={cancellingBookingId === selectedBooking.id}
-                    className="px-8 py-4 text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                    className="px-8 py-4 text-red-800 border-red-400 bg-gradient-to-br from-red-400 to-red-400/60 font-varela font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-105 disabled:opacity-50"
                   >
                     {cancellingBookingId === selectedBooking.id ? (
                       <>
@@ -1030,7 +1027,7 @@ export default function ProfilePage() {
                 )}
                 <Button
                   onClick={closeBookingDetails}
-                  className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-playfair border-copper-accent/30 font-semibold hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105"
+                  className="bg-gradient-to-br from-terracotta-rose/70 to-terracotta-orange/80 text-walnut-dark font-playfair border-copper-accent/30 font-semibold hover:shadow-copper-accent/30 transition-all duration-300 hover:scale-105"
                 >
                   Close
                 </Button>

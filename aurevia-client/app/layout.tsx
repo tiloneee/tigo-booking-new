@@ -40,9 +40,9 @@ export default function RootLayout({
               }}
               toastOptions={{
                 style: {
-                  background: '#3d2419',
-                  color: '#f5f1e8',
-                  border: '1px solid rgba(205, 127, 50, 0.3)',
+                  background: '#E2B59A',
+                  color: '#4A3B2F',
+                  border: '1px solid rgba(183, 116, 102, 0.3)',
                 },
                 classNames: {
                   error: 'toast-error',

@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Star, Quote } from "lucide-react"
 
-const testimonials = [
+const quickratings = [
   {
     name: "Eleanor Whitmore",
     location: "London, UK",
@@ -25,7 +25,7 @@ const testimonials = [
   },
 ]
 
-export default function Testimonials() {
+export default function QuickRating() {
   return (
     <section className="py-20 relative">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -46,7 +46,7 @@ export default function Testimonials() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {testimonials.map((testimonial, index) => (
+          {quickratings.map((quickrating, index) => (
             <Card
               key={index}
               className="bg-soft-beige/40 border border-terracotta-rose/20 hover:bg-soft-beige/60 transition-all duration-300 hover:shadow-xl hover:shadow-terracotta-rose/10"
@@ -55,27 +55,27 @@ export default function Testimonials() {
                 <div className="flex items-center mb-6">
                   <Quote className="h-8 w-8 text-terracotta-rose mr-3" />
                   <div className="flex space-x-1">
-                    {[...Array(testimonial.rating)].map((_, i) => (
+                    {[...Array(quickrating.rating)].map((_, i) => (
                       <Star key={i} className="h-4 w-4 text-terracotta-rose fill-current" />
                     ))}
                   </div>
                 </div>
 
                 <p className="text-ash-brown mb-6 leading-relaxed italic font-varela text-vintage-base">
-                  "{testimonial.text}"
+                  "{quickrating.text}"
                 </p>
 
                 <div className="flex items-center">
                   <img
-                    src={testimonial.image || "/placeholder.svg"}
-                    alt={testimonial.name}
+                    src={quickrating.image || "/placeholder.svg"}
+                    alt={quickrating.name}
                     className="w-12 h-12 rounded-full mr-4 border-2 border-terracotta-rose/30"
                   />
                   <div>
                     <div className="font-libre font-bold text-deep-brown text-vintage-base tracking-wide">
-                      {testimonial.name}
+                      {quickrating.name}
                     </div>
-                    <div className="text-ash-brown/80 text-vintage-sm font-varela">{testimonial.location}</div>
+                    <div className="text-ash-brown/80 text-vintage-sm font-varela">{quickrating.location}</div>
                   </div>
                 </div>
               </CardContent>
