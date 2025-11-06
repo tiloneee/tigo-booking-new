@@ -58,7 +58,7 @@ export default function ProfilePage() {
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1)
-  const [itemsPerPage] = useState(4)
+  const [itemsPerPage] = useState(6)
   
   // Sort state
   const [sortBy, setSortBy] = useState<SortOption>('date-desc')
@@ -708,7 +708,7 @@ export default function ProfilePage() {
                   <div className="space-y-4 flex-grow">
                     {/* Booking History Content */}
                     {activeTab === 'bookings' && (paginatedItems as Booking[]).map((booking) => (
-                    <div key={booking.id} className="bg-creamy-yellow/90 border border-terracotta-rose/60 rounded-lg p-4 hover:bg-creamy-yellow/80 transition-colors duration-300">
+                    <div key={booking.id} className="bg-gradient-to-tl from-creamy-yellow to-creamy-white border border-terracotta-rose/60 rounded-lg p-4 hover:bg-creamy-yellow/80 transition-colors duration-300">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <h4 className="text-vintage-lg font-libre font-semibold text-deep-brown mb-1">
@@ -792,7 +792,7 @@ export default function ProfilePage() {
 
                     {/* Transaction History Content */}
                     {activeTab === 'transactions' && (paginatedItems as Transaction[]).map((transaction) => (
-                      <div key={transaction.id} className="bg-creamy-yellow/90 border border-terracotta-rose/20 rounded-lg p-4 hover:bg-creamy-yellow/80 transition-colors duration-300">
+                      <div key={transaction.id} className="bg-gradient-to-br from-creamy-yellow/90 to-creamy-white border border-terracotta-rose/20 rounded-lg p-4 hover:bg-creamy-yellow/80 transition-colors duration-300">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-4">
                             <div className={`w-12 h-12 bg-gradient-to-br ${
