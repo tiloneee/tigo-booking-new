@@ -130,13 +130,13 @@ export default function BalanceRequestsTab({
 
   if (requests.length === 0) {
     return (
-      <Card className="bg-walnut-dark/50 border-copper-accent/20">
+      <Card className="bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border border-terracotta-rose/30">
         <CardContent className="py-12 text-center">
-          <DollarSign className="h-16 w-16 text-cream-light/40 mx-auto mb-4" />
-          <h3 className="text-vintage-xl font-playfair text-cream-light mb-2">
+          <DollarSign className="h-16 w-16 text-creamy-yellow/40 mx-auto mb-4" />
+          <h3 className="text-vintage-xl font-libre text-creamy-yellow mb-2">
             No Balance Requests
           </h3>
-          <p className="text-vintage-base text-cream-light/60 font-cormorant">
+          <p className="text-vintage-base text-creamy-yellow/60 font-varela">
             There are no balance requests to display.
           </p>
         </CardContent>
@@ -147,16 +147,16 @@ export default function BalanceRequestsTab({
   return (
     <div className="space-y-6">
       {/* Filters and Sort Controls */}
-      <Card className="bg-walnut-dark/50 border-copper-accent/20">
+      <Card className="bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border border-terracotta-rose/30">
         <CardContent className="py-4">
           <div className="flex flex-wrap gap-4 items-center justify-between">
             {/* Status Filter */}
             <div className="flex items-center gap-2">
-              <span className="text-cream-light/80 font-cormorant text-vintage-sm">Filter:</span>
+              <span className="text-creamy-yellow/80 font-varela text-vintage-sm">Filter:</span>
               <select
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
-                className="px-3 py-2 bg-walnut-darkest border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-sm focus:outline-none focus:ring-2 focus:ring-copper-accent/50"
+                className="px-3 py-2 bg-dark-brown/30 border border-terracotta-rose/30 rounded-lg text-creamy-yellow font-varela text-vintage-sm focus:outline-none focus:ring-2 focus:ring-terracotta-rose/50"
               >
                 <option value="all">All Status</option>
                 <option value="pending">Pending</option>
@@ -167,33 +167,33 @@ export default function BalanceRequestsTab({
 
             {/* Sort Controls */}
             <div className="flex items-center gap-2">
-              <span className="text-cream-light/80 font-cormorant text-vintage-sm">Sort by:</span>
+              <span className="text-creamy-yellow/80 font-varela text-vintage-sm">Sort by:</span>
               <button
                 onClick={() => toggleSort('created_at')}
-                className={`px-3 py-2 rounded-lg font-cormorant text-vintage-sm transition-colors ${
+                className={`px-3 py-2 rounded-lg font-varela text-vintage-sm transition-colors ${
                   sortField === 'created_at'
-                    ? 'bg-copper-accent/20 text-copper-accent border border-copper-accent/30'
-                    : 'bg-walnut-darkest text-cream-light/80 border border-copper-accent/20 hover:bg-copper-accent/10'
+                    ? 'bg-terracotta-rose/20 text-terracotta-rose border border-terracotta-rose/30'
+                    : 'bg-dark-brown/30 text-creamy-yellow/80 border border-terracotta-rose/20 hover:bg-terracotta-rose/10'
                 }`}
               >
                 Time {getSortIcon('created_at')}
               </button>
               <button
                 onClick={() => toggleSort('amount')}
-                className={`px-3 py-2 rounded-lg font-cormorant text-vintage-sm transition-colors ${
+                className={`px-3 py-2 rounded-lg font-varela text-vintage-sm transition-colors ${
                   sortField === 'amount'
-                    ? 'bg-copper-accent/20 text-copper-accent border border-copper-accent/30'
-                    : 'bg-walnut-darkest text-cream-light/80 border border-copper-accent/20 hover:bg-copper-accent/10'
+                    ? 'bg-terracotta-rose/20 text-terracotta-rose border border-terracotta-rose/30'
+                    : 'bg-dark-brown/30 text-creamy-yellow/80 border border-terracotta-rose/20 hover:bg-terracotta-rose/10'
                 }`}
               >
                 Amount {getSortIcon('amount')}
               </button>
               <button
                 onClick={() => toggleSort('status')}
-                className={`px-3 py-2 rounded-lg font-cormorant text-vintage-sm transition-colors ${
+                className={`px-3 py-2 rounded-lg font-varela text-vintage-sm transition-colors ${
                   sortField === 'status'
-                    ? 'bg-copper-accent/20 text-copper-accent border border-copper-accent/30'
-                    : 'bg-walnut-darkest text-cream-light/80 border border-copper-accent/20 hover:bg-copper-accent/10'
+                    ? 'bg-terracotta-rose/20 text-terracotta-rose border border-terracotta-rose/30'
+                    : 'bg-dark-brown/30 text-creamy-yellow/80 border border-terracotta-rose/20 hover:bg-terracotta-rose/10'
                 }`}
               >
                 Status {getSortIcon('status')}
@@ -202,7 +202,7 @@ export default function BalanceRequestsTab({
           </div>
 
           {/* Results Count */}
-          <div className="mt-3 text-vintage-sm text-cream-light/60 font-cormorant">
+          <div className="mt-3 text-vintage-sm text-creamy-yellow/60 font-varela">
             Showing {filteredAndSortedRequests.length} of {requests.length} request{requests.length !== 1 ? 's' : ''}
           </div>
         </CardContent>
@@ -213,35 +213,35 @@ export default function BalanceRequestsTab({
         {filteredAndSortedRequests.map((request) => (
           <Card 
             key={request.id}
-            className="bg-walnut-dark/50 border-copper-accent/20 hover:border-copper-accent/40 transition-all duration-300"
+            className="bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border border-terracotta-rose/30 hover:border-terracotta-rose/40 transition-all duration-300"
           >
             <CardContent className="py-6">
               <div className="flex flex-col space-y-4">
                 {/* Main Info Row */}
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-start space-x-4 flex-1">
-                    <div className="w-12 h-12 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center flex-shrink-0">
-                      <DollarSign className="h-6 w-6 text-walnut-dark" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-terracotta-rose to-terracotta-orange rounded-full flex items-center justify-center flex-shrink-0">
+                      <DollarSign className="h-6 w-6 text-creamy-white" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 flex-wrap">
-                        <h3 className="text-cream-light font-playfair text-vintage-lg font-bold">
+                        <h3 className="text-creamy-yellow font-libre text-vintage-lg font-bold">
                           ${Number(request.amount).toFixed(2)}
                         </h3>
-                        <Badge className={`${getStatusBadge(request.status)} font-cinzel uppercase tracking-wider`}>
+                        <Badge className={`${getStatusBadge(request.status)} font-varela uppercase tracking-wider`}>
                           {request.status}
                         </Badge>
                       </div>
                       
                       <div className="mt-2 space-y-1">
                         {request.user && (
-                          <div className="flex items-center gap-2 text-cream-light/80 text-vintage-sm font-cormorant">
+                          <div className="flex items-center gap-2 text-creamy-yellow/80 text-vintage-sm font-varela">
                             <User className="h-4 w-4" />
                             <span>{request.user.first_name} {request.user.last_name}</span>
-                            <span className="text-cream-light/60">({request.user.email})</span>
+                            <span className="text-creamy-yellow/60">({request.user.email})</span>
                           </div>
                         )}
-                        <div className="flex items-center gap-2 text-cream-light/80 text-vintage-sm font-cormorant">
+                        <div className="flex items-center gap-2 text-creamy-yellow/80 text-vintage-sm font-varela">
                           <Calendar className="h-4 w-4" />
                           <span>{formatDate(request.created_at)}</span>
                         </div>
@@ -249,21 +249,21 @@ export default function BalanceRequestsTab({
 
                       {/* Processor Info */}
                       {request.processor && (
-                        <div className="mt-2 text-vintage-xs text-cream-light/60 font-cormorant">
+                        <div className="mt-2 text-vintage-xs text-creamy-yellow/60 font-varela">
                           Processed by: {request.processor.first_name} {request.processor.last_name}
                         </div>
                       )}
 
                       {/* Admin Notes Display */}
                       {request.admin_notes && (
-                        <div className="mt-3 p-3 bg-walnut-darkest/50 border border-copper-accent/20 rounded-lg">
+                        <div className="mt-3 p-3 bg-dark-brown border border-terracotta-rose/20 rounded-lg">
                           <div className="flex items-start gap-2">
-                            <MessageSquare className="h-4 w-4 text-copper-accent mt-0.5 flex-shrink-0" />
+                            <MessageSquare className="h-4 w-4 text-terracotta-rose mt-0.5 flex-shrink-0" />
                             <div>
-                              <div className="text-vintage-xs text-copper-accent font-cinzel uppercase tracking-wider mb-1">
+                              <div className="text-vintage-xs text-terracotta-rose font-varela uppercase tracking-wider mb-1">
                                 Admin Notes
                               </div>
-                              <p className="text-vintage-sm text-cream-light/80 font-cormorant">
+                              <p className="text-vintage-sm text-creamy-yellow/80 font-varela">
                                 {request.admin_notes}
                               </p>
                             </div>
@@ -279,7 +279,7 @@ export default function BalanceRequestsTab({
                       <Button
                         onClick={() => handleProcess(request.id, 'success')}
                         disabled={processingId === request.id}
-                        className="text-emerald-200 border-green-400 bg-gradient-to-r from-green-400/30 to-green-400/80 font-cinzel font-bold rounded-lg hover:shadow-green-400/30 hover:bg-green-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
+                        className="text-emerald-200 border-green-400 bg-gradient-to-r from-green-400/30 to-green-400/80 font-varela font-bold rounded-lg hover:shadow-green-400/30 hover:bg-green-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                       >
                         <Check className="h-6 w-6 mr-2" />
                         Approve
@@ -287,14 +287,14 @@ export default function BalanceRequestsTab({
                       <Button
                         onClick={() => handleProcess(request.id, 'failed')}
                         disabled={processingId === request.id}
-                        className="text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
+                        className="text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-varela font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
                       >
                         <X className="h-6 w-6 mr-2" />
                         Reject
                       </Button>
                       <button
                         onClick={() => setExpandedId(expandedId === request.id ? null : request.id)}
-                        className="text-cream-light/60 hover:text-cream-light transition-colors text-vintage-sm font-cormorant flex items-center justify-end gap-1"
+                        className="text-creamy-yellow/60 hover:text-creamy-yellow transition-colors text-vintage-sm font-varela flex items-center justify-end gap-1"
                       >
                         <MessageSquare className="h-4 w-4" />
                         Notes
@@ -306,15 +306,15 @@ export default function BalanceRequestsTab({
 
                 {/* Admin Notes Input (Expanded) */}
                 {expandedId === request.id && request.status === 'pending' && (
-                  <div className="mt-4 p-4 bg-walnut-darkest/50 border border-copper-accent/20 rounded-lg">
-                    <label className="block text-vintage-sm text-cream-light/80 font-cormorant mb-2">
+                  <div className="mt-4 p-4 bg-creamy-yellow/80 border border-terracotta-rose/20 rounded-lg">
+                    <label className="block text-vintage-sm text-dark-brown/80 font-varela mb-2">
                       Add admin notes (optional):
                     </label>
                     <textarea
                       value={adminNotes[request.id] || ''}
                       onChange={(e) => setAdminNotes(prev => ({ ...prev, [request.id]: e.target.value }))}
                       placeholder="Enter any notes about this decision..."
-                      className="w-full px-3 py-2 bg-walnut-dark border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/40 focus:outline-none focus:ring-2 focus:ring-copper-accent/50 font-cormorant text-vintage-sm resize-none"
+                      className="w-full px-3 py-2 bg-dark-brown/30 border border-terracotta-rose/30 rounded-lg text-deep-brown placeholder-creamy-yellow/40 focus:outline-none focus:ring-2 focus:ring-terracotta-rose/50 font-varela text-vintage-sm resize-none"
                       rows={3}
                     />
                   </div>

@@ -434,7 +434,7 @@ export default function ProfilePage() {
                 <div className="w-24 h-24 bg-gradient-to-br from-terracotta-rose to-terracotta-orange rounded-full flex items-center justify-center mx-auto mb-4">
                   <User className="h-12 w-12 text-creamy-white" />
                 </div>
-                <h2 className="text-vintage-2xl font-libre font-bold text-terracotta-rose mb-1">
+                <h2 className="text-vintage-2xl font-libre font-bold text-creamy-yellow mb-1">
                   {profile?.first_name} {profile?.last_name}
                 </h2>
                 <p className="text-vintage-sm text-terracotta-rose font-varela uppercase tracking-wider">
@@ -711,7 +711,7 @@ export default function ProfilePage() {
                     <div key={booking.id} className="bg-gradient-to-tl from-creamy-yellow to-creamy-white border border-terracotta-rose/60 rounded-lg p-4 hover:bg-creamy-yellow/80 transition-colors duration-300">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
-                          <h4 className="text-vintage-lg font-libre font-semibold text-deep-brown mb-1">
+                          <h4 className="text-vintage-xl font-fraunces font-semibold text-deep-brown mb-1">
                             {booking.hotel?.name || 'Hotel Information Unavailable'}
                           </h4>
                           <div className="flex items-center text-vintage-sm text-terracotta-rose mb-2">

@@ -1,3 +1,4 @@
+import { fr } from "date-fns/locale"
 import type { Config } from "tailwindcss"
 
 const config: Config = {
@@ -21,6 +22,7 @@ const config: Config = {
       colors: {
         // New warm vintage color palette
         "terracotta-rose": "#B77466",
+        "terracotta-rose-dark": "#835349",
         "terracotta-orange": "#F59C5D",
         "ash-brown": "#957C62",
         "creamy-yellow": "#FFE1AF",
@@ -66,6 +68,8 @@ const config: Config = {
         // Primary font families
         libre: ["Libre Baskerville", "serif"],
         varela: ["Varela Round", "sans-serif"],
+        pridi: ["Pridi", "serif"],
+        fraunces: ["Fraunces", "serif"],
         serif: ["Libre Baskerville", "Georgia", "Times New Roman", "serif"],
         sans: ["Varela Round", "system-ui", "sans-serif"],
       },

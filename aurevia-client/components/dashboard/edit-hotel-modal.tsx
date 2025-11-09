@@ -63,13 +63,13 @@ export function EditHotelModal({ isOpen, onClose, hotel, accessToken, onSuccess 
     <Modal isOpen={isOpen} onClose={onClose} title="Edit Hotel" size="lg">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="bg-red-900/20 border border-red-500/50 rounded p-3 text-red-300 text-vintage-sm">
+          <div className="bg-red-900/20 border border-red-500/50 rounded p-3 text-red-700 text-vintage-sm font-varela">
             {error}
           </div>
         )}
 
         <div>
-          <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+          <label className="block text-deep-brown font-varela text-vintage-base mb-2">
             Hotel Name *
           </label>
           <input
@@ -77,25 +77,25 @@ export function EditHotelModal({ isOpen, onClose, hotel, accessToken, onSuccess 
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+            className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
           />
         </div>
 
         <div>
-          <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+          <label className="block text-deep-brown font-varela text-vintage-base mb-2">
             Description *
           </label>
           <textarea
             required
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+            className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
             rows={4}
           />
         </div>
 
         <div>
-          <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+          <label className="block text-deep-brown font-varela text-vintage-base mb-2">
             Address *
           </label>
           <input
@@ -103,13 +103,13 @@ export function EditHotelModal({ isOpen, onClose, hotel, accessToken, onSuccess 
             required
             value={formData.address}
             onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-            className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+            className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
           />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+            <label className="block text-deep-brown font-varela text-vintage-base mb-2">
               City *
             </label>
             <input
@@ -117,12 +117,12 @@ export function EditHotelModal({ isOpen, onClose, hotel, accessToken, onSuccess 
               required
               value={formData.city}
               onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+              className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
             />
           </div>
 
           <div>
-            <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+            <label className="block text-deep-brown font-varela text-vintage-base mb-2">
               State/Province *
             </label>
             <input
@@ -130,14 +130,14 @@ export function EditHotelModal({ isOpen, onClose, hotel, accessToken, onSuccess 
               required
               value={formData.state}
               onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-              className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+              className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+            <label className="block text-deep-brown font-varela text-vintage-base mb-2">
               Zip Code *
             </label>
             <input
@@ -145,12 +145,12 @@ export function EditHotelModal({ isOpen, onClose, hotel, accessToken, onSuccess 
               required
               value={formData.zip_code}
               onChange={(e) => setFormData({ ...formData, zip_code: e.target.value })}
-              className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+              className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
             />
           </div>
 
           <div>
-            <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+            <label className="block text-deep-brown font-varela text-vintage-base mb-2">
               Country *
             </label>
             <input
@@ -158,13 +158,13 @@ export function EditHotelModal({ isOpen, onClose, hotel, accessToken, onSuccess 
               required
               value={formData.country}
               onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-              className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+              className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+          <label className="block text-deep-brown font-varela text-vintage-base mb-2">
             Phone Number *
           </label>
           <input
@@ -172,7 +172,7 @@ export function EditHotelModal({ isOpen, onClose, hotel, accessToken, onSuccess 
             required
             value={formData.phone_number}
             onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-            className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+            className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
           />
         </div>
 
@@ -181,14 +181,14 @@ export function EditHotelModal({ isOpen, onClose, hotel, accessToken, onSuccess 
             type="button"
             onClick={onClose}
             variant="outline"
-            className="text-cream-light border-copper-accent/30 hover:bg-copper-accent/10"
+            className="text-deep-brown border-terracotta-rose/30 hover:bg-terracotta-rose/10 font-varela"
             disabled={loading}
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold"
+            className="bg-gradient-to-r from-terracotta-rose/70 to-terracotta-orange/80 text-dark-brown font-varela font-bold hover:shadow-terracotta-rose/30 transition-all duration-300 hover:scale-105"
             disabled={loading}
           >
             {loading ? 'Saving...' : 'Save Changes'}

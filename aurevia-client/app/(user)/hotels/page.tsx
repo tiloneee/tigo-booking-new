@@ -341,14 +341,14 @@ function HotelsPageContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-walnut-darkest flex items-center justify-center">
-        <Card className="max-w-md bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30">
+      <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
+        <Card className="max-w-md bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border border-terracotta-rose/30">
           <CardContent className="p-6 text-center">
-            <h2 className="text-vintage-xl font-playfair font-semibold text-cream-light mb-2">Oops! Something went wrong</h2>
-            <p className="text-cream-light/70 font-cormorant mb-4">{error}</p>
+            <h2 className="text-vintage-xl font-libre font-semibold text-creamy-yellow mb-2">Oops! Something went wrong</h2>
+            <p className="text-creamy-yellow/70 font-varela mb-4">{error}</p>
             <Button 
               onClick={() => fetchHotels()}
-              className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold"
+              className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold"
             >
               Try Again
             </Button>
@@ -359,35 +359,35 @@ function HotelsPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-walnut-darkest">
+    <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white">
       {/* Warm lighting effects */}
-      <div className="absolute top-0 left-1/4 w-80 h-80 bg-copper-accent/4 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-copper-light/3 rounded-full blur-3xl"></div>
+      <div className="absolute top-0 left-1/4 w-80 h-80 bg-terracotta-rose/4 rounded-full blur-3xl"></div>
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-terracotta-orange/3 rounded-full blur-3xl"></div>
       
       <div className="container mx-auto px-4 py-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="mb-6">
-            <div className="w-16 h-px bg-gradient-to-r from-transparent via-copper-accent to-transparent mx-auto mb-3"></div>
-            <p className="text-copper-accent font-great-vibes text-vintage-xl">Luxury Accommodations</p>
-            <div className="w-16 h-px bg-gradient-to-r from-transparent via-copper-accent to-transparent mx-auto mt-3"></div>
+            <div className="w-16 h-px bg-gradient-to-r from-transparent via-terracotta-rose to-transparent mx-auto mb-3"></div>
+            <p className="text-terracotta-rose font-great-vibes text-vintage-xl">Luxury Accommodations</p>
+            <div className="w-16 h-px bg-gradient-to-r from-transparent via-terracotta-rose to-transparent mx-auto mt-3"></div>
           </div>
 
-          <h1 className="text-vintage-4xl md:text-vintage-5xl font-playfair font-bold text-cream-light mb-6 tracking-wide">
+          <h1 className="text-vintage-4xl md:text-vintage-5xl font-libre font-bold text-deep-brown mb-6 tracking-wide">
             Discover Premium
-            <span className="block text-copper-accent font-great-vibes text-vintage-5xl font-normal italic mt-2">
+            <span className="block text-terracotta-rose font-great-vibes text-vintage-5xl font-normal italic mt-2">
               Hotels Worldwide
             </span>
           </h1>
-          <p className="text-vintage-lg text-cream-light/85 mb-8 max-w-3xl mx-auto leading-relaxed font-cormorant font-light">
+          <p className="text-vintage-lg text-deep-brown/85 mb-8 max-w-3xl mx-auto leading-relaxed font-varela font-light">
             Experience unparalleled luxury and comfort in our curated collection of the world's finest hotels.
           </p>
         </div>
 
         {/* Search Form */}
-        <Card className="mb-8 bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30 shadow-2xl max-w-6xl mx-auto relative z-10">
+        <Card className="mb-8 bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border border-terracotta-rose/30 shadow-2xl max-w-6xl mx-auto relative z-10">
           <CardHeader className="pb-4">
-            <CardTitle className="text-vintage-xl font-playfair font-bold text-center text-cream-light">
+            <CardTitle className="text-vintage-xl font-libre font-bold text-center text-creamy-yellow">
               Find Your Perfect Stay
             </CardTitle>
           </CardHeader>
@@ -396,8 +396,8 @@ function HotelsPageContent() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                 {/* Search by Hotel Name or City */}
                 <div className="lg:col-span-2">
-                  <label className="text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
-                    <Search className="w-4 h-4 mr-2 text-copper-accent" />
+                  <label className="text-creamy-yellow font-varela text-vintage-base font-medium mb-2 flex items-center">
+                    <Search className="w-4 h-4 mr-2 text-terracotta-rose" />
                     Search Hotels
                   </label>
           
@@ -415,10 +415,10 @@ function HotelsPageContent() {
                       type="button"
                       onClick={getUserLocation}
                       disabled={locationLoading}
-                      className={`px-3 py-2 border border-copper-accent/30 rounded-lg transition-all duration-300 ${
+                      className={`px-3 py-2 border border-terracotta-rose/30 rounded-lg transition-all duration-300 ${
                         userLocation 
-                          ? 'bg-copper-accent text-walnut-dark' 
-                          : 'bg-walnut-darkest/60 text-copper-accent hover:bg-copper-accent/20'
+                          ? 'bg-terracotta-rose text-dark-brown' 
+                          : 'bg-dark-brown/60 text-terracotta-rose hover:bg-terracotta-rose/20'
                       }`}
                       title={userLocation ? 'Location enabled' : 'Use my location'}
                     >
@@ -430,7 +430,7 @@ function HotelsPageContent() {
                     </Button>
                   </div>
                   {userLocation && (
-                    <div className="mt-1 text-vintage-xs text-copper-accent font-cormorant">
+                    <div className="mt-1 text-vintage-xs text-terracotta-rose font-varela">
                       📍 Searching near your location
                     </div>
                   )}
@@ -438,8 +438,8 @@ function HotelsPageContent() {
 
                 {/* Check-in Date */}
                 <div>
-                  <label className="text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
-                    <Calendar className="w-4 h-4 mr-2 text-copper-accent" />
+                  <label className="text-creamy-yellow font-varela text-vintage-base font-medium mb-2 flex items-center">
+                    <Calendar className="w-4 h-4 mr-2 text-terracotta-rose" />
                     Check-in
                   </label>
                   <input
@@ -447,14 +447,14 @@ function HotelsPageContent() {
                     value={searchForm.checkInDate}
                     onChange={(e) => setSearchForm(prev => ({ ...prev, checkInDate: e.target.value }))}
                     min={today}
-                    className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+                    className="w-full px-4 py-3 bg-dark-brown/60 border border-terracotta-rose/30 rounded-lg text-creamy-yellow font-varela text-vintage-base focus:outline-none focus:border-terracotta-rose focus:ring-2 focus:ring-terracotta-rose/20 transition-all duration-300"
                   />
                 </div>
 
                 {/* Check-out Date */}
                 <div>
-                  <label className="text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
-                    <Calendar className="w-4 h-4 mr-2 text-copper-accent" />
+                  <label className="text-creamy-yellow font-varela text-vintage-base font-medium mb-2 flex items-center">
+                    <Calendar className="w-4 h-4 mr-2 text-terracotta-rose" />
                     Check-out
                   </label>
                   <input
@@ -462,32 +462,32 @@ function HotelsPageContent() {
                     value={searchForm.checkOutDate}
                     onChange={(e) => setSearchForm(prev => ({ ...prev, checkOutDate: e.target.value }))}
                     min={searchForm.checkInDate || tomorrow}
-                    className="w-full px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+                    className="w-full px-4 py-3 bg-dark-brown/60 border border-terracotta-rose/30 rounded-lg text-creamy-yellow font-varela text-vintage-base focus:outline-none focus:border-terracotta-rose focus:ring-2 focus:ring-terracotta-rose/20 transition-all duration-300"
                   />
                 </div>
 
                 {/* Guests and Rooms */}
                 <div className="flex gap-2">
                   <div className="flex-1">
-                    <label className="text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
-                      <Users className="w-4 h-4 mr-2 text-copper-accent" />
+                    <label className="text-creamy-yellow font-varela text-vintage-base font-medium mb-2 flex items-center">
+                      <Users className="w-4 h-4 mr-2 text-terracotta-rose" />
                       Guests
                     </label>
-                    <div className="flex items-center space-x-2 px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg">
+                    <div className="flex items-center space-x-2 px-4 py-3 bg-dark-brown/60 border border-terracotta-rose/30 rounded-lg">
                       <button
                         type="button"
                         onClick={() => setSearchForm(prev => ({ ...prev, numberOfGuests: Math.max(1, prev.numberOfGuests - 1) }))}
-                        className="p-1 text-copper-accent hover:bg-copper-accent hover:text-walnut-dark rounded transition-all duration-300"
+                        className="p-1 text-terracotta-rose hover:bg-terracotta-rose hover:text-dark-brown rounded transition-all duration-300"
                       >
                         <Minus className="h-3 w-3" />
                       </button>
-                      <span className="text-cream-light font-cormorant text-vintage-base font-medium flex-1 text-center text-sm">
+                      <span className="text-creamy-yellow font-varela text-vintage-base font-medium flex-1 text-center text-sm">
                         {searchForm.numberOfGuests}
                       </span>
                       <button
                         type="button"
                         onClick={() => setSearchForm(prev => ({ ...prev, numberOfGuests: prev.numberOfGuests + 1 }))}
-                        className="p-1 text-copper-accent hover:bg-copper-accent hover:text-walnut-dark rounded transition-all duration-300"
+                        className="p-1 text-terracotta-rose hover:bg-terracotta-rose hover:text-dark-brown rounded transition-all duration-300"
                       >
                         <Plus className="h-3 w-3" />
                       </button>
@@ -495,25 +495,25 @@ function HotelsPageContent() {
                   </div>
                   
                   <div className="flex-1">
-                    <label className="text-cream-light font-cormorant text-vintage-base font-medium mb-2 flex items-center">
-                      <Home className="w-4 h-4 mr-2 text-copper-accent" />
+                    <label className="text-creamy-yellow font-varela text-vintage-base font-medium mb-2 flex items-center">
+                      <Home className="w-4 h-4 mr-2 text-terracotta-rose" />
                       Rooms
                     </label>
-                    <div className="flex items-center space-x-2 px-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg">
+                    <div className="flex items-center space-x-2 px-4 py-3 bg-dark-brown/60 border border-terracotta-rose/30 rounded-lg">
                       <button
                         type="button"
                         onClick={() => setSearchForm(prev => ({ ...prev, numberOfRooms: Math.max(1, prev.numberOfRooms - 1) }))}
-                        className="p-1 text-copper-accent hover:bg-copper-accent hover:text-walnut-dark rounded transition-all duration-300"
+                        className="p-1 text-terracotta-rose hover:bg-terracotta-rose hover:text-dark-brown rounded transition-all duration-300"
                       >
                         <Minus className="h-3 w-3" />
                       </button>
-                      <span className="text-cream-light font-cormorant text-vintage-base font-medium flex-1 text-center text-sm">
+                      <span className="text-creamy-yellow font-varela text-vintage-base font-medium flex-1 text-center text-sm">
                         {searchForm.numberOfRooms}
                       </span>
                       <button
                         type="button"
                         onClick={() => setSearchForm(prev => ({ ...prev, numberOfRooms: prev.numberOfRooms + 1 }))}
-                        className="p-1 text-copper-accent hover:bg-copper-accent hover:text-walnut-dark rounded transition-all duration-300"
+                        className="p-1 text-terracotta-rose hover:bg-terracotta-rose hover:text-dark-brown rounded transition-all duration-300"
                       >
                         <Plus className="h-3 w-3" />
                       </button>
@@ -527,7 +527,7 @@ function HotelsPageContent() {
                 <Button
                   type="submit"
                   disabled={searching || loading}
-                  className="px-8 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50 text-vintage-lg tracking-wider uppercase"
+                  className="px-8 py-4 bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold rounded-lg shadow-2xl hover:shadow-terracotta-rose/40 transition-all duration-300 hover:scale-105 disabled:opacity-50 text-vintage-lg tracking-wider uppercase"
                   size="lg"
                 >
                   <Search className="mr-3 h-5 w-5" />
@@ -537,7 +537,7 @@ function HotelsPageContent() {
                   type="button"
                   onClick={handleClearSearch}
                   disabled={searching || loading}
-                  className="px-6 py-4 bg-walnut-light border-2 border-copper-accent/30 text-copper-accent font-cinzel font-bold rounded-lg hover:bg-copper-accent/10 hover:border-copper-accent transition-all duration-300 hover:scale-105 disabled:opacity-50 tracking-wider uppercase"
+                  className="px-6 py-4 bg-creamy-yellow border-2 border-terracotta-rose/30 text-terracotta-rose font-libre font-bold rounded-lg hover:bg-creamy-yellow/80 hover:border-terracotta-rose transition-all duration-300 hover:scale-105 disabled:opacity-50 tracking-wider uppercase"
                   size="lg"
                 >
                   <X className="mr-2 h-5 w-5" />
@@ -552,24 +552,24 @@ function HotelsPageContent() {
         <div className="flex gap-8">
           {/* Filters Sidebar */}
           <div className="w-80 flex-shrink-0 z-0">
-            <Card className="bg-walnut-dark/60 border border-copper-accent/20 backdrop-blur-sm">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/20 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-vintage-lg font-playfair text-cream-light">
-                  <Filter className="w-4 h-4 inline mr-2 text-copper-accent" />
+                <CardTitle className="text-vintage-lg font-libre text-creamy-yellow">
+                  <Filter className="w-4 h-4 inline mr-2 text-terracotta-rose" />
                   Filters & Sort
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Advanced Search Toggle */}
                 <div className="flex items-center justify-between">
-                  <h4 className="font-cormorant font-medium text-cream-light text-vintage-base">Advanced Features</h4>
+                  <h4 className="font-varela font-medium text-creamy-yellow text-vintage-base">Advanced Features</h4>
                   <button
                     type="button"
                     onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
-                    className={`px-3 py-1 rounded-full border font-cormorant text-vintage-sm transition-all duration-300 ${
+                    className={`px-3 py-1 rounded-full border font-varela text-vintage-sm transition-all duration-300 ${
                       showAdvancedSearch
-                        ? 'border-copper-accent bg-copper-accent/20 text-copper-accent'
-                        : 'border-copper-accent/30 text-cream-light/80 hover:bg-copper-accent/10'
+                        ? 'border-terracotta-rose bg-terracotta-rose/20 text-terracotta-rose'
+                        : 'border-terracotta-rose/30 text-creamy-yellow/80 hover:bg-terracotta-rose/10'
                     }`}
                   >
                     <Sparkles className="w-3 h-3 inline mr-1" />
@@ -579,7 +579,7 @@ function HotelsPageContent() {
 
                 {/* Sort Options */}
                 <div>
-                  <h4 className="font-cormorant font-medium text-cream-light mb-3 text-vintage-base">Sort by</h4>
+                  <h4 className="font-varela font-medium text-creamy-yellow mb-3 text-vintage-base">Sort by</h4>
                   <div className="space-y-2">
                     {[
                       { key: 'relevance', label: 'Relevance', icon: '🎯' },
@@ -592,12 +592,12 @@ function HotelsPageContent() {
                         key={key}
                         disabled={disabled}
                         onClick={() => handleSortChange(key as any)}
-                        className={`w-full text-left px-4 py-3 rounded-lg border font-cormorant text-vintage-base transition-all duration-300 ${
+                        className={`w-full text-left px-4 py-3 rounded-lg border font-varela text-vintage-base transition-all duration-300 ${
                           filters.sortBy === key
-                            ? 'border-copper-accent bg-copper-accent/20 text-cream-light'
+                            ? 'border-terracotta-rose bg-terracotta-rose/20 text-creamy-yellow'
                             : disabled
-                            ? 'border-copper-accent/10 text-cream-light/40 cursor-not-allowed'
-                            : 'border-copper-accent/30 text-cream-light/80 hover:bg-copper-accent/10'
+                            ? 'border-terracotta-rose/10 text-creamy-yellow/40 cursor-not-allowed'
+                            : 'border-terracotta-rose/30 text-creamy-yellow/80 hover:bg-terracotta-rose/10'
                         }`}
                       >
                         <div className="flex items-center justify-between">
@@ -607,7 +607,7 @@ function HotelsPageContent() {
                             {disabled && ' (Enable location)'}
                           </span>
                           {filters.sortBy === key && !disabled && (
-                            <SortAsc className={`w-4 h-4 text-copper-accent ${filters.sortOrder === 'DESC' ? 'transform rotate-180' : ''}`} />
+                            <SortAsc className={`w-4 h-4 text-terracotta-rose ${filters.sortOrder === 'DESC' ? 'transform rotate-180' : ''}`} />
                           )}
                         </div>
                       </button>
@@ -617,7 +617,7 @@ function HotelsPageContent() {
 
                 {/* Price Range */}
                 <div>
-                  <h4 className="font-cormorant font-medium text-cream-light mb-3 text-vintage-base">Price Range</h4>
+                  <h4 className="font-varela font-medium text-creamy-yellow mb-3 text-vintage-base">Price Range</h4>
                   <div className="space-y-2">
                     {[
                       { label: 'All Prices', min: undefined, max: undefined },
@@ -629,10 +629,10 @@ function HotelsPageContent() {
                       <button 
                         key={label}
                         onClick={() => setFilters(prev => ({ ...prev, minPrice: min, maxPrice: max }))}
-                        className={`w-full text-left px-4 py-3 rounded-lg border font-cormorant text-vintage-base transition-all duration-300 ${
+                        className={`w-full text-left px-4 py-3 rounded-lg border font-varela text-vintage-base transition-all duration-300 ${
                           filters.minPrice === min && filters.maxPrice === max
-                            ? 'border-copper-accent bg-copper-accent/20 text-cream-light'
-                            : 'border-copper-accent/30 text-cream-light/80 hover:bg-copper-accent/10'
+                            ? 'border-terracotta-rose bg-terracotta-rose/20 text-creamy-yellow'
+                            : 'border-terracotta-rose/30 text-creamy-yellow/80 hover:bg-terracotta-rose/10'
                         }`}
                       >
                         {label}
@@ -643,7 +643,7 @@ function HotelsPageContent() {
 
                 {/* Rating Filter */}
                 <div>
-                  <h4 className="font-cormorant font-medium text-cream-light mb-3 text-vintage-base">Rating</h4>
+                  <h4 className="font-varela font-medium text-creamy-yellow mb-3 text-vintage-base">Rating</h4>
                   <div className="space-y-2">
                     {[
                       { label: 'All Ratings', rating: undefined },
@@ -655,10 +655,10 @@ function HotelsPageContent() {
                       <button
                         key={label}
                         onClick={() => setFilters(prev => ({ ...prev, minRating: rating }))}
-                        className={`w-full text-left px-4 py-3 rounded-lg border font-cormorant text-vintage-base transition-all duration-300 ${
+                        className={`w-full text-left px-4 py-3 rounded-lg border font-varela text-vintage-base transition-all duration-300 ${
                           filters.minRating === rating
-                            ? 'border-copper-accent bg-copper-accent/20 text-cream-light'
-                            : 'border-copper-accent/30 text-cream-light/80 hover:bg-copper-accent/10'
+                            ? 'border-terracotta-rose bg-terracotta-rose/20 text-creamy-yellow'
+                            : 'border-terracotta-rose/30 text-creamy-yellow/80 hover:bg-terracotta-rose/10'
                         }`}
                       >
                         {label}
@@ -690,7 +690,7 @@ function HotelsPageContent() {
           <div className="flex-1">
             {/* Results Header */}
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-vintage-xl font-playfair font-semibold text-cream-light">
+              <h2 className="text-vintage-xl font-libre font-semibold text-deep-brown">
                 {results ? (
                   searchForm.destination || searchForm.checkInDate ? 
                     `${results.total} Hotels Found` : 
@@ -702,7 +702,7 @@ function HotelsPageContent() {
             {loading ? (
               <div className="space-y-6">
                 {[...Array(6)].map((_, i) => (
-                  <div key={i} className="h-48 bg-walnut-dark/60 rounded-lg animate-pulse border border-copper-accent/20"></div>
+                  <div key={i} className="h-48 bg-gradient-to-br from-dark-brown/60 to-deep-brown rounded-lg animate-pulse border border-terracotta-rose/20"></div>
                 ))}
               </div>
             ) : (
@@ -721,10 +721,10 @@ function HotelsPageContent() {
                     ))
                   ) : (
                     <div className="text-center py-12">
-                      <div className="text-cream-light/70 font-cormorant text-vintage-lg mb-4">
+                      <div className="text-deep-brown/70 font-varela text-vintage-lg mb-4">
                         🏨 No hotels found
                       </div>
-                      <p className="text-cream-light/60 font-cormorant text-vintage-base mb-4">
+                      <p className="text-deep-brown/60 font-varela text-vintage-base mb-4">
                         {searchForm.destination ? 
                           `No hotels found matching "${searchForm.destination}".` : 
                           searchForm.checkInDate && searchForm.checkOutDate ?
@@ -732,7 +732,7 @@ function HotelsPageContent() {
                           'Try adjusting your search criteria or filters.'
                         }
                       </p>
-                      <div className="text-cream-light/50 font-cormorant text-vintage-sm space-y-2">
+                      <div className="text-deep-brown/50 font-varela text-vintage-sm space-y-2">
                         <div>💡 Try:</div>
                         <div>• Different dates</div>
                         <div>• Removing some filters</div>
@@ -740,7 +740,7 @@ function HotelsPageContent() {
                       </div>
                       <Button
                         onClick={handleClearSearch}
-                        className="mt-6 bg-copper-accent/20 text-copper-accent border border-copper-accent/30 hover:bg-copper-accent/30"
+                        className="mt-6 bg-terracotta-rose/20 text-terracotta-rose border border-terracotta-rose/30 hover:bg-terracotta-rose/30"
                       >
                         Clear All Filters
                       </Button>
@@ -754,7 +754,7 @@ function HotelsPageContent() {
                     <Button
                       disabled={currentPage === 1}
                       onClick={() => setCurrentPage(currentPage - 1)}
-                      className="px-6 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                      className="px-6 py-4 bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold rounded-lg shadow-2xl hover:shadow-terracotta-rose/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
                     >
                       Previous
                     </Button>
@@ -765,8 +765,8 @@ function HotelsPageContent() {
                         variant={currentPage === i + 1 ? "default" : "outline"}
                         onClick={() => setCurrentPage(i + 1)}
                         className={currentPage === i + 1 
-                          ? "bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold" 
-                          : "border-copper-accent/30 text-cream-light/80 hover:bg-copper-accent/10 font-cormorant"
+                          ? "bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold" 
+                          : "border-terracotta-rose/30 text-deep-brown/80 hover:bg-terracotta-rose/10 font-varela"
                         }
                       >
                         {i + 1}
@@ -777,7 +777,7 @@ function HotelsPageContent() {
 
                       disabled={currentPage >= Math.ceil(results.total / results.limit)}
                       onClick={() => setCurrentPage(currentPage + 1)}
-                      className="px-6 py-4 bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold rounded-lg shadow-2xl hover:shadow-copper-accent/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
+                      className="px-6 py-4 bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold rounded-lg shadow-2xl hover:shadow-terracotta-rose/40 transition-all duration-300 hover:scale-105 disabled:opacity-50"
                     >
                       Next
                     </Button>
@@ -786,10 +786,10 @@ function HotelsPageContent() {
 
                 {/* No Results */}
                 {results && results.hotels.length === 0 && (
-                  <Card className="p-8 text-center bg-walnut-dark/60 border border-copper-accent/20 backdrop-blur-sm">
+                  <Card className="p-8 text-center bg-gradient-to-br from-dark-brown/60 to-deep-brown border border-terracotta-rose/20 backdrop-blur-sm">
                     <CardContent>
-                      <h3 className="text-vintage-xl font-playfair font-semibold text-cream-light mb-2">No hotels found</h3>
-                      <p className="text-cream-light/70 font-cormorant mb-4">
+                      <h3 className="text-vintage-xl font-libre font-semibold text-creamy-yellow mb-2">No hotels found</h3>
+                      <p className="text-creamy-yellow/70 font-varela mb-4">
                         Try adjusting your search criteria or filters to see more results.
                       </p>
                       <Button 
@@ -811,7 +811,7 @@ function HotelsPageContent() {
                           });
                           setCurrentPage(1);
                         }}
-                        className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold"
+                        className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold"
                       >
                         Clear Filters
                       </Button>
@@ -833,8 +833,8 @@ export default function HotelsPage() {
     <>
       <Header />
       <Suspense fallback={
-        <div className="min-h-screen bg-walnut-darkest flex items-center justify-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-copper-accent"></div>
+        <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-terracotta-rose"></div>
         </div>
       }>
         <HotelsPageContent />

@@ -35,23 +35,23 @@ export function ChatRoomList() {
   });
 
   return (
-    <div className="flex flex-col h-full bg-walnut-dark/80 border-r border-copper-accent/20 overflow-hidden">
+    <div className="flex flex-col h-full bg-gradient-to-br from-dark-brown/80 to-deep-brown border-r border-terracotta-rose/20 overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b border-copper-accent/20 flex-shrink-0">
-        <h2 className="text-vintage-xl font-playfair font-bold text-cream-light mb-4">
+      <div className="p-4 border-b border-terracotta-rose/20 flex-shrink-0">
+        <h2 className="text-vintage-xl font-libre font-bold text-creamy-yellow mb-4">
           Messages
         </h2>
         
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-cream-light/40" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-creamy-yellow/40" />
           <Input
             type="text"
             placeholder="Search conversations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             autoComplete="off"
-            className="pl-10 bg-walnut-darkest/50 border-copper-accent/30 text-cream-light placeholder:text-cream-light/40 focus:border-copper-accent"
+            className="pl-10 bg-dark-brown/50 border-terracotta-rose/30 text-creamy-yellow placeholder:text-creamy-yellow/40 focus:border-terracotta-rose"
           />
         </div>
       </div>
@@ -60,15 +60,15 @@ export function ChatRoomList() {
       <div className="flex-1 overflow-y-auto">
         {isLoadingRooms ? (
           <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-2 border-copper-accent/20 border-t-copper-accent"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-terracotta-rose/20 border-t-terracotta-rose"></div>
           </div>
         ) : filteredRooms.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-32 text-cream-light/60 font-cormorant">
-            <MessageCircle className="h-12 w-12 mb-2 text-copper-accent/40" />
+          <div className="flex flex-col items-center justify-center h-32 text-creamy-yellow/60 font-varela">
+            <MessageCircle className="h-12 w-12 mb-2 text-terracotta-rose/40" />
             <p>No conversations yet</p>
           </div>
         ) : (
-          <div className="divide-y divide-copper-accent/10">
+          <div className="divide-y divide-terracotta-rose/10">
             {filteredRooms.map((room) => {
               const otherParticipant = getOtherParticipant(room);
               const isSelected = selectedRoom?.id === room.id;
@@ -77,26 +77,26 @@ export function ChatRoomList() {
                 <button
                   key={room.id}
                   onClick={() => setSelectedRoom(room)}
-                  className={`w-full p-4 text-left transition-all duration-200 hover:bg-copper-accent/10 ${
-                    isSelected ? 'bg-copper-accent/20' : ''
+                  className={`w-full p-4 text-left transition-all duration-200 hover:bg-terracotta-rose/10 ${
+                    isSelected ? 'bg-terracotta-rose/20' : ''
                   }`}
                 >
                   <div className="flex items-start space-x-3">
                     {/* Avatar */}
                     <div className="flex-shrink-0">
-                      <div className="w-12 h-12 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center">
-                        <User className="h-6 w-6 text-walnut-dark" />
+                      <div className="w-12 h-12 bg-gradient-to-br from-terracotta-rose to-terracotta-orange rounded-full flex items-center justify-center">
+                        <User className="h-6 w-6 text-creamy-white" />
                       </div>
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-cormorant font-semibold text-cream-light text-vintage-base truncate">
+                        <h3 className="font-libre font-semibold text-creamy-yellow text-vintage-sm truncate">
                           {otherParticipant.first_name} {otherParticipant.last_name}
                         </h3>
                         {room.last_message_at && (
-                          <span className="text-vintage-xs text-cream-light/60 font-cormorant ml-2 flex-shrink-0">
+                          <span className="text-vintage-xs text-creamy-yellow/60 font-varela ml-2 flex-shrink-0">
                             {formatLastMessageTime(room.last_message_at)}
                           </span>
                         )}
@@ -104,13 +104,13 @@ export function ChatRoomList() {
                       
                       {/* Last Message */}
                       {room.last_message_content && (
-                        <p className="text-vintage-sm text-cream-light/70 font-cormorant truncate">
+                        <p className="text-vintage-sm text-creamy-yellow/70 font-varela truncate">
                           {room.last_message_content}
                         </p>
                       )}
 
                       {/* Email */}
-                      <p className="text-vintage-xs text-cream-light/50 font-cormorant mt-1">
+                      <p className="text-vintage-xs text-creamy-yellow/50 font-varela mt-1">
                         {otherParticipant.email}
                       </p>
                     </div>

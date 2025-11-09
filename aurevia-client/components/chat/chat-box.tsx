@@ -97,12 +97,12 @@ export function ChatBox() {
 
   if (!selectedRoom) {
     return (
-      <div className="flex flex-col items-center justify-center h-full bg-walnut-dark/50">
-        <MessageCircle className="h-20 w-20 text-copper-accent/30 mb-4" />
-        <h3 className="text-vintage-xl font-playfair font-bold text-cream-light mb-2">
+      <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-dark-brown/50 to-deep-brown/50">
+        <MessageCircle className="h-20 w-20 text-terracotta-rose/30 mb-4" />
+        <h3 className="text-vintage-xl font-libre font-bold text-creamy-yellow mb-2">
           Welcome to Messages
         </h3>
-        <p className="text-vintage-base text-cream-light/60 font-cormorant text-center max-w-md">
+        <p className="text-vintage-base text-creamy-yellow/60 font-varela text-center max-w-md">
           Select a conversation from the sidebar to start chatting, or start a new conversation from the booking page.
         </p>
       </div>
@@ -110,18 +110,18 @@ export function ChatBox() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-walnut-dark/50 overflow-hidden">
+    <div className="flex flex-col h-full bg-gradient-to-br from-dark-brown/50 to-deep-brown/50 overflow-hidden">
       {/* Chat Header */}
-      <div className="p-4 border-b border-copper-accent/20 bg-walnut-dark/80 flex-shrink-0">
+      <div className="p-4 border-b border-terracotta-rose/20 bg-gradient-to-r from-dark-brown/80 to-deep-brown/80 flex-shrink-0">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center">
-            <User className="h-5 w-5 text-walnut-dark" />
+          <div className="w-10 h-10 bg-gradient-to-br from-terracotta-rose to-terracotta-orange rounded-full flex items-center justify-center">
+            <User className="h-5 w-5 text-creamy-white" />
           </div>
           <div>
-            <h3 className="font-cormorant font-semibold text-cream-light text-vintage-lg">
+            <h3 className="font-libre font-semibold text-creamy-yellow text-vintage-lg">
               {otherParticipant?.first_name} {otherParticipant?.last_name}
             </h3>
-            <p className="text-vintage-sm text-cream-light/60 font-cormorant">
+            <p className="text-vintage-sm text-creamy-yellow/60 font-varela">
               {otherParticipant?.email}
             </p>
           </div>
@@ -137,11 +137,11 @@ export function ChatBox() {
         >
           {isLoadingMessages ? (
             <div className="flex items-center justify-center h-full">
-              <Loader2 className="h-8 w-8 text-copper-accent animate-spin" />
+              <Loader2 className="h-8 w-8 text-terracotta-rose animate-spin" />
             </div>
           ) : messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-cream-light/60 font-cormorant">
-              <MessageCircle className="h-12 w-12 mb-2 text-copper-accent/40" />
+            <div className="flex flex-col items-center justify-center h-full text-creamy-yellow/60 font-varela">
+              <MessageCircle className="h-12 w-12 mb-2 text-terracotta-rose/40" />
               <p>No messages yet. Start the conversation!</p>
             </div>
           ) : (
@@ -157,8 +157,8 @@ export function ChatBox() {
                   {/* Date Separator */}
                   {showDate && (
                     <div className="flex items-center justify-center my-4">
-                      <div className="px-3 py-1 bg-walnut-darkest/50 border border-copper-accent/20 rounded-full">
-                        <span className="text-vintage-xs text-cream-light/60 font-cormorant">
+                      <div className="px-3 py-1 bg-dark-brown/50 border border-terracotta-rose/20 rounded-full">
+                        <span className="text-vintage-xs text-creamy-yellow/60 font-varela">
                           {format(new Date(message.created_at), 'MMMM d, yyyy')}
                         </span>
                       </div>
@@ -170,17 +170,17 @@ export function ChatBox() {
                     <div
                       className={`max-w-[70%] rounded-2xl px-4 py-2 ${
                         isOwnMessage
-                          ? 'bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark'
-                          : 'bg-walnut-darkest/80 border border-copper-accent/20 text-cream-light'
+                          ? 'bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown'
+                          : 'bg-dark-brown/80 border border-terracotta-rose/20 text-creamy-yellow'
                       }`}
                     >
-                      <p className="text-vintage-base font-cormorant break-words">
+                      <p className="text-vintage-base font-varela break-words">
                         {message.content}
                       </p>
                       <div className={`flex items-center justify-end mt-1 space-x-1`}>
                         <span
-                          className={`text-vintage-xs font-cormorant ${
-                            isOwnMessage ? 'text-walnut-dark/70' : 'text-cream-light/50'
+                          className={`text-vintage-xs font-varela ${
+                            isOwnMessage ? 'text-dark-brown/70' : 'text-creamy-yellow/50'
                           }`}
                         >
                           {format(new Date(message.created_at), 'h:mm a')}
@@ -198,7 +198,7 @@ export function ChatBox() {
       </div>
 
       {/* Message Input */}
-      <div className="p-4 border-t border-copper-accent/20 bg-walnut-dark/80 flex-shrink-0">
+      <div className="p-4 border-t border-terracotta-rose/20 bg-gradient-to-r from-dark-brown/80 to-deep-brown/80 flex-shrink-0">
         <form onSubmit={handleSendMessage} className="flex items-center space-x-2">
           <Input
             type="text"
@@ -209,12 +209,12 @@ export function ChatBox() {
             autoCorrect="off"
             autoCapitalize="off"
             spellCheck="false"
-            className="flex-1 bg-walnut-darkest/50 border-copper-accent/30 text-cream-light placeholder:text-cream-light/40 focus:border-copper-accent"
+            className="flex-1 bg-dark-brown/50 border-terracotta-rose/30 text-creamy-yellow placeholder:text-creamy-yellow/40 focus:border-terracotta-rose"
           />
           <Button
             type="submit"
             disabled={!newMessage.trim()}
-            className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold hover:shadow-lg hover:shadow-terracotta-rose/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Send className="h-4 w-4" />
           </Button>

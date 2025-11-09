@@ -322,10 +322,10 @@ function PaymentContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-4 border-copper-accent/20 border-t-copper-accent mx-auto mb-4"></div>
-          <p className="text-cream-light font-cormorant text-vintage-lg">Loading payment details...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-4 border-terracotta-rose/20 border-t-terracotta-rose mx-auto mb-4"></div>
+          <p className="text-creamy-yellow font-varela text-vintage-lg">Loading payment details...</p>
         </div>
       </div>
     );
@@ -333,14 +333,14 @@ function PaymentContent() {
 
   if (error || !hotel || selectedRooms.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
-        <Card className="max-w-md bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm">
+      <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
+        <Card className="max-w-md bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm">
           <CardContent className="p-8 text-center">
-            <h2 className="text-vintage-xl font-playfair font-bold text-cream-light mb-4">Payment Error</h2>
-            <p className="text-cream-light/70 font-cormorant text-vintage-base mb-6">{error || 'Unable to load payment information'}</p>
+            <h2 className="text-vintage-xl font-libre font-bold text-creamy-yellow mb-4">Payment Error</h2>
+            <p className="text-creamy-yellow/70 font-varela text-vintage-base mb-6">{error || 'Unable to load payment information'}</p>
             <Button 
               onClick={() => router.push('/hotels/')}
-              className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300"
+              className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold hover:shadow-lg hover:shadow-terracotta-rose/30 transition-all duration-300"
             >
               Start New Search
             </Button>
@@ -351,8 +351,8 @@ function PaymentContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
-      <div className="absolute top-0 left-1/4 w-80 h-80 bg-copper-accent/4 rounded-full blur-3xl"></div>
+    <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white">
+      <div className="absolute top-0 left-1/4 w-80 h-80 bg-terracotta-rose/4 rounded-full blur-3xl"></div>
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-copper-light/3 rounded-full blur-3xl"></div>
       
       <div className="container mx-auto px-4 py-8">
@@ -361,14 +361,14 @@ function PaymentContent() {
           <Button 
             variant="outline" 
             onClick={() => router.back()}
-            className="border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 font-cormorant bg-walnut-dark/60 backdrop-blur-sm"
+            className="border-terracotta-rose/30 text-dark-brown hover:bg-terracotta-rose/20 font-varela bg-gradient-to-br from-terracotta-rose/70 to-terracotta-orange/80 backdrop-blur-sm"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Summary
           </Button>
           
-          <div className="text-vintage-base text-cream-light/80 font-cormorant bg-walnut-dark/60 px-4 py-2 rounded-lg border border-copper-accent/20 backdrop-blur-sm">
-            <Calendar className="w-4 h-4 inline mr-2 text-copper-accent" />
+          <div className="text-vintage-base text-creamy-yellow/80 font-varela bg-dark-brown/60 px-4 py-2 rounded-lg border border-terracotta-rose/20 backdrop-blur-sm">
+            <Calendar className="w-4 h-4 inline mr-2 text-terracotta-rose" />
             {formatDate(checkInDate!)} - {formatDate(checkOutDate!)} • {numberOfGuests} guests
           </div>
         </div>
@@ -377,28 +377,28 @@ function PaymentContent() {
           {/* Main Content - Payment Form */}
           <div className="lg:col-span-2 space-y-6">
             {/* Hotel Information */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm shadow-2xl shadow-walnut-darkest/50">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm shadow-2xl shadow-dark-brown/50">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
-                    <h1 className="text-vintage-2xl font-playfair font-bold text-cream-light mb-2">{hotel.name}</h1>
-                    <div className="flex items-center text-cream-light/80 mb-2 font-cormorant text-vintage-base">
-                      <MapPin className="w-4 h-4 mr-2 text-copper-accent" />
+                    <h1 className="text-vintage-2xl font-libre font-bold text-creamy-yellow mb-2">{hotel.name}</h1>
+                    <div className="flex items-center text-creamy-yellow/80 mb-2 font-varela text-vintage-base">
+                      <MapPin className="w-4 h-4 mr-2 text-terracotta-rose" />
                       <span>{hotel.address}, {hotel.location?.city || hotel.city}, {hotel.location?.state || hotel.state}</span>
                     </div>
-                    <div className="flex items-center text-cream-light/80 font-cormorant text-vintage-base">
-                      <Phone className="w-4 h-4 mr-2 text-copper-accent" />
+                    <div className="flex items-center text-creamy-yellow/80 font-varela text-vintage-base">
+                      <Phone className="w-4 h-4 mr-2 text-terracotta-rose" />
                       <span>{hotel.phone_number}</span>
                     </div>
                   </div>
                   
                   {hotel.avg_rating && Number(hotel.avg_rating) > 0 && (
                     <div className="text-center">
-                      <div className="flex items-center bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark px-3 py-2 rounded-lg mb-1">
+                      <div className="flex items-center bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown px-3 py-2 rounded-lg mb-1">
                         <Star className="w-4 h-4 mr-1 fill-current" />
-                        <span className="text-vintage-sm font-cinzel font-bold">{Number(hotel.avg_rating).toFixed(1)}</span>
+                        <span className="text-vintage-sm font-libre font-bold">{Number(hotel.avg_rating).toFixed(1)}</span>
                       </div>
-                      <div className="text-vintage-xs text-cream-light/60 font-cormorant">
+                      <div className="text-vintage-xs text-creamy-yellow/60 font-varela">
                         {hotel.total_reviews || 0} reviews
                       </div>
                     </div>
@@ -408,9 +408,9 @@ function PaymentContent() {
             </Card>
 
             {/* Payment Method Selection */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm shadow-2xl shadow-walnut-darkest/50">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm shadow-2xl shadow-dark-brown/50">
               <CardHeader>
-                <CardTitle className="text-vintage-xl font-playfair text-cream-light">Payment Method</CardTitle>
+                <CardTitle className="text-vintage-xl font-libre text-creamy-yellow">Payment Method</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Payment Method Options */}
@@ -422,15 +422,15 @@ function PaymentContent() {
                     }}
                     className={`p-4 rounded-lg border-2 transition-all duration-300 ${
                       paymentMethod === 'card'
-                        ? 'border-copper-accent bg-copper-accent/10'
-                        : 'border-copper-accent/30 hover:border-copper-accent/60'
+                        ? 'border-terracotta-rose bg-terracotta-rose/10'
+                        : 'border-terracotta-rose/30 hover:border-terracotta-rose/60'
                     }`}
                   >
                     <div className="flex items-center">
-                      <CreditCard className="w-6 h-6 mr-3 text-copper-accent" />
+                      <CreditCard className="w-6 h-6 mr-3 text-terracotta-rose" />
                       <div className="text-left">
-                        <h3 className="font-playfair font-semibold text-cream-light">Credit/Debit Card</h3>
-                        <p className="text-sm text-cream-light/70 font-cormorant">Visa, Mastercard, American Express</p>
+                        <h3 className="font-libre font-semibold text-creamy-yellow">Credit/Debit Card</h3>
+                        <p className="text-sm text-creamy-yellow/70 font-varela">Visa, Mastercard, American Express</p>
                       </div>
                     </div>
                   </button>
@@ -442,15 +442,15 @@ function PaymentContent() {
                     }}
                     className={`p-4 rounded-lg border-2 transition-all duration-300 ${
                       paymentMethod === 'paypal'
-                        ? 'border-copper-accent bg-copper-accent/10'
-                        : 'border-copper-accent/30 hover:border-copper-accent/60'
+                        ? 'border-terracotta-rose bg-terracotta-rose/10'
+                        : 'border-terracotta-rose/30 hover:border-terracotta-rose/60'
                     }`}
                   >
                     <div className="flex items-center">
-                      <Shield className="w-6 h-6 mr-3 text-copper-accent" />
+                      <Shield className="w-6 h-6 mr-3 text-terracotta-rose" />
                       <div className="text-left">
-                        <h3 className="font-playfair font-semibold text-cream-light">PayPal</h3>
-                        <p className="text-sm text-cream-light/70 font-cormorant">Pay with your PayPal account</p>
+                        <h3 className="font-libre font-semibold text-creamy-yellow">PayPal</h3>
+                        <p className="text-sm text-creamy-yellow/70 font-varela">Pay with your PayPal account</p>
                       </div>
                     </div>
                   </button>
@@ -459,17 +459,17 @@ function PaymentContent() {
                 {/* Card Details Form */}
                 {paymentMethod === 'card' && (
                   <div className="space-y-4">
-                    <h3 className="font-playfair font-semibold text-cream-light text-lg">Card Details</h3>
+                    <h3 className="font-libre font-semibold text-creamy-yellow text-lg">Card Details</h3>
                     
                     <div>
-                      <label className="block text-cream-light font-cormorant text-sm font-medium mb-2">
+                      <label className="block text-creamy-yellow font-varela text-sm font-medium mb-2">
                         Card Number *
                       </label>
                       <input
                         type="text"
                         value={cardDetails.cardNumber}
                         onChange={(e) => handleCardInputChange('cardNumber', e.target.value)}
-                        className="w-full px-3 py-2 bg-walnut-darkest/60 border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+                        className="w-full px-3 py-2 bg-dark-brown/60 border border-terracotta-rose/30 rounded text-creamy-yellow font-varela focus:outline-none focus:border-terracotta-rose"
                         placeholder="1234 5678 9012 3456"
                         maxLength={19}
                       />
@@ -477,28 +477,28 @@ function PaymentContent() {
 
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-cream-light font-cormorant text-sm font-medium mb-2">
+                        <label className="block text-creamy-yellow font-varela text-sm font-medium mb-2">
                           Expiry Date *
                         </label>
                         <input
                           type="text"
                           value={cardDetails.expiryDate}
                           onChange={(e) => handleCardInputChange('expiryDate', e.target.value)}
-                          className="w-full px-3 py-2 bg-walnut-darkest/60 border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+                          className="w-full px-3 py-2 bg-dark-brown/60 border border-terracotta-rose/30 rounded text-creamy-yellow font-varela focus:outline-none focus:border-terracotta-rose"
                           placeholder="MM/YY"
                           maxLength={5}
                         />
                       </div>
 
                       <div>
-                        <label className="block text-cream-light font-cormorant text-sm font-medium mb-2">
+                        <label className="block text-creamy-yellow font-varela text-sm font-medium mb-2">
                           CVV *
                         </label>
                         <input
                           type="text"
                           value={cardDetails.cvv}
                           onChange={(e) => handleCardInputChange('cvv', e.target.value)}
-                          className="w-full px-3 py-2 bg-walnut-darkest/60 border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+                          className="w-full px-3 py-2 bg-dark-brown/60 border border-terracotta-rose/30 rounded text-creamy-yellow font-varela focus:outline-none focus:border-terracotta-rose"
                           placeholder="123"
                           maxLength={4}
                         />
@@ -506,14 +506,14 @@ function PaymentContent() {
                     </div>
 
                     <div>
-                      <label className="block text-cream-light font-cormorant text-sm font-medium mb-2">
+                      <label className="block text-creamy-yellow font-varela text-sm font-medium mb-2">
                         Cardholder Name *
                       </label>
                       <input
                         type="text"
                         value={cardDetails.cardholderName}
                         onChange={(e) => handleCardInputChange('cardholderName', e.target.value)}
-                        className="w-full px-3 py-2 bg-walnut-darkest/60 border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+                        className="w-full px-3 py-2 bg-dark-brown/60 border border-terracotta-rose/30 rounded text-creamy-yellow font-varela focus:outline-none focus:border-terracotta-rose"
                         placeholder="John Doe"
                       />
                     </div>
@@ -526,10 +526,10 @@ function PaymentContent() {
                     {paypalStatus === 'completed' ? (
                       <CheckCircle className="w-16 h-16 mx-auto text-green-400 mb-4" />
                     ) : (
-                      <Shield className="w-16 h-16 mx-auto text-copper-accent mb-4" />
+                      <Shield className="w-16 h-16 mx-auto text-terracotta-rose mb-4" />
                     )}
-                    <h3 className="font-playfair font-semibold text-cream-light text-lg mb-2">PayPal Payment</h3>
-                    <p className="text-cream-light/70 font-cormorant mb-4">
+                    <h3 className="font-libre font-semibold text-creamy-yellow text-lg mb-2">PayPal Payment</h3>
+                    <p className="text-creamy-yellow/70 font-varela mb-4">
                       You will be redirected to PayPal to complete your payment securely.
                     </p>
                     <Button
@@ -540,7 +540,7 @@ function PaymentContent() {
                         setPaypalStatus('completed');
                       }}
                       disabled={paypalStatus === 'processing' || paypalStatus === 'completed' || processing}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800/60 disabled:cursor-not-allowed text-white font-cinzel font-bold"
+                      className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800/60 disabled:cursor-not-allowed text-white font-libre font-bold"
                     >
                       {paypalStatus === 'processing' ? (
                         <span className="flex items-center justify-center">
@@ -560,8 +560,8 @@ function PaymentContent() {
                 )}
 
                 {/* Security Notice */}
-                <div className="flex items-center text-sm text-cream-light/60 font-cormorant bg-walnut-darkest/30 p-4 rounded-lg">
-                  <Shield className="w-5 h-5 mr-3 text-copper-accent" />
+                <div className="flex items-center text-sm text-creamy-yellow/60 font-varela bg-dark-brown/30 p-4 rounded-lg">
+                  <Shield className="w-5 h-5 mr-3 text-terracotta-rose" />
                   <span>Your payment information is encrypted and secure. We never store your card details.</span>
                 </div>
               </CardContent>
@@ -572,41 +572,41 @@ function PaymentContent() {
           <div className="space-y-6">
             
             {/* Booking Summary */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-xl font-playfair text-cream-light">Booking Summary</CardTitle>
+                <CardTitle className="text-xl font-libre text-creamy-yellow">Booking Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Dates and Guests */}
-                <div className="space-y-2 text-vintage-lg text-cream-light/80 font-cormorant">
+                <div className="space-y-2 text-vintage-lg text-creamy-yellow/80 font-varela">
                 <div className="flex justify-between">
                     <span>Room Number</span>
-                    <span className="font-bold text-cream-light">{selectedRooms[0].room_number}</span>
+                    <span className="font-bold text-creamy-yellow">{selectedRooms[0].room_number}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Check-in:</span>
-                    <span className="font-bold text-cream-light">{formatDate(checkInDate!)}</span>
+                    <span className="font-bold text-creamy-yellow">{formatDate(checkInDate!)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Check-out:</span>
-                    <span className="font-bold text-cream-light">{formatDate(checkOutDate!)}</span>
+                    <span className="font-bold text-creamy-yellow">{formatDate(checkOutDate!)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Guests:</span>
-                    <span className="font-bold text-cream-light">{numberOfGuests}</span>
+                    <span className="font-bold text-creamy-yellow">{numberOfGuests}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Nights:</span>
-                    <span className="font-bold text-cream-light">{nights}</span>
+                    <span className="font-bold text-creamy-yellow">{nights}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Rooms:</span>
-                    <span className="font-bold text-cream-light">{selectedRooms.length}</span>
+                    <span className="font-bold text-creamy-yellow">{selectedRooms.length}</span>
                   </div>
                 </div>
 
-                <div className="border-t border-copper-accent/20 pt-4 space-y-2">
-                  <div className="flex justify-between text-vintage-lg text-cream-light/80 font-cormorant">
+                <div className="border-t border-terracotta-rose/20 pt-4 space-y-2">
+                  <div className="flex justify-between text-vintage-lg text-creamy-yellow/80 font-varela">
                     <span>Subtotal ({nights} nights)</span>
                     <span>${subtotal.toFixed(2)}</span>
                   </div>
@@ -618,12 +618,12 @@ function PaymentContent() {
                     </div>
                   )}
                   
-                  <div className="flex justify-between text-vintage-lg text-cream-light/80 font-cormorant">
+                  <div className="flex justify-between text-vintage-lg text-creamy-yellow/80 font-varela">
                     <span>Taxes & fees (10%)</span>
                     <span>${taxes.toFixed(2)}</span>
                   </div>
                   
-                  <div className="flex justify-between text-copper-accent font-bold text-lg border-t border-copper-accent/20 pt-2">
+                  <div className="flex justify-between text-terracotta-rose font-bold text-lg border-t border-terracotta-rose/20 pt-2">
                     <span>Total</span>
                     <span className="">${total.toFixed(2)}</span>
                   </div>
@@ -632,10 +632,10 @@ function PaymentContent() {
             </Card>
 
             {/* Payment Button */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm">
               <CardContent className="p-6">
                 {error && (
-                  <div className="flex items-center text-red-400 text-sm font-cormorant mb-4">
+                  <div className="flex items-center text-red-400 text-sm font-varela mb-4">
                     <AlertCircle className="w-4 h-4 mr-2" />
                     <span>{error}</span>
                   </div>
@@ -648,7 +648,7 @@ function PaymentContent() {
                     (paymentMethod === 'card' && (!cardDetails.cardNumber.replace(/\s/g, '') || !cardDetails.expiryDate || !cardDetails.cvv || !cardDetails.cardholderName)) ||
                     (paymentMethod === 'paypal' && paypalStatus !== 'completed')
                   }
-                  className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold hover:shadow-lg hover:shadow-terracotta-rose/30 transition-all duration-300"
                 >
                   {processing ? (
                     <>
@@ -664,7 +664,7 @@ function PaymentContent() {
                 </Button>
 
                 {/* Security Notice */}
-                <div className="flex items-center text-xs text-cream-light/60 font-cormorant mt-4">
+                <div className="flex items-center text-xs text-creamy-yellow/60 font-varela mt-4">
                   <Shield className="w-4 h-4 mr-2" />
                   <span>Your payment information is secure and encrypted</span>
                 </div>
@@ -682,10 +682,10 @@ export default function PaymentPage() {
     <>
       <Header />
       <Suspense fallback={
-        <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-4 border-copper-accent/20 border-t-copper-accent mx-auto mb-4"></div>
-            <p className="text-cream-light font-cormorant text-vintage-lg">Loading payment details...</p>
+            <div className="animate-spin rounded-full h-32 w-32 border-4 border-terracotta-rose/20 border-t-terracotta-rose mx-auto mb-4"></div>
+            <p className="text-creamy-yellow font-varela text-vintage-lg">Loading payment details...</p>
           </div>
         </div>
       }>

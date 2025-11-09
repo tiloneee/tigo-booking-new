@@ -67,14 +67,14 @@ export function EditRoomModal({ isOpen, onClose, room, accessToken, onSuccess }:
     <Modal isOpen={isOpen} onClose={onClose} title="Edit Room" size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="bg-red-900/20 border border-red-500/50 rounded p-3 text-red-300 text-vintage-sm">
+          <div className="bg-red-900/20 border border-red-500/50 rounded p-3 text-red-700 text-vintage-sm font-varela">
             {error}
           </div>
         )}
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+            <label className="block text-deep-brown font-varela text-vintage-base mb-2">
               Room Number *
             </label>
             <input
@@ -82,12 +82,12 @@ export function EditRoomModal({ isOpen, onClose, room, accessToken, onSuccess }:
               required
               value={formData.room_number}
               onChange={(e) => setFormData({ ...formData, room_number: e.target.value })}
-              className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+              className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
             />
           </div>
 
           <div>
-            <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+            <label className="block text-deep-brown font-varela text-vintage-base mb-2">
               Room Type *
             </label>
             <input
@@ -95,26 +95,26 @@ export function EditRoomModal({ isOpen, onClose, room, accessToken, onSuccess }:
               required
               value={formData.room_type}
               onChange={(e) => setFormData({ ...formData, room_type: e.target.value })}
-              className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+              className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+          <label className="block text-deep-brown font-varela text-vintage-base mb-2">
             Description
           </label>
           <textarea
             value={formData.description}
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-            className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+            className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
             rows={3}
           />
         </div>
 
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+            <label className="block text-deep-brown font-varela text-vintage-base mb-2">
               Max Occupancy *
             </label>
             <input
@@ -123,24 +123,24 @@ export function EditRoomModal({ isOpen, onClose, room, accessToken, onSuccess }:
               min="1"
               value={formData.max_occupancy}
               onChange={(e) => setFormData({ ...formData, max_occupancy: e.target.value })}
-              className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+              className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
             />
           </div>
 
           <div>
-            <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+            <label className="block text-deep-brown font-varela text-vintage-base mb-2">
               Bed Configuration
             </label>
             <input
               type="text"
               value={formData.bed_configuration}
               onChange={(e) => setFormData({ ...formData, bed_configuration: e.target.value })}
-              className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+              className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
             />
           </div>
 
           <div>
-            <label className="block text-cream-light font-cormorant text-vintage-base mb-2">
+            <label className="block text-deep-brown font-varela text-vintage-base mb-2">
               Size (m²)
             </label>
             <input
@@ -148,7 +148,7 @@ export function EditRoomModal({ isOpen, onClose, room, accessToken, onSuccess }:
               step="0.01"
               value={formData.size_sqm}
               onChange={(e) => setFormData({ ...formData, size_sqm: e.target.value })}
-              className="w-full px-4 py-2 bg-walnut-medium border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+              className="w-full px-4 py-2 bg-terracotta-rose/20 border border-terracotta-rose/30 rounded text-deep-brown font-varela focus:outline-none focus:border-terracotta-rose"
             />
           </div>
         </div>
@@ -157,14 +157,14 @@ export function EditRoomModal({ isOpen, onClose, room, accessToken, onSuccess }:
           <Button
             type="button"
             onClick={onClose}
-            className="text-red-400 border-red-400 bg-gradient-to-r from-red-400/20 to-red-400/50 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
+            className="text-red-600 border-red-400 bg-gradient-to-r from-red-400/20 to-red-400/50 font-varela font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
             disabled={loading}
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold"
+            className="bg-gradient-to-r from-terracotta-rose/70 to-terracotta-orange/80 text-dark-brown font-varela font-bold hover:shadow-terracotta-rose/30 transition-all duration-300 hover:scale-105"
             disabled={loading}
           >
             {loading ? 'Saving...' : 'Save Changes'}

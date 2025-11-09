@@ -67,16 +67,16 @@ function BookingSummaryContent() {
   // Validate required parameters
   if (!hotelId || !roomIds.length || !checkInDate || !checkOutDate) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
-        <Card className="max-w-md bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm">
+      <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
+        <Card className="max-w-md bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm">
           <CardContent className="p-8 text-center">
-            <h2 className="text-vintage-xl font-playfair font-bold text-cream-light mb-4">Invalid Booking</h2>
-            <p className="text-cream-light/70 font-cormorant text-vintage-base mb-6">
+            <h2 className="text-vintage-xl font-libre font-bold text-creamy-yellow mb-4">Invalid Booking</h2>
+            <p className="text-creamy-yellow/70 font-varela text-vintage-base mb-6">
               Missing required booking information. Please start your search again.
             </p>
             <Button 
               onClick={() => router.push('/hotels/')}
-              className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300"
+              className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold hover:shadow-lg hover:shadow-terracotta-rose/30 transition-all duration-300"
             >
               Start New Search
             </Button>
@@ -321,10 +321,10 @@ function BookingSummaryContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-4 border-copper-accent/20 border-t-copper-accent mx-auto mb-4"></div>
-          <p className="text-cream-light font-cormorant text-vintage-lg">Loading booking details...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-4 border-terracotta-rose/20 border-t-terracotta-rose mx-auto mb-4"></div>
+          <p className="text-dark-brown font-varela text-vintage-lg">Loading booking details...</p>
         </div>
       </div>
     );
@@ -332,14 +332,14 @@ function BookingSummaryContent() {
 
   if (error || !hotel || selectedRooms.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
-        <Card className="max-w-md bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm">
+      <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
+        <Card className="max-w-md bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm">
           <CardContent className="p-8 text-center">
-            <h2 className="text-vintage-xl font-playfair font-bold text-cream-light mb-4">Booking Error</h2>
-            <p className="text-cream-light/70 font-cormorant text-vintage-base mb-6">{error || 'Unable to load booking information'}</p>
+            <h2 className="text-vintage-xl font-libre font-bold text-creamy-yellow mb-4">Booking Error</h2>
+            <p className="text-creamy-yellow/70 font-varela text-vintage-base mb-6">{error || 'Unable to load booking information'}</p>
             <Button 
               onClick={() => router.push('/hotels/')}
-              className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300"
+              className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold hover:shadow-lg hover:shadow-terracotta-rose/30 transition-all duration-300"
             >
               Start New Search
             </Button>
@@ -350,21 +350,21 @@ function BookingSummaryContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
+    <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <Button 
             variant="outline" 
             onClick={() => router.back()}
-            className="border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 font-cormorant bg-walnut-dark/60 backdrop-blur-sm"
+            className="border-terracotta-rose/30 text-dark-brown hover:bg-terracotta-rose/20 font-varela bg-gradient-to-br from-terracotta-rose/70 to-terracotta-orange/80 backdrop-blur-sm"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Hotel
           </Button>
           
-          <div className="text-vintage-base text-cream-light/80 font-cormorant bg-walnut-dark/60 px-4 py-2 rounded-lg border border-copper-accent/20 backdrop-blur-sm">
-            <Calendar className="w-4 h-4 inline mr-2 text-copper-accent" />
+          <div className="text-vintage-base text-creamy-yellow/80 font-varela bg-dark-brown/60 px-4 py-2 rounded-lg border border-terracotta-rose/20 backdrop-blur-sm">
+            <Calendar className="w-4 h-4 inline mr-2 text-terracotta-rose" />
             {formatDate(checkInDate)} - {formatDate(checkOutDate)} • {numberOfGuests} guests
           </div>
         </div>
@@ -373,28 +373,28 @@ function BookingSummaryContent() {
           {/* Main Content - Booking Summary */}
           <div className="lg:col-span-2 space-y-6">
             {/* Hotel Information */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm shadow-2xl shadow-walnut-darkest/50">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm shadow-2xl shadow-dark-brown/50">
               <CardContent className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex-1">
-                    <h1 className="text-vintage-2xl font-playfair font-bold text-cream-light mb-2">{hotel.name}</h1>
-                    <div className="flex items-center text-cream-light/80 mb-2 font-cormorant text-vintage-base">
-                      <MapPin className="w-4 h-4 mr-2 text-copper-accent" />
+                    <h1 className="text-vintage-2xl font-libre font-bold text-creamy-yellow mb-2">{hotel.name}</h1>
+                    <div className="flex items-center text-creamy-yellow/80 mb-2 font-varela text-vintage-base">
+                      <MapPin className="w-4 h-4 mr-2 text-terracotta-rose" />
                       <span>{hotel.address}, {hotel.location?.city || hotel.city}, {hotel.location?.state || hotel.state}</span>
                     </div>
-                    <div className="flex items-center text-cream-light/80 font-cormorant text-vintage-base">
-                      <Phone className="w-4 h-4 mr-2 text-copper-accent" />
+                    <div className="flex items-center text-creamy-yellow/80 font-varela text-vintage-base">
+                      <Phone className="w-4 h-4 mr-2 text-terracotta-rose" />
                       <span>{hotel.phone_number}</span>
                     </div>
                   </div>
                   
                   {hotel.avg_rating && Number(hotel.avg_rating) > 0 && (
                     <div className="text-center">
-                      <div className="flex items-center bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark px-3 py-2 rounded-lg mb-1">
+                      <div className="flex items-center bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown px-3 py-2 rounded-lg mb-1">
                         <Star className="w-4 h-4 mr-1 fill-current" />
-                        <span className="text-vintage-sm font-cinzel font-bold">{Number(hotel.avg_rating).toFixed(1)}</span>
+                        <span className="text-vintage-sm font-libre font-bold">{Number(hotel.avg_rating).toFixed(1)}</span>
                       </div>
-                      <div className="text-vintage-xs text-cream-light/60 font-cormorant">
+                      <div className="text-vintage-xs text-creamy-yellow/60 font-varela">
                         {hotel.total_reviews || 0} reviews
                       </div>
                     </div>
@@ -404,40 +404,40 @@ function BookingSummaryContent() {
             </Card>
 
             {/* Selected Rooms */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm shadow-2xl shadow-walnut-darkest/50">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm shadow-2xl shadow-dark-brown/50">
               <CardHeader>
-                <CardTitle className="text-vintage-xl font-playfair text-cream-light">Selected Rooms</CardTitle>
+                <CardTitle className="text-vintage-xl font-libre text-creamy-yellow">Selected Rooms</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {selectedRooms.map((room, index) => (
-                  <div key={room.id} className="border border-copper-accent/20 rounded-lg p-4 bg-walnut-darkest/20">
+                  <div key={room.id} className="border border-terracotta-rose/20 rounded-lg p-4 bg-dark-brown/20">
                     <div className="flex justify-between items-start mb-3">
                       <div>
-                        <h3 className="font-playfair font-semibold text-vintage-lg text-cream-light">{room.room_type} - Room {room.room_number}</h3>
-                        <p className="text-cream-light/80 text-sm font-cormorant">{room.description}</p>
+                        <h3 className="font-libre font-semibold text-vintage-lg text-creamy-yellow">{room.room_type} - Room {room.room_number}</h3>
+                        <p className="text-creamy-yellow/80 text-sm font-varela">{room.description}</p>
                       </div>
                       <div className="text-right">
-                        <div className="text-vintage-lg font-bold text-copper-accent font-playfair">
+                        <div className="text-vintage-lg font-bold text-terracotta-rose font-libre">
                           ${room.pricing?.price_per_night || 100}
-                          <span className="text-sm font-normal text-cream-light/60 font-cormorant"> / night</span>
+                          <span className="text-sm font-normal text-creamy-yellow/60 font-varela"> / night</span>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="grid grid-cols-2 gap-4 text-sm text-cream-light/80 font-cormorant">
+                    <div className="grid grid-cols-2 gap-4 text-sm text-creamy-yellow/80 font-varela">
                       <div className="flex items-center">
-                        <Users className="w-4 h-4 mr-2 text-copper-accent" />
+                        <Users className="w-4 h-4 mr-2 text-terracotta-rose" />
                         <span>Max {room.max_occupancy} guests</span>
                       </div>
                       {room.bed_configuration && (
                         <div className="flex items-center">
-                          <Bed className="w-4 h-4 mr-2 text-copper-accent" />
+                          <Bed className="w-4 h-4 mr-2 text-terracotta-rose" />
                           <span>{room.bed_configuration}</span>
                         </div>
                       )}
                       {room.size_sqm && (
                         <div className="flex items-center">
-                          <Maximize className="w-4 h-4 mr-2 text-copper-accent" />
+                          <Maximize className="w-4 h-4 mr-2 text-terracotta-rose" />
                           <span>{room.size_sqm} sqm</span>
                         </div>
                       )}
@@ -448,14 +448,14 @@ function BookingSummaryContent() {
             </Card>
 
             {/* Guest Information Form */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm shadow-2xl shadow-walnut-darkest/50">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm shadow-2xl shadow-dark-brown/50">
               <CardHeader>
-                <CardTitle className="text-vintage-xl font-playfair text-cream-light">Guest Information</CardTitle>
+                <CardTitle className="text-vintage-xl font-libre text-creamy-yellow">Guest Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-cream-light font-cormorant text-sm font-medium mb-2">
+                    <label className="block text-creamy-yellow font-varela text-sm font-medium mb-2">
                       <User className="inline w-4 h-4 mr-1" />
                       Full Name *
                     </label>
@@ -463,14 +463,14 @@ function BookingSummaryContent() {
                       type="text"
                       value={formData.guestName}
                       onChange={(e) => handleInputChange('guestName', e.target.value)}
-                      className="w-full px-3 py-2 bg-walnut-darkest/60 border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+                      className="w-full px-3 py-2 bg-dark-brown/60 border border-terracotta-rose/30 rounded text-creamy-yellow font-varela focus:outline-none focus:border-terracotta-rose"
                       placeholder="Enter your full name"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-cream-light font-cormorant text-sm font-medium mb-2">
+                    <label className="block text-creamy-yellow font-varela text-sm font-medium mb-2">
                       <Mail className="inline w-4 h-4 mr-1" />
                       Email Address *
                     </label>
@@ -478,7 +478,7 @@ function BookingSummaryContent() {
                       type="email"
                       value={formData.guestEmail}
                       onChange={(e) => handleInputChange('guestEmail', e.target.value)}
-                      className="w-full px-3 py-2 bg-walnut-darkest/60 border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+                      className="w-full px-3 py-2 bg-dark-brown/60 border border-terracotta-rose/30 rounded text-creamy-yellow font-varela focus:outline-none focus:border-terracotta-rose"
                       placeholder="Enter your email address"
                       required
                     />
@@ -486,7 +486,7 @@ function BookingSummaryContent() {
                 </div>
 
                 <div>
-                  <label className="block text-cream-light font-cormorant text-sm font-medium mb-2">
+                  <label className="block text-creamy-yellow font-varela text-sm font-medium mb-2">
                     <PhoneIcon className="inline w-4 h-4 mr-1" />
                     Phone Number *
                   </label>
@@ -494,21 +494,21 @@ function BookingSummaryContent() {
                     type="tel"
                     value={formData.guestPhone}
                     onChange={(e) => handleInputChange('guestPhone', e.target.value)}
-                    className="w-full px-3 py-2 bg-walnut-darkest/60 border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+                    className="w-full px-3 py-2 bg-dark-brown/60 border border-terracotta-rose/30 rounded text-creamy-yellow font-varela focus:outline-none focus:border-terracotta-rose"
                     placeholder="Enter your phone number"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-cream-light font-cormorant text-sm font-medium mb-2">
+                  <label className="block text-creamy-yellow font-varela text-sm font-medium mb-2">
                     <MessageSquare className="inline w-4 h-4 mr-1" />
                     Special Requests
                   </label>
                   <textarea
                     value={formData.specialRequests}
                     onChange={(e) => handleInputChange('specialRequests', e.target.value)}
-                    className="w-full px-3 py-2 bg-walnut-darkest/60 border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+                    className="w-full px-3 py-2 bg-dark-brown/60 border border-terracotta-rose/30 rounded text-creamy-yellow font-varela focus:outline-none focus:border-terracotta-rose"
                     rows={3}
                     placeholder="Any special requests or requirements..."
                   />
@@ -520,10 +520,10 @@ function BookingSummaryContent() {
           {/* Sidebar - Pricing & Payment */}
           <div className="space-y-6">
             {/* Promotion Code */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-cream-light font-playfair flex items-center">
-                  <Tag className="w-5 h-5 mr-2 text-copper-accent" />
+                <CardTitle className="text-creamy-yellow font-libre flex items-center">
+                  <Tag className="w-5 h-5 mr-2 text-terracotta-rose" />
                   Promotion Code
                 </CardTitle>
               </CardHeader>
@@ -533,24 +533,24 @@ function BookingSummaryContent() {
                     type="text"
                     value={promoCode}
                     onChange={(e) => setPromoCode(e.target.value)}
-                    className="flex-1 px-3 py-2 bg-walnut-darkest/60 border border-copper-accent/30 rounded text-cream-light font-cormorant focus:outline-none focus:border-copper-accent"
+                    className="flex-1 px-3 py-2 bg-dark-brown/60 border border-terracotta-rose/30 rounded text-creamy-yellow font-varela focus:outline-none focus:border-terracotta-rose"
                     placeholder="Enter promo code"
                   />
                   <Button
                     onClick={handlePromoCodeSubmit}
                     disabled={applyingPromo || !promoCode.trim()}
-                    className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg transition-all duration-300"
+                    className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold hover:shadow-lg transition-all duration-300"
                   >
                     {applyingPromo ? 'Applying...' : 'Apply'}
                   </Button>
                 </div>
                 
                 {promoError && (
-                  <p className="text-red-400 text-sm font-cormorant">{promoError}</p>
+                  <p className="text-red-400 text-sm font-varela">{promoError}</p>
                 )}
                 
                 {promoDiscount > 0 && (
-                  <div className="flex items-center text-green-400 text-sm font-cormorant">
+                  <div className="flex items-center text-green-400 text-sm font-varela">
                     <CheckCircle className="w-4 h-4 mr-2" />
                     {promoDiscount}% discount applied!
                   </div>
@@ -559,54 +559,54 @@ function BookingSummaryContent() {
             </Card>
 
             {/* Pricing Summary */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm sticky top-6">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm sticky top-6">
               <CardHeader>
-                <CardTitle className="text-cream-light font-playfair">Booking Summary</CardTitle>
+                <CardTitle className="text-creamy-yellow font-libre">Booking Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Dates and Guests */}
-                <div className="space-y-2 text-vintage-lg text-cream-light/80 font-cormorant">
+                <div className="space-y-2 text-vintage-lg text-creamy-yellow/80 font-varela">
                   <div className="flex justify-between">
                     <span>Check-in:</span>
-                    <span className="font-bold text-cream-light">{formatDate(checkInDate)}</span>
+                    <span className="font-bold text-creamy-yellow">{formatDate(checkInDate)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Check-out:</span>
-                    <span className="font-bold text-cream-light">{formatDate(checkOutDate)}</span>
+                    <span className="font-bold text-creamy-yellow">{formatDate(checkOutDate)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Guests:</span>
-                    <span className="font-bold text-cream-light">{numberOfGuests}</span>
+                    <span className="font-bold text-creamy-yellow">{numberOfGuests}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Nights:</span>
-                    <span className="font-bold text-cream-light">{nights}</span>
+                    <span className="font-bold text-creamy-yellow">{nights}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Rooms:</span>
-                    <span className="font-bold text-cream-light">{selectedRooms.length}</span>
+                    <span className="font-bold text-creamy-yellow">{selectedRooms.length}</span>
                   </div>
                 </div>
 
-                <div className="border-t border-copper-accent/20 pt-4 space-y-2">
-                  <div className="flex justify-between text-vintage-lg text-cream-light/80 font-cormorant">
+                <div className="border-t border-terracotta-rose/20 pt-4 space-y-2">
+                  <div className="flex justify-between text-vintage-lg text-creamy-yellow/80 font-varela">
                     <span>Subtotal ({nights} nights)</span>
                     <span>${subtotal.toFixed(2)}</span>
                   </div>
                   
                   {promoDiscount > 0 && (
-                    <div className="flex justify-between text-vintage-lg text-cream-light/80 font-cormorant text-green-400">
+                    <div className="flex justify-between text-vintage-lg font-varela text-green-400">
                       <span>Discount ({promoDiscount}%)</span>
                       <span>-${discountAmount.toFixed(2)}</span>
                     </div>
                   )}
                   
-                  <div className="flex justify-between text-vintage-lg text-cream-light/80 font-cormorant">
+                  <div className="flex justify-between text-vintage-lg text-creamy-yellow/80 font-varela">
                     <span>Taxes & fees (10%)</span>
                     <span>${taxes.toFixed(2)}</span>
                   </div>
                   
-                  <div className="flex justify-between text-copper-accent font-bold text-lg border-t border-copper-accent/20 pt-2">
+                  <div className="flex justify-between text-terracotta-rose font-bold text-lg border-t border-terracotta-rose/20 pt-2">
                     <span>Total</span>
                     <span className="">${total.toFixed(2)}</span>
                   </div>
@@ -622,13 +622,13 @@ function BookingSummaryContent() {
                     className="mt-1 mr-3"
                     required
                   />
-                  <label htmlFor="terms" className="text-sm text-cream-light/70 font-cormorant">
+                  <label htmlFor="terms" className="text-sm text-creamy-yellow/70 font-varela">
                     I agree to the{' '}
-                    <a href="#" className="text-copper-accent hover:underline">
+                    <a href="#" className="text-terracotta-rose hover:underline">
                       Terms and Conditions
                     </a>{' '}
                     and{' '}
-                    <a href="#" className="text-copper-accent hover:underline">
+                    <a href="#" className="text-terracotta-rose hover:underline">
                       Privacy Policy
                     </a>
                   </label>
@@ -638,14 +638,14 @@ function BookingSummaryContent() {
                 <Button
                   onClick={handleProceedToPayment}
                   disabled={!formData.agreedToTerms || !formData.guestName.trim() || !formData.guestEmail.trim()}
-                  className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300"
+                  className="w-full bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold hover:shadow-lg hover:shadow-terracotta-rose/30 transition-all duration-300"
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
                   Proceed to Payment - ${total.toFixed(2)}
                 </Button>
 
                 {/* Security Notice */}
-                <div className="flex items-center text-xs text-cream-light/60 font-cormorant">
+                <div className="flex items-center text-xs text-creamy-yellow/60 font-varela">
                   <Shield className="w-4 h-4 mr-2" />
                   <span>Your payment information is secure and encrypted</span>
                 </div>
@@ -663,10 +663,10 @@ export default function BookingSummaryPage() {
     <>
       <Header />
       <Suspense fallback={
-        <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-4 border-copper-accent/20 border-t-copper-accent mx-auto mb-4"></div>
-            <p className="text-cream-light font-cormorant text-vintage-lg">Loading booking details...</p>
+            <div className="animate-spin rounded-full h-32 w-32 border-4 border-terracotta-rose/20 border-t-terracotta-rose mx-auto mb-4"></div>
+            <p className="text-dark-brown font-varela text-vintage-lg">Loading booking details...</p>
           </div>
         </div>
       }>

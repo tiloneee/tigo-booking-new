@@ -217,7 +217,7 @@ export default function LoginPage() {
                   <div className="w-full border-t border-soft-beige"></div>
                 </div>
                 <div className="relative flex justify-center text-vintage-sm">
-                  <span className="px-4 bg-soft-beige text-deep-brown/80 font-varela">or continue with</span>
+                  <span className="px-4 bg-soft-beige rounded-md text-deep-brown/80 font-varela">or continue with</span>
                 </div>
               </div>
 

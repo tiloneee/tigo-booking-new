@@ -37,23 +37,23 @@ function ChatPageContent() {
   }, [roomId]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-darkest">
+    <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white">
       <Header />
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Page Header */}
           <div className="mb-6">
-            <h1 className="text-vintage-3xl md:text-vintage-4xl font-playfair font-bold text-cream-light tracking-wide">
+            <h1 className="text-vintage-3xl md:text-vintage-4xl font-libre font-bold text-deep-brown tracking-wide">
               Messages
             </h1>
-            <p className="text-vintage-base text-cream-light/70 font-cormorant mt-2">
+            <p className="text-vintage-base text-terracotta-rose font-varela mt-2">
               Connect with hotel owners and support team
             </p>
           </div>
 
           {/* Messenger-style Layout */}
-          <div className="bg-walnut-dark/60 backdrop-blur-sm border border-copper-accent/30 rounded-lg shadow-2xl overflow-hidden">
+          <div className="bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border border-terracotta-rose/30 rounded-lg shadow-2xl overflow-hidden">
             <div className="grid md:grid-cols-[350px_1fr] h-[calc(100vh-250px)] overflow-hidden">
               {/* Left Sidebar - Chat Room List */}
               <ChatRoomList />

@@ -142,10 +142,10 @@ function BookingSuccessContent() {
 
   if (loading || !accessToken) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-4 border-copper-accent/20 border-t-copper-accent mx-auto mb-4"></div>
-          <p className="text-cream-light font-cormorant text-vintage-lg">
+          <div className="animate-spin rounded-full h-32 w-32 border-4 border-terracotta-rose/20 border-t-terracotta-rose mx-auto mb-4"></div>
+          <p className="text-creamy-yellow font-varela text-vintage-lg">
             {!accessToken ? 'Loading authentication...' : 'Loading booking confirmation...'}
           </p>
         </div>
@@ -155,14 +155,14 @@ function BookingSuccessContent() {
 
   if (error || !booking) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
-        <Card className="max-w-md bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm">
+      <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
+        <Card className="max-w-md bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm">
           <CardContent className="p-8 text-center">
-            <h2 className="text-vintage-xl font-playfair font-bold text-cream-light mb-4">Booking Not Found</h2>
-            <p className="text-cream-light/70 font-cormorant text-vintage-base mb-6">{error || 'Unable to load booking details'}</p>
+            <h2 className="text-vintage-xl font-libre font-bold text-creamy-yellow mb-4">Booking Not Found</h2>
+            <p className="text-creamy-yellow/70 font-varela text-vintage-base mb-6">{error || 'Unable to load booking details'}</p>
             <Button 
               onClick={() => router.push('/dashboard')}
-              className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300"
+              className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold hover:shadow-lg hover:shadow-terracotta-rose/30 transition-all duration-300"
             >
               Go to Dashboard
             </Button>
@@ -173,21 +173,21 @@ function BookingSuccessContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light">
+    <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white">
       <div className="container mx-auto px-4 py-8">
         {/* Success Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-500 to-green-600 rounded-full mb-6">
             <CheckCircle className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-vintage-3xl font-playfair font-bold text-cream-light mb-4">
+          <h1 className="text-vintage-3xl font-libre font-bold text-terracotta-rose-dark mb-4">
             Booking Confirmed!
           </h1>
-          <p className="text-vintage-lg text-cream-light/80 font-cormorant mb-2">
+          <p className="text-vintage-lg text-terracotta-rose font-varela mb-2">
             Your reservation has been successfully created
           </p>
-          <p className="text-vintage-base text-cream-light/60 font-cormorant">
-            Booking ID: <span className="font-mono text-copper-accent">{booking.id}</span>
+          <p className="text-vintage-base text-terracotta-rose/60 font-varela">
+            Booking ID: <span className="font-mono text-terracotta-rose/60">{booking.id}</span>
           </p>
         </div>
 
@@ -196,28 +196,28 @@ function BookingSuccessContent() {
           <div className="lg:col-span-2 space-y-6">
             {/* Hotel Information */}
             {hotel && (
-              <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm shadow-2xl shadow-walnut-darkest/50">
+              <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm shadow-2xl shadow-dark-brown/50">
                 <CardContent className="p-6">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
-                      <h2 className="text-vintage-2xl font-playfair font-bold text-cream-light mb-2">{hotel.name}</h2>
-                      <div className="flex items-center text-cream-light/80 mb-2 font-cormorant text-vintage-base">
-                        <MapPin className="w-4 h-4 mr-2 text-copper-accent" />
+                      <h2 className="text-vintage-2xl font-libre font-bold text-creamy-yellow mb-2">{hotel.name}</h2>
+                      <div className="flex items-center text-creamy-yellow/80 mb-2 font-varela text-vintage-base">
+                        <MapPin className="w-4 h-4 mr-2 text-terracotta-rose" />
                         <span>{hotel.address}, {hotel.location?.city || hotel.city}, {hotel.location?.state || hotel.state}</span>
                       </div>
-                      <div className="flex items-center text-cream-light/80 font-cormorant text-vintage-base">
-                        <Phone className="w-4 h-4 mr-2 text-copper-accent" />
+                      <div className="flex items-center text-creamy-yellow/80 font-varela text-vintage-base">
+                        <Phone className="w-4 h-4 mr-2 text-terracotta-rose" />
                         <span>{hotel.phone_number}</span>
                       </div>
                     </div>
                     
                     {hotel.avg_rating && Number(hotel.avg_rating) > 0 && (
                       <div className="text-center">
-                        <div className="flex items-center bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark px-3 py-2 rounded-lg mb-1">
+                        <div className="flex items-center bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown px-3 py-2 rounded-lg mb-1">
                           <Star className="w-4 h-4 mr-1 fill-current" />
-                          <span className="text-vintage-sm font-cinzel font-bold">{Number(hotel.avg_rating).toFixed(1)}</span>
+                          <span className="text-vintage-sm font-libre font-bold">{Number(hotel.avg_rating).toFixed(1)}</span>
                         </div>
-                        <div className="text-vintage-xs text-cream-light/60 font-cormorant">
+                        <div className="text-vintage-xs text-creamy-yellow/60 font-varela">
                           {hotel.total_reviews || 0} reviews
                         </div>
                       </div>
@@ -228,34 +228,34 @@ function BookingSuccessContent() {
             )}
 
             {/* Booking Details */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm shadow-2xl shadow-walnut-darkest/50">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm shadow-2xl shadow-dark-brown/50">
               <CardHeader>
-                <CardTitle className="text-vintage-xl font-playfair text-cream-light">Booking Details</CardTitle>
+                <CardTitle className="text-vintage-xl font-libre text-creamy-yellow">Booking Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-playfair font-semibold text-cream-light mb-2">Check-in Information</h3>
-                      <div className="space-y-2 text-sm text-cream-light/80 font-cormorant">
+                      <h3 className="font-libre font-semibold text-creamy-yellow mb-2">Check-in Information</h3>
+                      <div className="space-y-2 text-sm text-creamy-yellow/80 font-varela">
                         <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-2 text-copper-accent" />
+                          <Calendar className="w-4 h-4 mr-2 text-terracotta-rose" />
                           <span>{formatDate(booking.check_in_date)}</span>
                         </div>
-                        <div className="text-cream-light/60">
+                        <div className="text-creamy-yellow/60">
                           Check-in time: 3:00 PM
                         </div>
                       </div>
                     </div>
 
                     <div>
-                      <h3 className="font-playfair font-semibold text-cream-light mb-2">Check-out Information</h3>
-                      <div className="space-y-2 text-sm text-cream-light/80 font-cormorant">
+                      <h3 className="font-libre font-semibold text-creamy-yellow mb-2">Check-out Information</h3>
+                      <div className="space-y-2 text-sm text-creamy-yellow/80 font-varela">
                         <div className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-2 text-copper-accent" />
+                          <Calendar className="w-4 h-4 mr-2 text-terracotta-rose" />
                           <span>{formatDate(booking.check_out_date)}</span>
                         </div>
-                        <div className="text-cream-light/60">
+                        <div className="text-creamy-yellow/60">
                           Check-out time: 11:00 AM
                         </div>
                       </div>
@@ -264,20 +264,20 @@ function BookingSuccessContent() {
 
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-playfair font-semibold text-cream-light mb-2">Guest Information</h3>
-                      <div className="space-y-2 text-sm text-cream-light/80 font-cormorant">
+                      <h3 className="font-libre font-semibold text-creamy-yellow mb-2">Guest Information</h3>
+                      <div className="space-y-2 text-sm text-creamy-yellow/80 font-varela">
                         <div className="flex items-center">
-                          <Users className="w-4 h-4 mr-2 text-copper-accent" />
+                          <Users className="w-4 h-4 mr-2 text-terracotta-rose" />
                           <span>{booking.number_of_guests} guest{booking.number_of_guests > 1 ? 's' : ''}</span>
                         </div>
-                        <div className="text-cream-light/60">
+                        <div className="text-creamy-yellow/60">
                           Guest: {booking.guest_name}
                         </div>
-                        <div className="text-cream-light/60">
+                        <div className="text-creamy-yellow/60">
                           Email: {booking.guest_email}
                         </div>
                         {booking.guest_phone && (
-                          <div className="text-cream-light/60">
+                          <div className="text-creamy-yellow/60">
                             Phone: {booking.guest_phone}
                           </div>
                         )}
@@ -286,15 +286,15 @@ function BookingSuccessContent() {
 
                     {room && (
                       <div>
-                        <h3 className="font-playfair font-semibold text-cream-light mb-2">Room Information</h3>
-                        <div className="space-y-2 text-sm text-cream-light/80 font-cormorant">
-                          <div className="text-cream-light">
+                        <h3 className="font-libre font-semibold text-creamy-yellow mb-2">Room Information</h3>
+                        <div className="space-y-2 text-sm text-creamy-yellow/80 font-varela">
+                          <div className="text-creamy-yellow">
                             {room.room_type}
                           </div>
-                          <div className="text-cream-light/60">
+                          <div className="text-creamy-yellow/60">
                             {room.description}
                           </div>
-                          <div className="text-cream-light/60">
+                          <div className="text-creamy-yellow/60">
                             Max occupancy: {room.max_occupancy} guests
                           </div>
                         </div>
@@ -305,8 +305,8 @@ function BookingSuccessContent() {
 
                 {booking.special_requests && (
                   <div>
-                    <h3 className="font-playfair font-semibold text-cream-light mb-2">Special Requests</h3>
-                    <div className="text-sm text-cream-light/80 font-cormorant bg-walnut-darkest/30 p-3 rounded-lg">
+                    <h3 className="font-libre font-semibold text-creamy-yellow mb-2">Special Requests</h3>
+                    <div className="text-sm text-creamy-yellow/80 font-varela bg-dark-brown/30 p-3 rounded-lg">
                       {booking.special_requests}
                     </div>
                   </div>
@@ -315,43 +315,43 @@ function BookingSuccessContent() {
             </Card>
 
             {/* Next Steps */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm shadow-2xl shadow-walnut-darkest/50">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm shadow-2xl shadow-dark-brown/50">
               <CardHeader>
-                <CardTitle className="text-vintage-xl font-playfair text-cream-light">What's Next?</CardTitle>
+                <CardTitle className="text-vintage-xl font-libre text-creamy-yellow">What's Next?</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-start">
-                    <div className="w-6 h-6 bg-copper-accent rounded-full flex items-center justify-center mr-3 mt-0.5">
-                      <span className="text-walnut-dark text-xs font-bold">1</span>
+                    <div className="w-6 h-6 bg-terracotta-rose rounded-full flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-dark-brown text-xs font-bold">1</span>
                     </div>
                     <div>
-                      <h4 className="font-playfair font-semibold text-cream-light">Confirmation Email</h4>
-                      <p className="text-sm text-cream-light/70 font-cormorant">
+                      <h4 className="font-libre font-semibold text-creamy-yellow">Confirmation Email</h4>
+                      <p className="text-sm text-creamy-yellow/70 font-varela">
                         You will receive a confirmation email with all booking details shortly.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-start">
-                    <div className="w-6 h-6 bg-copper-accent rounded-full flex items-center justify-center mr-3 mt-0.5">
-                      <span className="text-walnut-dark text-xs font-bold">2</span>
+                    <div className="w-6 h-6 bg-terracotta-rose rounded-full flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-dark-brown text-xs font-bold">2</span>
                     </div>
                     <div>
-                      <h4 className="font-playfair font-semibold text-cream-light">Hotel Contact</h4>
-                      <p className="text-sm text-cream-light/70 font-cormorant">
+                      <h4 className="font-libre font-semibold text-creamy-yellow">Hotel Contact</h4>
+                      <p className="text-sm text-creamy-yellow/70 font-varela">
                         The hotel will contact you closer to your check-in date with additional information.
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-start">
-                    <div className="w-6 h-6 bg-copper-accent rounded-full flex items-center justify-center mr-3 mt-0.5">
-                      <span className="text-walnut-dark text-xs font-bold">3</span>
+                    <div className="w-6 h-6 bg-terracotta-rose rounded-full flex items-center justify-center mr-3 mt-0.5">
+                      <span className="text-dark-brown text-xs font-bold">3</span>
                     </div>
                     <div>
-                      <h4 className="font-playfair font-semibold text-cream-light">Chat with Hotel</h4>
-                      <p className="text-sm text-cream-light/70 font-cormorant">
+                      <h4 className="font-libre font-semibold text-creamy-yellow">Chat with Hotel</h4>
+                      <p className="text-sm text-creamy-yellow/70 font-varela">
                         You can start chatting with the hotel owner for any questions or special arrangements.
                       </p>
                     </div>
@@ -364,15 +364,15 @@ function BookingSuccessContent() {
           {/* Sidebar - Actions & Summary */}
           <div className="space-y-6">
             {/* Payment Summary */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm">
               <CardHeader>
-                <CardTitle className="text-cream-light font-playfair">Payment Summary</CardTitle>
+                <CardTitle className="text-creamy-yellow font-libre">Payment Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2 text-sm text-cream-light/80 font-cormorant">
+                <div className="space-y-2 text-sm text-creamy-yellow/80 font-varela">
                   <div className="flex justify-between">
                     <span>Booking ID:</span>
-                    <span className="font-mono text-copper-accent">{booking.id}</span>
+                    <span className="font-mono text-terracotta-rose">{booking.id}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Status:</span>
@@ -384,7 +384,7 @@ function BookingSuccessContent() {
                   </div>
                   <div className="flex justify-between">
                     <span>Total Paid:</span>
-                    <span className="font-bold text-copper-accent">${Number(booking.total_price).toFixed(2)}</span>
+                    <span className="font-bold text-terracotta-rose">${Number(booking.total_price).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Booked on:</span>
@@ -392,11 +392,10 @@ function BookingSuccessContent() {
                   </div>
                 </div>
 
-                <div className="border-t border-copper-accent/20 pt-4">
+                <div className="border-t border-terracotta-rose/20 pt-4">
                   <Button
                     onClick={handleDownloadReceipt}
-                    variant="outline"
-                    className="w-full border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 font-cormorant bg-walnut-dark/60"
+                    className="w-full border-terracotta-rose/30 text-dark-brown hover:bg-terracotta-rose/20 font-varela bg-gradient-to-br from-terracotta-rose/70 to-terracotta-orange/80"
                   >
                     <Download className="w-4 h-4 mr-2" />
                     Download Receipt
@@ -406,12 +405,12 @@ function BookingSuccessContent() {
             </Card>
 
             {/* Action Buttons */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm">
               <CardContent className="p-6 space-y-4">
                 <Button
                   onClick={handleStartChat}
                   disabled={isCreatingChat}
-                  className="w-full bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300 disabled:opacity-50"
+                  className="w-full bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold hover:shadow-lg hover:shadow-terracotta-rose/30 transition-all duration-300 disabled:opacity-50"
                 >
                   {isCreatingChat ? (
                     <>
@@ -428,8 +427,7 @@ function BookingSuccessContent() {
 
                 <Button
                   onClick={() => router.push('/dashboard')}
-                  variant="outline"
-                  className="w-full border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 font-cormorant bg-walnut-dark/60"
+                  className="w-full border-terracotta-rose/30 text-dark-brown hover:bg-terracotta-rose/20 font-varela bg-gradient-to-br from-terracotta-rose/70 to-terracotta-orange/80"
                 >
                   <Home className="w-4 h-4 mr-2" />
                   Go to Dashboard
@@ -437,8 +435,7 @@ function BookingSuccessContent() {
 
                 <Button
                   onClick={() => router.push('/hotels/')}
-                  variant="outline"
-                  className="w-full border-copper-accent/30 text-cream-light hover:bg-copper-accent/20 font-cormorant bg-walnut-dark/60"
+                  className="w-full border-terracotta-rose/30 text-dark-brown hover:bg-terracotta-rose/20 font-varela bg-gradient-to-br from-terracotta-rose/70 to-terracotta-orange/80"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Book Another Hotel
@@ -447,13 +444,13 @@ function BookingSuccessContent() {
             </Card>
 
             {/* Support */}
-            <Card className="bg-walnut-dark/80 border border-copper-accent/30 backdrop-blur-sm">
+            <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown border border-terracotta-rose/30 backdrop-blur-sm">
               <CardContent className="p-6">
-                <h3 className="font-playfair font-semibold text-cream-light mb-3">Need Help?</h3>
-                <p className="text-sm text-cream-light/70 font-cormorant mb-4">
+                <h3 className="font-libre font-semibold text-creamy-yellow mb-3">Need Help?</h3>
+                <p className="text-sm text-creamy-yellow/70 font-varela mb-4">
                   If you have any questions about your booking, please contact our support team.
                 </p>
-                <div className="space-y-2 text-sm text-cream-light/60 font-cormorant">
+                <div className="space-y-2 text-sm text-creamy-yellow/60 font-varela">
                   <div>Email: support@aurevia.com</div>
                   <div>Phone: +1 (555) 123-4567</div>
                   <div>Available 24/7</div>
@@ -472,10 +469,10 @@ export default function BookingSuccessPage() {
     <>
       <Header />
       <Suspense fallback={
-        <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-light flex items-center justify-center">
+        <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white flex items-center justify-center">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-32 w-32 border-4 border-copper-accent/20 border-t-copper-accent mx-auto mb-4"></div>
-            <p className="text-cream-light font-cormorant text-vintage-lg">Loading booking confirmation...</p>
+            <div className="animate-spin rounded-full h-32 w-32 border-4 border-terracotta-rose/20 border-t-terracotta-rose mx-auto mb-4"></div>
+            <p className="text-creamy-yellow font-varela text-vintage-lg">Loading booking confirmation...</p>
           </div>
         </div>
       }>
