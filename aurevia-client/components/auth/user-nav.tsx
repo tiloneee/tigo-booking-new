@@ -132,10 +132,10 @@ export default function UserNav() {
                   </button>
                 </div>
                 {isConnected && (
-                  <p className="text-green-400 font-varela font-light text-vintage-xs mt-1 flex items-center gap-1">
+                  <div className="text-green-400 font-varela font-light text-vintage-xs mt-1 flex items-center gap-1">
                     <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
                     Live updates active
-                  </p>
+                  </div>
                 )}
               </div>
 

@@ -195,15 +195,6 @@ export class AuthService {
       };
 
       const newAccessToken = this.jwtService.sign(payload);
-      
-      // Optionally generate a new refresh token (token rotation)
-      const newRefreshToken = this.jwtService.sign(payload, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
-      });
-
-      // Update stored refresh token
-      await this.userService.updateRefreshToken(user.id, newRefreshToken);
 
       // Cache user balance on token refresh to ensure it's available
       try {
@@ -218,7 +209,6 @@ export class AuthService {
       
       return {
         access_token: newAccessToken,
-        refresh_token: newRefreshToken,
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');
