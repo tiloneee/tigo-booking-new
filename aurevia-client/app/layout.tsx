@@ -25,8 +25,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700;1,800;1,900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=Great+Vibes&family=Cinzel:wght@400;500;600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap"
-          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Pridi:wght@200;300;400;500;600;700&family=Varela+Round&display=swap" rel="stylesheet"
         />
       </head>
       <body className={inter.className} suppressHydrationWarning={true}>
@@ -40,9 +39,9 @@ export default function RootLayout({
               }}
               toastOptions={{
                 style: {
-                  background: '#3d2419',
-                  color: '#f5f1e8',
-                  border: '1px solid rgba(205, 127, 50, 0.3)',
+                  background: '#E2B59A',
+                  color: '#4A3B2F',
+                  border: '1px solid rgba(183, 116, 102, 0.3)',
                 },
                 classNames: {
                   error: 'toast-error',

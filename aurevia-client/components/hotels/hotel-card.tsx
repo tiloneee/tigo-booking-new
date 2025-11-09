@@ -45,26 +45,24 @@ export default function HotelCard({
   const shouldShowPrice = checkInDate && checkOutDate;
 
   return (
-    <Card className="overflow-hidden hover:shadow-2xl hover:shadow-copper-accent/20 transition-all duration-500 cursor-pointer group bg-walnut-dark/60 border border-copper-accent/20 backdrop-blur-sm" onClick={handleViewDetails}>
+    <Card className="overflow-hidden hover:shadow-2xl hover:shadow-terracotta-rose/20 transition-all duration-500 cursor-pointer group bg-gradient-to-r from-dark-brown/90 to-deep-brown backdrop-blur-sm border-terracotta-rose/30 px-2" onClick={handleViewDetails}>
       <div className="flex flex-col md:flex-row">
         {/* Hotel Image */}
         <div className="relative md:w-80 h-48 md:h-auto">
           <img
             src={imageUrl}
             alt={hotel.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            className="w-full h-full object-cover rounded-xl group-hover:scale-105 transition-transform duration-500"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-walnut-dark/60 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-dark-brown/60 to-transparent"></div>
           
           <div className="absolute top-3 left-3">
-            <div className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark px-3 py-1 rounded-full text-vintage-sm font-cinzel font-bold">
+            <div className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown px-3 py-1 rounded-full text-vintage-sm font-libre font-bold">
               Featured
             </div>
           </div>
           <div className="absolute top-3 right-3">
-            <Button variant="ghost" size="sm" className="bg-walnut-dark/60 hover:bg-walnut-dark/80 text-cream-light border border-copper-accent/30">
-              <Camera className="w-4 h-4" />
-            </Button>
+
           </div>
         </div>
 
@@ -72,12 +70,12 @@ export default function HotelCard({
         <CardContent className="flex-1 p-6">
           <div className="flex justify-between items-start mb-4">
             <div>
-              <CardTitle className="text-vintage-xl font-playfair font-bold text-cream-light group-hover:text-copper-accent transition-colors">
+              <CardTitle className="text-xl font-fraunces font-semibold text-creamy-yellow group-hover:text-terracotta-rose transition-colors">
                 {hotel.name}
               </CardTitle>
-              <div className="flex items-center text-cream-light/70 mt-1">
-                <MapPin className="w-4 h-4 mr-1 text-copper-accent" />
-                <span className="text-vintage-sm font-cormorant">
+              <div className="flex items-center text-creamy-yellow/70 mt-1">
+                <MapPin className="w-4 h-4 mr-1 text-terracotta-rose" />
+                <span className="text-vintage-sm font-varela">
                    {hotel.city || hotel.location?.city || 'City not available'}, {hotel.country}
                 </span>
               </div>
@@ -86,13 +84,13 @@ export default function HotelCard({
             {/* Rating */}
             {hotel.avg_rating && hotel.avg_rating > 0 && (
               <div className="text-center">
-                <div className="flex items-center bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark px-3 py-2 rounded-lg mb-1">
+                <div className="flex items-center bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown px-3 py-2 rounded-lg mb-1">
                   <Star className="w-4 h-4 mr-1 fill-current" />
-                  <span className="text-vintage-sm font-cinzel font-bold">
+                  <span className="text-vintage-sm font-libre font-bold">
                     {Number(hotel.avg_rating).toFixed(1)}
                   </span>
                 </div>
-                <div className="text-vintage-xs text-cream-light/60 font-cormorant">
+                <div className="text-vintage-xs text-creamy-yellow/60 font-varela">
                   {hotel.total_reviews || 0} reviews
                 </div>
               </div>
@@ -100,7 +98,7 @@ export default function HotelCard({
           </div>
 
           {/* Description */}
-          <p className="text-cream-light/70 text-vintage-sm mb-3 line-clamp-2 font-cormorant leading-relaxed">
+          <p className="text-creamy-yellow/70 text-vintage-sm mb-3 line-clamp-2 font-varela leading-relaxed">
             {hotel.description}
           </p>
 
@@ -108,16 +106,16 @@ export default function HotelCard({
           {displayAmenities.length > 0 && (
             <div className="flex items-center gap-4 mb-3">
               {displayAmenities.map((amenity, index) => (
-                <div key={amenity.id || index} className="flex items-center text-vintage-xs text-copper-accent">
+                <div key={amenity.id || index} className="flex items-center text-vintage-xs text-terracotta-rose">
                   {amenity.category === 'connectivity' && <Wifi className="w-3 h-3 mr-1" />}
                   {amenity.category === 'services' && amenity.name.includes('Parking') && <Car className="w-3 h-3 mr-1" />}
                   {amenity.category === 'dining' && <Utensils className="w-3 h-3 mr-1" />}
                   {!['connectivity', 'services', 'dining'].includes(amenity.category) && <Users className="w-3 h-3 mr-1" />}
-                  <span className="font-cormorant">{amenity.name}</span>
+                  <span className="font-varela">{amenity.name}</span>
                 </div>
               ))}
               {hotel.amenities && hotel.amenities.length > 3 && (
-                <span className="text-vintage-xs text-copper-accent/70 font-cormorant">
+                <span className="text-vintage-xs text-terracotta-rose/70 font-varela">
                   +{hotel.amenities.length - 3} more
                 </span>
               )}
@@ -126,9 +124,9 @@ export default function HotelCard({
 
           {/* Guest capacity and room info */}
           {hotel.rooms && hotel.rooms.length > 0 && (
-            <div className="text-vintage-xs text-cream-light/60 mb-4 font-cormorant">
+            <div className="text-vintage-xs text-creamy-yellow/60 mb-4 font-varela">
               <span>Max occupancy: {Math.max(...hotel.rooms.map(room => room.max_occupancy))} guests</span>
-              <span className="mx-2 text-copper-accent">•</span>
+              <span className="mx-2 text-terracotta-rose">•</span>
               <span>{hotel.rooms.length} room types available</span>
             </div>
           )}
@@ -138,18 +136,18 @@ export default function HotelCard({
             <div className="text-right">
               {shouldShowPrice ? (
                 <>
-                  <div className="text-vintage-2xl font-playfair font-bold text-cream-light">
+                  <div className="text-vintage-2xl font-libre font-bold text-creamy-yellow">
                     ${pricePerNight}
-                    <span className="text-vintage-sm font-cormorant font-normal text-cream-light/60"> / night</span>
+                    <span className="text-vintage-sm font-varela font-normal text-creamy-yellow/60"> / night</span>
                   </div>
                   {nights > 1 && (
-                    <div className="text-vintage-sm text-cream-light/60 font-cormorant">
+                    <div className="text-vintage-sm text-creamy-yellow/60 font-varela">
                       Total: ${totalPrice} for {nights} nights
                     </div>
                   )}
                 </>
               ) : (
-                <div className="text-vintage-base text-cream-light/60 font-cormorant italic">
+                <div className="text-vintage-base text-creamy-yellow/60 font-varela italic">
                   Select dates to see pricing
                 </div>
               )}
@@ -157,7 +155,7 @@ export default function HotelCard({
             
             <Button 
               onClick={handleViewDetails}
-              className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold px-6 hover:shadow-lg hover:shadow-copper-accent/30 transition-all duration-300"
+              className="bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold px-6 hover:shadow-lg hover:shadow-terracotta-rose/30 transition-all duration-300"
             >
               View Details
             </Button>

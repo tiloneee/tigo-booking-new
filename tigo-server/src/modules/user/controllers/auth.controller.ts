@@ -73,20 +73,8 @@ export class AuthController {
       req.user.refreshToken,
     );
 
-    // Update refresh token cookie if a new one is issued
-    if (result.refresh_token) {
-      res.cookie('refresh_token', result.refresh_token, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        path: '/',
-      });
-    }
-
-    // Don't send refresh token in response body
-    const { refresh_token, ...response } = result;
-    return response;
+    // No refresh token rotation - just return the new access token
+    return result;
   }
 
   @Post('logout')

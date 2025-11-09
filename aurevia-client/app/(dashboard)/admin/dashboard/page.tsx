@@ -152,11 +152,14 @@ export default function AdminDashboard() {
   if (isLoading || loading) {
     return (
       <ProtectedRoute allowedRoles={['Admin', 'HotelOwner']}>
-        <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-darkest">
+        <div className="min-h-screen bg-gradient-to-br from-creamy-yellow to-creamy-white">
           <Header />
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
             <div className="flex justify-center items-center min-h-[400px]">
-              <div className="w-16 h-16 border-4 border-copper-accent border-t-transparent rounded-full animate-spin"></div>
+              <div className="text-center">
+                <div className="w-16 h-16 border-4 border-terracotta-rose/30 border-t-terracotta-rose rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-deep-brown font-varela text-vintage-lg">Loading dashboard...</p>
+              </div>
             </div>
           </div>
         </div>
@@ -166,17 +169,17 @@ export default function AdminDashboard() {
 
   return (
     <ProtectedRoute allowedRoles={['Admin', 'HotelOwner']}>
-      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-darkest">
+      <div className="min-h-screen bg-gradient-to-bl from-creamy-yellow to-creamy-white">
         <Header />
         
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="max-w-7xl mx-auto">
             {/* Header Section */}
             <div className="mb-8">
-              <h1 className="text-vintage-4xl md:text-vintage-5xl font-playfair font-bold text-cream-light mb-4 tracking-wide">
+              <h1 className="text-vintage-4xl md:text-vintage-5xl font-libre font-bold text-deep-brown mb-4 tracking-wide">
                 {isAdmin ? 'Admin' : 'Hotel Owner'} Dashboard
               </h1>
-              <p className="text-vintage-lg text-cream-light/80 font-cormorant font-light leading-relaxed">
+              <p className="text-vintage-lg text-terracotta-rose font-varela font-light leading-relaxed">
                 {isAdmin 
                   ? 'Manage users, hotels, rooms, and bookings'
                   : 'Manage your hotels, rooms, and bookings'}
@@ -187,26 +190,26 @@ export default function AdminDashboard() {
             <div className="mb-8">
               <div className="relative max-w-2xl">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-cream-light/60" />
+                  <Search className="h-5 w-5 text-deep-brown/60" />
                 </div>
                 <input
                   type="text"
                   placeholder={`Search ${activeTab === 'users' ? 'users' : activeTab === 'hotels' ? 'hotels' : 'balance requests'}...`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-10 py-3 bg-walnut-dark/50 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/60 focus:outline-none focus:ring-2 focus:ring-copper-accent/50 focus:border-copper-accent/50 font-cormorant text-vintage-base"
+                  className="w-full pl-10 pr-10 py-3 bg-dark-brown/20 border border-terracotta-rose/30 rounded-lg text-deep-brown placeholder-deep-brown/60 focus:outline-none focus:ring-2 focus:ring-terracotta-rose/50 focus:border-terracotta-rose/50 font-varela text-vintage-base"
                 />
                 {searchQuery && (
                   <button
                     onClick={clearSearch}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-cream-light/60 hover:text-cream-light transition-colors"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-deep-brown/60 hover:text-deep-brown transition-colors"
                   >
                     <X className="h-5 w-5" />
                   </button>
                 )}
               </div>
               {searchQuery && (
-                <div className="mt-2 text-vintage-sm text-cream-light/70 font-cormorant">
+                <div className="mt-2 text-vintage-sm text-terracotta-rose font-varela">
                   {activeTab === 'users' 
                     ? `Found ${filteredUsers.length} user${filteredUsers.length !== 1 ? 's' : ''}`
                     : activeTab === 'hotels'
@@ -221,23 +224,23 @@ export default function AdminDashboard() {
             {error && (
               <Card className="bg-red-900/20 border-red-500/50 mb-6">
                 <CardContent className="py-4">
-                  <div className="flex items-center gap-3 text-red-300">
+                  <div className="flex items-center gap-3 text-red-700">
                     <AlertCircle className="h-5 w-5" />
-                    <p>{error}</p>
+                    <p className="font-varela">{error}</p>
                   </div>
                 </CardContent>
               </Card>
             )}
 
             {/* Tabs Navigation */}
-            <div className="flex gap-4 mb-8 border-b border-copper-accent/30">
+            <div className="flex gap-4 mb-8 border-b border-terracotta-rose/50">
               {isAdmin && (
                 <button
                   onClick={() => handleTabChange('users')}
-                  className={`flex items-center gap-2 px-6 py-3 font-cormorant text-vintage-lg font-medium transition-all duration-300 ${
+                  className={`flex items-center gap-2 px-6 py-3 font-varela text-vintage-lg font-medium transition-all duration-300 ${
                     activeTab === 'users'
-                      ? 'text-copper-accent border-b-2 border-copper-accent'
-                      : 'text-cream-light/60 hover:text-cream-light'
+                      ? 'text-terracotta-rose border-b-2 border-terracotta-rose'
+                      : 'text-deep-brown/60 hover:text-deep-brown'
                   }`}
                 >
                   <Users className="h-5 w-5" />
@@ -246,10 +249,10 @@ export default function AdminDashboard() {
               )}
               <button
                 onClick={() => handleTabChange('hotels')}
-                className={`flex items-center gap-2 px-6 py-3 font-cormorant text-vintage-lg font-medium transition-all duration-300 ${
+                className={`flex items-center gap-2 px-6 py-3 font-varela text-vintage-lg font-medium transition-all duration-300 ${
                   activeTab === 'hotels'
-                    ? 'text-copper-accent border-b-2 border-copper-accent'
-                    : 'text-cream-light/60 hover:text-cream-light'
+                    ? 'text-terracotta-rose border-b-2 border-terracotta-rose'
+                    : 'text-deep-brown/60 hover:text-deep-brown'
                 }`}
               >
                 <Building2 className="h-5 w-5" />
@@ -258,10 +261,10 @@ export default function AdminDashboard() {
               {isAdmin && (
                 <button
                   onClick={() => handleTabChange('balance-requests')}
-                  className={`flex items-center gap-2 px-6 py-3 font-cormorant text-vintage-lg font-medium transition-all duration-300 ${
+                  className={`flex items-center gap-2 px-6 py-3 font-varela text-vintage-lg font-medium transition-all duration-300 ${
                     activeTab === 'balance-requests'
-                      ? 'text-copper-accent border-b-2 border-copper-accent'
-                      : 'text-cream-light/60 hover:text-cream-light'
+                      ? 'text-terracotta-rose border-b-2 border-terracotta-rose'
+                      : 'text-deep-brown/60 hover:text-deep-brown'
                   }`}
                 >
                   <DollarSign className="h-5 w-5" />
@@ -277,18 +280,18 @@ export default function AdminDashboard() {
                 (activeTab === 'hotels' && filteredHotels.length === 0) ||
                 (activeTab === 'balance-requests' && filteredBalanceRequests.length === 0)
               ) && (
-                <Card className="bg-walnut-dark/50 border-copper-accent/20">
+                <Card className="bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border-terracotta-rose/30">
                   <CardContent className="py-8 text-center">
-                    <Search className="h-12 w-12 text-cream-light/40 mx-auto mb-4" />
-                    <h3 className="text-vintage-lg font-cormorant text-cream-light mb-2">
+                    <Search className="h-12 w-12 text-terracotta-rose/60 mx-auto mb-4" />
+                    <h3 className="text-vintage-lg font-libre text-creamy-yellow mb-2">
                       No results found
                     </h3>
-                    <p className="text-vintage-base text-cream-light/60 font-cormorant">
+                    <p className="text-vintage-base text-creamy-yellow/60 font-varela">
                       Try adjusting your search terms or clear the search to see all {activeTab === 'balance-requests' ? 'balance requests' : activeTab}.
                     </p>
                     <button
                       onClick={clearSearch}
-                      className="mt-4 px-4 py-2 bg-copper-accent/20 text-copper-accent border border-copper-accent/30 rounded-lg hover:bg-copper-accent/30 transition-colors font-cormorant text-vintage-sm"
+                      className="mt-4 px-6 py-2 bg-gradient-to-r from-terracotta-rose/70 to-terracotta-orange/80 text-dark-brown border border-terracotta-rose/30 rounded-lg hover:shadow-terracotta-rose/30 transition-all duration-300 hover:scale-105 font-varela text-vintage-sm font-semibold"
                     >
                       Clear Search
                     </button>

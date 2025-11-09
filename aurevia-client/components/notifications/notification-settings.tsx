@@ -136,19 +136,19 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
 
   if (loading) {
     return (
-      <Card className={`bg-walnut-dark/98 backdrop-blur-sm border-copper-accent/20 ${className}`}>
+      <Card className={`bg-gradient-to-br from-dark-brown/98 to-deep-brown backdrop-blur-sm border-terracotta-rose/20 ${className}`}>
         <CardContent className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 text-copper-accent animate-spin" />
+          <Loader2 className="h-8 w-8 text-creamy-yellow animate-spin" />
         </CardContent>
       </Card>
     )
   }
 
   return (
-    <Card className={`bg-walnut-dark/98 backdrop-blur-sm border-copper-accent/20 ${className}`}>
-      <CardHeader className="border-b border-copper-accent/20">
-        <CardTitle className=" font-cormorant text-cream-light text-[18px] flex items-center">
-          <Settings className="h-5 w-5 text-copper-accent mr-3" />
+    <Card className={`bg-gradient-to-br from-dark-brown/98 to-deep-brown backdrop-blur-sm border-terracotta-rose/20 ${className}`}>
+      <CardHeader className="border-b border-terracotta-rose/20">
+        <CardTitle className="font-libre text-creamy-yellow text-[18px] flex items-center">
+          <Settings className="h-5 w-5 text-creamy-yellow mr-3" />
           Notification Preferences
           {saved && (
             <div className="ml-auto flex items-center text-green-400 text-vintage-sm">
@@ -165,12 +165,12 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
             if (!typeInfo) return null
 
             return (
-              <div key={preference.type} className="border border-copper-accent/10 rounded-lg p-4 hover:border-copper-accent/20 transition-colors duration-200">
+              <div key={preference.type} className="border border-terracotta-rose/10 rounded-lg p-4 hover:border-terracotta-rose/20 transition-colors duration-200">
                 <div className="mb-3">
-                  <h3 className="text-cream-light font-cormorant text-vintage-lg font-medium">
+                  <h3 className="text-creamy-yellow font-varela text-vintage-lg font-medium">
                     {typeInfo.title}
                   </h3>
-                  <p className="text-cream-light/70 text-vintage-sm mt-1">
+                  <p className="text-creamy-yellow/70 text-vintage-sm mt-1">
                     {typeInfo.description}
                   </p>
                 </div>
@@ -178,7 +178,7 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
                 <div className="space-y-3">
                   {/* In-app notifications */}
                   <label className="flex items-center justify-between cursor-pointer">
-                    <span className="text-cream-light text-vintage-sm font-cormorant">
+                    <span className="text-creamy-yellow text-vintage-sm font-varela">
                       In-app notifications
                     </span>
                     <div className="relative">
@@ -191,10 +191,10 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
                       />
                       <div className={`w-10 h-5 rounded-full transition-colors duration-200 ${
                         preference.in_app_enabled 
-                          ? 'bg-copper-accent' 
-                          : 'bg-walnut-light'
+                          ? 'bg-terracotta-rose' 
+                          : 'bg-terracotta-rose/30'
                       }`}>
-                        <div className={`w-4 h-4 bg-cream-light rounded-full shadow-md transform transition-transform duration-200 ${
+                        <div className={`w-4 h-4 bg-creamy-yellow rounded-full shadow-md transform transition-transform duration-200 ${
                           preference.in_app_enabled ? 'translate-x-5' : 'translate-x-0.5'
                         } mt-0.5`} />
                       </div>
@@ -203,7 +203,7 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
 
                   {/* Email notifications */}
                   <label className="flex items-center justify-between cursor-pointer">
-                    <span className="text-cream-light text-vintage-sm font-cormorant">
+                    <span className="text-creamy-yellow text-vintage-sm font-varela">
                       Email notifications
                     </span>
                     <div className="relative">
@@ -216,10 +216,10 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
                       />
                       <div className={`w-10 h-5 rounded-full transition-colors duration-200 ${
                         preference.email_enabled 
-                          ? 'bg-copper-accent' 
-                          : 'bg-walnut-light'
+                          ? 'bg-terracotta-rose' 
+                          : 'bg-terracotta-rose/30'
                       }`}>
-                        <div className={`w-4 h-4 bg-cream-light rounded-full shadow-md transform transition-transform duration-200 ${
+                        <div className={`w-4 h-4 bg-creamy-yellow rounded-full shadow-md transform transition-transform duration-200 ${
                           preference.email_enabled ? 'translate-x-5' : 'translate-x-0.5'
                         } mt-0.5`} />
                       </div>
@@ -228,7 +228,7 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
 
                   {/* Push notifications */}
                   <label className="flex items-center justify-between cursor-pointer">
-                    <span className="text-cream-light text-vintage-sm font-cormorant">
+                    <span className="text-creamy-yellow text-vintage-sm font-varela">
                       Browser notifications
                     </span>
                     <div className="relative">
@@ -241,10 +241,10 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
                       />
                       <div className={`w-10 h-5 rounded-full transition-colors duration-200 ${
                         preference.push_enabled 
-                          ? 'bg-copper-accent' 
-                          : 'bg-walnut-light'
+                          ? 'bg-terracotta-rose' 
+                          : 'bg-terracotta-rose/30'
                       }`}>
-                        <div className={`w-4 h-4 bg-cream-light rounded-full shadow-md transform transition-transform duration-200 ${
+                        <div className={`w-4 h-4 bg-creamy-yellow rounded-full shadow-md transform transition-transform duration-200 ${
                           preference.push_enabled ? 'translate-x-5' : 'translate-x-0.5'
                         } mt-0.5`} />
                       </div>
@@ -257,11 +257,11 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
         </div>
 
         {/* Global browser notification permission */}
-        <div className="mt-6 p-4 bg-copper-accent/5 border border-copper-accent/20 rounded-lg">
-          <h4 className="text-cream-light font-cormorant text-vintage-base font-medium mb-2">
+        <div className="mt-6 p-4 bg-terracotta-rose/5 border border-terracotta-rose/20 rounded-lg">
+          <h4 className="text-creamy-yellow font-varela text-vintage-base font-medium mb-2">
             Browser Notification Permission
           </h4>
-          <p className="text-cream-light/70 text-vintage-sm mb-3">
+          <p className="text-creamy-yellow/70 text-vintage-sm mb-3">
             Enable browser notifications to receive real-time alerts even when the app is not open.
           </p>
           {typeof window !== 'undefined' && 'Notification' in window ? (
@@ -273,9 +273,8 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
                   alert('Please enable notifications in your browser settings')
                 }
               }}
-              variant="outline"
               size="sm"
-              className="text-copper-accent border-copper-accent/30 hover:bg-copper-accent/10"
+              className="text-dark-brown border-terracotta-rose/30 hover:bg-terracotta-rose/10"
             >
               {Notification.permission === 'granted' 
                 ? 'Notifications Enabled' 
@@ -285,7 +284,7 @@ export function NotificationSettings({ className }: NotificationSettingsProps) {
               }
             </Button>
           ) : (
-            <p className="text-cream-light/50 text-vintage-xs">
+            <p className="text-creamy-yellow/50 text-vintage-xs">
               Browser notifications not supported
             </p>
           )}

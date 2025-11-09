@@ -3,6 +3,8 @@ import {
   UnauthorizedException,
   BadRequestException,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -11,14 +13,19 @@ import { EmailService } from '../../../common/services/email.service';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import * as bcrypt from 'bcryptjs';
+import { TransactionService } from '../../transaction/services/transaction.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private userService: UserService,
     private jwtService: JwtService,
     private configService: ConfigService,
     private emailService: EmailService,
+    @Inject(forwardRef(() => TransactionService))
+    private transactionService: TransactionService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -62,6 +69,16 @@ export class AuthService {
     });
 
     await this.userService.updateRefreshToken(user.id, refreshToken);
+    
+    // Cache user balance on login for immediate availability
+    try {
+      await this.transactionService.getCachedBalance(user.id);
+      this.logger.log(`Cached balance for user ${user.id} on login`);
+    } catch (error) {
+      this.logger.error(`Failed to cache balance for user ${user.id}:`, error);
+      // Don't fail login if balance caching fails
+    }
+
     Logger.log({
       user: {
         id: user.id,
@@ -178,21 +195,20 @@ export class AuthService {
       };
 
       const newAccessToken = this.jwtService.sign(payload);
-      
-      // Optionally generate a new refresh token (token rotation)
-      const newRefreshToken = this.jwtService.sign(payload, {
-        secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
-        expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES_IN'),
-      });
 
-      // Update stored refresh token
-      await this.userService.updateRefreshToken(user.id, newRefreshToken);
+      // Cache user balance on token refresh to ensure it's available
+      try {
+        await this.transactionService.getCachedBalance(user.id);
+        this.logger.log(`Cached balance for user ${user.id} on token refresh`);
+      } catch (error) {
+        this.logger.error(`Failed to cache balance for user ${user.id}:`, error);
+        // Don't fail token refresh if balance caching fails
+      }
 
       Logger.log(`User ${user.id} refreshed token from cookie!`);
       
       return {
         access_token: newAccessToken,
-        refresh_token: newRefreshToken,
       };
     } catch (error) {
       throw new UnauthorizedException('Invalid refresh token');

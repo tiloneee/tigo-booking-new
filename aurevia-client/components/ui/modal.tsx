@@ -30,16 +30,16 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
       />
       
       {/* Modal */}
-      <div className={`relative bg-walnut-dark border border-copper-accent/30 rounded-lg shadow-2xl ${sizeClasses[size]} w-full max-h-[90vh] overflow-hidden flex flex-col`}>
+      <div className={`relative bg-creamy-yellow/85 backdrop-blur-lg border border-terracotta-rose/60 rounded-lg shadow-2xl ${sizeClasses[size]} w-full max-h-[90vh] overflow-hidden flex flex-col`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-copper-accent/30">
-          <h2 className="text-vintage-2xl font-playfair font-bold text-cream-light">
+        <div className="flex items-center justify-between p-6 border-b border-terracotta-rose/30">
+          <h2 className="text-vintage-2xl font-libre font-bold text-terracotta-rose-dark">
             {title}
           </h2>
           <Button
             onClick={onClose}
             size="sm"
-            className="text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
+            className="text-red-800 border-terracotta-rose-dark bg-gradient-to-r from-red-600/50 to-red-400/80 font-varela font-bold rounded-lg hover:shadow-red-600/30 hover:bg-terracotta-rose/10 hover:shadow-md transition-all duration-300 hover:scale-100 disabled:opacity-50"
           >
             <X className="h-5 w-5" />
           </Button>

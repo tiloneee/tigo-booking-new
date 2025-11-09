@@ -75,13 +75,13 @@ export default function AutocompleteSearch({
   const getIconForType = (type: string) => {
     switch (type) {
       case 'hotel':
-        return <Building className="w-4 h-4 text-copper-accent" />;
+        return <Building className="w-4 h-4 text-dark-brown" />;
       case 'city':
-        return <MapPin className="w-4 h-4 text-copper-accent" />;
+        return <MapPin className="w-4 h-4 text-dark-brown" />;
       case 'amenity':
-        return <Sparkles className="w-4 h-4 text-copper-accent" />;
+        return <Sparkles className="w-4 h-4 text-dark-brown" />;
       default:
-        return <Search className="w-4 h-4 text-copper-accent" />;
+        return <Search className="w-4 h-4 text-dark-brown" />;
     }
   };
 
@@ -101,7 +101,7 @@ export default function AutocompleteSearch({
   return (
     <div className={`relative ${className}`}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-copper-accent/70" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-creamy-yellow/70" />
         <input
           ref={inputRef}
           type="text"
@@ -115,18 +115,18 @@ export default function AutocompleteSearch({
             setTimeout(() => setShowSuggestions(false), 200);
           }}
           placeholder={placeholder}
-          className="w-full pl-10 pr-4 py-3 bg-walnut-darkest/60 border border-copper-accent/30 rounded-lg text-cream-light placeholder-cream-light/50 font-cormorant text-vintage-base focus:outline-none focus:border-copper-accent focus:ring-2 focus:ring-copper-accent/20 transition-all duration-300"
+          className="w-full pl-10 pr-4 py-3 bg-dark-brown/60 border border-terracotta-rose/30 rounded-lg text-creamy-yellow font-varela text-vintage-base focus:outline-none focus:border-terracotta-rose focus:ring-2 focus:ring-terracotta-rose/20 transition-all duration-300"
         />
         {loading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <div className="w-4 h-4 border-2 border-copper-accent/30 border-t-copper-accent rounded-full animate-spin"></div>
+            <div className="w-4 h-4 border-2 border-terracotta-rose/30 border-t-terracotta-rose rounded-full animate-spin"></div>
           </div>
         )}
       </div>
 
       {showSuggestions && suggestions.length > 0 && (
         <div 
-          className="absolute w-full bg-walnut-dark/95 backdrop-blur-md border border-copper-accent/50 rounded-lg mt-2 shadow-2xl shadow-walnut-darkest/50 max-h-64 overflow-y-auto z-[9999]"
+          className="absolute w-full bg-dark-brown/95 backdrop-blur-md border border-terracotta-rose/50 rounded-lg mt-2 shadow-2xl shadow-terracotta-rose/50 max-h-64 overflow-y-auto z-[9999]"
           style={{ top: '100%' }}
         >
           {suggestions.map((suggestion, index) => (
@@ -137,16 +137,16 @@ export default function AutocompleteSearch({
                 e.preventDefault();
                 handleSuggestionClick(suggestion);
               }}
-              className="w-full flex items-center px-4 py-3 text-left hover:bg-copper-accent/20 focus:bg-copper-accent/20 transition-all duration-200 border-b border-copper-accent/10 last:border-b-0 first:rounded-t-lg last:rounded-b-lg group"
+              className="w-full flex items-center px-4 py-3 text-left hover:bg-terracotta-rose/40 focus:bg-terracotta-rose/20 transition-all duration-200 border-b border-terracotta-rose/20 last:border-b-0 first:rounded-t-lg last:rounded-b-lg group"
             >
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-copper-accent/10 mr-3 group-hover:bg-copper-accent/20 transition-colors duration-200">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gradient-to-br from-terracotta-rose/70 to-terracotta-orange/80 mr-3 group-hover:bg-terracotta-rose/20 transition-colors duration-200">
                 {getIconForType(suggestion.type)}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="text-cream-light font-cormorant text-vintage-base font-medium truncate">
+                <div className="text-creamy-yellow font-varela text-vintage-base font-medium truncate">
                   {suggestion.text}
                 </div>
-                <div className="text-cream-light/60 font-cormorant text-vintage-sm">
+                <div className="text-creamy-yellow/60 font-varela text-vintage-sm">
                   {getTypeLabel(suggestion.type)}
                 </div>
               </div>

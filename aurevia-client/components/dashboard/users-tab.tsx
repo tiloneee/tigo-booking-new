@@ -52,22 +52,22 @@ export default function UsersTab({ users, accessToken, onRefresh }: UsersTabProp
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-vintage-2xl font-playfair font-bold text-cream-light">
+        <h2 className="text-vintage-2xl font-libre font-bold text-deep-brown">
           User Management
         </h2>
         <Button
           onClick={onRefresh}
-          className="bg-gradient-to-r from-copper-accent to-copper-light text-walnut-dark font-cinzel font-bold"
+          className="bg-gradient-to-r from-terracotta-rose/70 to-terracotta-orange/80 text-dark-brown font-varela font-bold hover:shadow-terracotta-rose/30 transition-all duration-300 hover:scale-105"
         >
           Refresh
         </Button>
       </div>
 
       {users.length === 0 ? (
-        <Card className="bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30">
+        <Card className="bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border border-terracotta-rose/30">
           <CardContent className="py-12 text-center">
-            <User className="h-12 w-12 text-cream-light/40 mx-auto mb-4" />
-            <p className="text-cream-light/60 font-cormorant text-vintage-lg">
+            <User className="h-12 w-12 text-creamy-yellow/40 mx-auto mb-4" />
+            <p className="text-creamy-yellow/60 font-varela text-vintage-lg">
               No users found
             </p>
           </CardContent>
@@ -77,24 +77,24 @@ export default function UsersTab({ users, accessToken, onRefresh }: UsersTabProp
           {users.map((user) => (
             <Card
               key={user.id}
-              className="bg-walnut-dark/80 backdrop-blur-sm border border-copper-accent/30 shadow-xl hover:border-copper-accent/50 transition-all duration-300 cursor-pointer"
+              className="bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border border-terracotta-rose/30 shadow-xl hover:border-terracotta-rose/50 transition-all duration-300 cursor-pointer"
               onClick={() => setSelectedUser(selectedUser?.id === user.id ? null : user)}
             >
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-gradient-to-br from-copper-accent to-copper-light rounded-full flex items-center justify-center">
-                      <User className="h-6 w-6 text-walnut-dark" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-terracotta-rose to-terracotta-orange rounded-full flex items-center justify-center">
+                      <User className="h-6 w-6 text-creamy-white" />
                     </div>
                     <div>
-                      <h3 className="text-cream-light font-playfair text-vintage-xl font-bold">
+                      <h3 className="text-creamy-yellow font-fraunces text-vintage-xl font-semibold">
                         {user.first_name} {user.last_name}
                       </h3>
                       <div className="flex gap-2 mt-2 flex-wrap">
                         {user.roles?.map((role) => (
                           <Badge
                             key={role.id}
-                            className={`${getRoleBadgeColor(role.name)} font-cinzel uppercase tracking-wider`}
+                            className={`${getRoleBadgeColor(role.name)} font-varela uppercase tracking-wider`}
                           >
                             {role.name}
                           </Badge>
@@ -107,37 +107,37 @@ export default function UsersTab({ users, accessToken, onRefresh }: UsersTabProp
                       user.is_active
                         ? 'bg-green-900/40 text-green-300 border-green-400/60'
                         : 'bg-red-900/40 text-red-300 border-red-400/60'
-                    } font-cinzel uppercase tracking-wider`}
+                    } font-varela uppercase tracking-wider`}
                   >
                     {user.is_active ? 'Active' : 'Inactive'}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
-                <div className="flex items-center gap-3 text-cream-light/80">
-                  <Mail className="h-4 w-4 text-copper-accent" />
-                  <span className="font-cormorant text-vintage-base">{user.email}</span>
+                <div className="flex items-center gap-3 text-creamy-yellow/80">
+                  <Mail className="h-4 w-4 text-terracotta-rose" />
+                  <span className="font-varela text-vintage-base">{user.email}</span>
                 </div>
                 {user.phone_number && (
-                  <div className="flex items-center gap-3 text-cream-light/80">
-                    <Phone className="h-4 w-4 text-copper-accent" />
-                    <span className="font-cormorant text-vintage-base">{user.phone_number}</span>
+                  <div className="flex items-center gap-3 text-creamy-yellow/80">
+                    <Phone className="h-4 w-4 text-terracotta-rose" />
+                    <span className="font-varela text-vintage-base">{user.phone_number}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-3 text-cream-light/60">
-                  <Calendar className="h-4 w-4 text-copper-accent/60" />
-                  <span className="font-cormorant text-vintage-sm">
+                <div className="flex items-center gap-3 text-creamy-yellow/60">
+                  <Calendar className="h-4 w-4 text-terracotta-rose/60" />
+                  <span className="font-varela text-vintage-sm">
                     Joined {new Date(user.created_at).toLocaleDateString()}
                   </span>
                 </div>
 
                 {/* Expanded Details */}
                 {selectedUser?.id === user.id && (
-                  <div className="mt-4 pt-4 border-t border-copper-accent/30 space-y-3">
+                  <div className="mt-4 pt-4 border-t border-terracotta-rose/30 space-y-3">
                     <div className="flex gap-2">
                       <Button
                         size="sm"
-                        className="text-yellow-400 border-yellow-400 bg-gradient-to-r from-yellow-400/20 to-yellow-400/50 font-cinzel font-bold rounded-lg hover:shadow-yellow-400/30 hover:bg-yellow-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
+                        className="text-yellow-900 border-yellow-400 bg-gradient-to-br from-yellow-400 to-yellow-400/60 font-varela font-bold rounded-lg hover:shadow-yellow-400/30 hover:bg-yellow-400/10 transition-all duration-300 hover:scale-105 disabled:opacity-50"
                         disabled
                       >
                         <Edit className="h-4 w-4 mr-2" />
@@ -145,7 +145,7 @@ export default function UsersTab({ users, accessToken, onRefresh }: UsersTabProp
                       </Button>
                       <Button
                         size="sm"
-                        className="text-red-400 border-red-400 bg-gradient-to-r from-red-400/20 to-red-400/50 font-cinzel font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
+                        className="text-red-900 border-red-400 bg-gradient-to-br from-red-400 to-red-400/60 font-varela font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-105 disabled:opacity-50"
                         onClick={(e) => {
                           e.stopPropagation()
                           handleDeleteUser(user.id)

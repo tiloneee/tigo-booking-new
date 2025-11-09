@@ -14,7 +14,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex h-12 items-center justify-center rounded-md bg-walnut-dark/50 p-1 text-cream-light/60 border border-copper-accent/20",
+      "inline-flex h-12 items-center justify-center rounded-md bg-terracotta-rose/20 p-1 text-creamy-yellow/80 border border-terracotta-rose/20",
       className
     )}
     {...props}
@@ -29,7 +29,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-vintage-sm font-cormorant font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-gradient-to-r data-[state=active]:from-copper-accent data-[state=active]:to-copper-light data-[state=active]:text-walnut-dark data-[state=active]:shadow-sm hover:text-copper-accent",
+      "inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-vintage-sm font-varela font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-gradient-to-r data-[state=active]:from-terracotta-rose/70 data-[state=active]:to-terracotta-orange/80 data-[state=active]:text-dark-brown data-[state=active]:shadow-sm data-[state=active]:rounded-lg hover:text-terracotta-orange",
       className
     )}
     {...props}
