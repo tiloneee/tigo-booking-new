@@ -29,7 +29,10 @@ import { UpdateHotelDto } from '../dto/hotel/update-hotel.dto';
 import { SearchHotelDto } from '../dto/hotel/search-hotel.dto';
 import { CreateHotelRequestDto } from '../dto/hotel/create-hotel-request.dto';
 import { ReviewHotelRequestDto } from '../dto/hotel/review-hotel-request.dto';
+import { CreateHotelDeletionRequestDto } from '../dto/hotel/create-hotel-deletion-request.dto';
+import { ReviewHotelDeletionRequestDto } from '../dto/hotel/review-hotel-deletion-request.dto';
 import { HotelRequestStatus } from '../entities/hotel-request.entity';
+import { HotelDeletionRequestStatus } from '../entities/hotel-deletion-request.entity';
 import { HotelSearchService } from '../../search/services/hotel-search.service';
 
 @ApiTags('Hotels')
@@ -447,6 +450,141 @@ export class HotelController {
     @Request() req,
   ) {
     return this.hotelService.reviewHotelRequest(id, reviewDto, req.user.userId);
+  }
+
+  // Create hotel deletion request (HotelOwner for their own hotel)
+  @Post(':id/deletion-request')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HotelOwner', 'Admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Request hotel deletion',
+    description:
+      'Hotel owners can request deletion of their hotel. Admin approval required to deactivate the hotel.',
+  })
+  @ApiParam({ name: 'id', description: 'Hotel UUID' })
+  @ApiBody({ type: CreateHotelDeletionRequestDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Hotel deletion request created successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - you do not own this hotel',
+  })
+  @ApiResponse({ status: 404, description: 'Hotel not found' })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict - pending deletion request already exists',
+  })
+  createHotelDeletionRequest(
+    @Param('id') hotelId: string,
+    @Body() createDto: CreateHotelDeletionRequestDto,
+    @Request() req,
+  ) {
+    return this.hotelService.createHotelDeletionRequest(
+      hotelId,
+      createDto,
+      req.user.userId,
+    );
+  }
+
+  // Get all hotel deletion requests (Admin only)
+  @Get('deletion-requests')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get all hotel deletion requests (Admin only)',
+    description: 'Retrieve all hotel deletion requests with optional status filter.',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: HotelDeletionRequestStatus,
+    description: 'Filter by request status',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Hotel deletion requests retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+  getAllHotelDeletionRequests(@Query('status') status?: HotelDeletionRequestStatus) {
+    return this.hotelService.getAllHotelDeletionRequests(status);
+  }
+
+  // Get own hotel deletion requests (HotelOwner)
+  @Get('deletion-requests/mine')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('HotelOwner', 'Admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get own hotel deletion requests',
+    description: 'Retrieve all hotel deletion requests submitted by the authenticated user.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Hotel deletion requests retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  getOwnHotelDeletionRequests(@Request() req) {
+    return this.hotelService.getHotelDeletionRequestsByOwner(req.user.userId);
+  }
+
+  // Get hotel deletion request by ID (Admin)
+  @Get('deletion-requests/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get hotel deletion request by ID (Admin only)',
+    description: 'Get detailed information about a specific hotel deletion request.',
+  })
+  @ApiParam({ name: 'id', description: 'Hotel deletion request UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Hotel deletion request details retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+  @ApiResponse({ status: 404, description: 'Hotel deletion request not found' })
+  getHotelDeletionRequestById(@Param('id') id: string) {
+    return this.hotelService.getHotelDeletionRequestById(id);
+  }
+
+  // Review hotel deletion request (Admin only)
+  @Patch('deletion-requests/:id/review')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Review hotel deletion request (Admin only)',
+    description:
+      'Approve or reject a hotel deletion request. If approved, the hotel will be deactivated (soft delete).',
+  })
+  @ApiParam({ name: 'id', description: 'Hotel deletion request UUID' })
+  @ApiBody({ type: ReviewHotelDeletionRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Hotel deletion request reviewed successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+  @ApiResponse({ status: 404, description: 'Hotel deletion request not found' })
+  reviewHotelDeletionRequest(
+    @Param('id') id: string,
+    @Body() reviewDto: ReviewHotelDeletionRequestDto,
+    @Request() req,
+  ) {
+    return this.hotelService.reviewHotelDeletionRequest(
+      id,
+      reviewDto,
+      req.user.userId,
+    );
   }
 
   // Get hotel details for public (Public)

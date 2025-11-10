@@ -9,6 +9,7 @@ import { RoomAvailability } from './entities/room-availability.entity';
 import { HotelBooking } from './entities/hotel-booking.entity';
 import { HotelReview } from './entities/hotel-review.entity';
 import { HotelRequest } from './entities/hotel-request.entity';
+import { HotelDeletionRequest } from './entities/hotel-deletion-request.entity';
 import { User } from '../user/entities/user.entity';
 
 // Modules
@@ -55,6 +56,7 @@ import { Role } from '../user/entities/role.entity';
       HotelBooking,
       HotelReview,
       HotelRequest,
+      HotelDeletionRequest,
       User,
       Role
     ]),

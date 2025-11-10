@@ -15,9 +15,11 @@ import UsersTab from "@/components/dashboard/users-tab"
 import HotelsTab from "@/components/dashboard/hotels-tab"
 import BalanceRequestsTab from "@/components/dashboard/balance-requests-tab"
 import HotelRequestsTab from "@/components/dashboard/hotel-requests-tab"
+import { HotelDeletionRequestsTab } from "@/components/dashboard/hotel-deletion-requests-tab"
 import { hotelRequestApi, type HotelRequest } from "@/lib/api/hotel-requests"
+import { hotelDeletionRequestApi, type HotelDeletionRequest } from "@/lib/api/hotel-deletion-requests"
 
-type TabType = 'users' | 'hotels' | 'balance-requests' | 'hotel-requests'
+type TabType = 'users' | 'hotels' | 'balance-requests' | 'hotel-requests' | 'hotel-deletion-requests'
 
 export default function AdminDashboard() {
   const { user, accessToken, isLoading } = useAuth()
@@ -27,6 +29,7 @@ export default function AdminDashboard() {
   const [hotels, setHotels] = useState<Hotel[]>([])
   const [balanceRequests, setBalanceRequests] = useState<Transaction[]>([])
   const [hotelRequests, setHotelRequests] = useState<HotelRequest[]>([])
+  const [hotelDeletionRequests, setHotelDeletionRequests] = useState<HotelDeletionRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -44,16 +47,18 @@ export default function AdminDashboard() {
 
       // Admin can see all data
       if (isAdmin) {
-        const [usersData, hotelsData, balanceRequestsData, hotelRequestsData] = await Promise.all([
+        const [usersData, hotelsData, balanceRequestsData, hotelRequestsData, hotelDeletionRequestsData] = await Promise.all([
           usersApi.getAll().catch(() => []),
           hotelsApi.getAll().catch(() => []),
           balanceRequestsApi.getAllTopups().catch(() => []),
           hotelRequestApi.getAllHotelRequests().catch(() => []),
+          hotelDeletionRequestApi.getAllHotelDeletionRequests().catch(() => []),
         ])
         setUsers(usersData)
         setHotels(hotelsData)
         setBalanceRequests(balanceRequestsData)
         setHotelRequests(hotelRequestsData)
+        setHotelDeletionRequests(hotelDeletionRequestsData)
       } 
       // Hotel owner can only see their own hotels
       else if (isHotelOwner) {
@@ -163,6 +168,22 @@ export default function AdminDashboard() {
     )
   })
 
+  const filteredHotelDeletionRequests = hotelDeletionRequests.filter(request => {
+    if (!searchQuery.trim()) return true
+    
+    const query = searchQuery.toLowerCase()
+    return (
+      request.hotel?.name?.toLowerCase().includes(query) ||
+      request.hotel?.address?.toLowerCase().includes(query) ||
+      request.hotel?.city?.toLowerCase().includes(query) ||
+      request.reason.toLowerCase().includes(query) ||
+      request.status.toLowerCase().includes(query) ||
+      request.requested_by?.username?.toLowerCase().includes(query) ||
+      request.requested_by?.email?.toLowerCase().includes(query) ||
+      request.admin_notes?.toLowerCase().includes(query)
+    )
+  })
+
   const clearSearch = () => {
     setSearchQuery('')
   }
@@ -221,7 +242,8 @@ export default function AdminDashboard() {
                     activeTab === 'users' ? 'users' : 
                     activeTab === 'hotels' ? 'hotels' : 
                     activeTab === 'balance-requests' ? 'balance requests' :
-                    'hotel requests'
+                    activeTab === 'hotel-requests' ? 'hotel requests' :
+                    'deletion requests'
                   }...`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -244,7 +266,9 @@ export default function AdminDashboard() {
                     ? `Found ${filteredHotels.length} hotel${filteredHotels.length !== 1 ? 's' : ''}`
                     : activeTab === 'balance-requests'
                     ? `Found ${filteredBalanceRequests.length} request${filteredBalanceRequests.length !== 1 ? 's' : ''}`
-                    : `Found ${filteredHotelRequests.length} request${filteredHotelRequests.length !== 1 ? 's' : ''}`
+                    : activeTab === 'hotel-requests'
+                    ? `Found ${filteredHotelRequests.length} request${filteredHotelRequests.length !== 1 ? 's' : ''}`
+                    : `Found ${filteredHotelDeletionRequests.length} deletion request${filteredHotelDeletionRequests.length !== 1 ? 's' : ''}`
                   }
                 </div>
               )}
@@ -314,6 +338,19 @@ export default function AdminDashboard() {
                   Hotel Requests
                 </button>
               )}
+              {isAdmin && (
+                <button
+                  onClick={() => handleTabChange('hotel-deletion-requests')}
+                  className={`flex items-center gap-2 px-6 py-3 font-varela text-vintage-lg font-medium transition-all duration-300 ${
+                    activeTab === 'hotel-deletion-requests'
+                      ? 'text-terracotta-rose border-b-2 border-terracotta-rose'
+                      : 'text-deep-brown/60 hover:text-deep-brown'
+                  }`}
+                >
+                  <AlertCircle className="h-5 w-5" />
+                  Deletion Requests
+                </button>
+              )}
             </div>
 
             {/* Tab Content */}
@@ -322,7 +359,8 @@ export default function AdminDashboard() {
                 (activeTab === 'users' && filteredUsers.length === 0) ||
                 (activeTab === 'hotels' && filteredHotels.length === 0) ||
                 (activeTab === 'balance-requests' && filteredBalanceRequests.length === 0) ||
-                (activeTab === 'hotel-requests' && filteredHotelRequests.length === 0)
+                (activeTab === 'hotel-requests' && filteredHotelRequests.length === 0) ||
+                (activeTab === 'hotel-deletion-requests' && filteredHotelDeletionRequests.length === 0)
               ) && (
                 <Card className="bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border-terracotta-rose/30">
                   <CardContent className="py-8 text-center">
@@ -333,7 +371,8 @@ export default function AdminDashboard() {
                     <p className="text-vintage-base text-creamy-yellow/60 font-varela">
                       Try adjusting your search terms or clear the search to see all {
                         activeTab === 'balance-requests' ? 'balance requests' : 
-                        activeTab === 'hotel-requests' ? 'hotel requests' : 
+                        activeTab === 'hotel-requests' ? 'hotel requests' :
+                        activeTab === 'hotel-deletion-requests' ? 'deletion requests' :
                         activeTab
                       }.
                     </p>
@@ -373,6 +412,12 @@ export default function AdminDashboard() {
               {activeTab === 'hotel-requests' && isAdmin && (
                 <HotelRequestsTab
                   requests={filteredHotelRequests}
+                  onRefresh={refreshData}
+                />
+              )}
+              {activeTab === 'hotel-deletion-requests' && isAdmin && (
+                <HotelDeletionRequestsTab
+                  requests={filteredHotelDeletionRequests}
                   onRefresh={refreshData}
                 />
               )}

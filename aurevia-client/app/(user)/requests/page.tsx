@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import ProtectedRoute from "@/components/auth/protected-route"
 import Header from "@/components/header"
@@ -8,11 +8,15 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Wallet, Hotel, MapPin, Star, RefreshCw, DollarSign } from "lucide-react"
+import { Wallet, Hotel as HotelIcon, MapPin, Star, RefreshCw, DollarSign, Trash2, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import { balanceApi } from "@/lib/api/balance"
 import { useBalanceWebSocket } from "@/lib/hooks/use-balance-websocket"
 import { hotelRequestApi } from "@/lib/api/hotel-requests"
+import { hotelDeletionRequestApi } from "@/lib/api/hotel-deletion-requests"
+import { hotelsApi } from "@/lib/api/dashboard"
+import type { Hotel } from "@/types/dashboard"
+import { hasRole } from "@/lib/api"
 
 export default function RequestPage() {
   const { user, refreshUser } = useAuth()
@@ -31,7 +35,39 @@ export default function RequestPage() {
   const [hotelPhoneNumber, setHotelPhoneNumber] = useState("")
   const [hotelDescription, setHotelDescription] = useState("")
   const [hotelLoading, setHotelLoading] = useState(false)
+
+  // Hotel deletion request state
+  const [ownedHotels, setOwnedHotels] = useState<Hotel[]>([])
+  const [selectedHotelId, setSelectedHotelId] = useState("")
+  const [deletionReason, setDeletionReason] = useState("")
+  const [deletionLoading, setDeletionLoading] = useState(false)
+  const [hotelsLoading, setHotelsLoading] = useState(false)
+
   const { currentBalance, isConnected, refreshBalance } = useBalanceWebSocket()
+
+  // Check if user is hotel owner
+  const isHotelOwner = hasRole(user, 'HotelOwner')
+
+  // Load owned hotels for hotel owners
+  useEffect(() => {
+    const loadOwnedHotels = async () => {
+      if (!isHotelOwner) return
+
+      try {
+        setHotelsLoading(true)
+        const hotels = await hotelsApi.getOwned()
+        // Filter only active hotels
+        setOwnedHotels(hotels.filter(h => h.is_active))
+      } catch (error) {
+        console.error('Error loading owned hotels:', error)
+        toast.error('Failed to load your hotels')
+      } finally {
+        setHotelsLoading(false)
+      }
+    }
+
+    loadOwnedHotels()
+  }, [isHotelOwner])
 
   const handleTopupSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -91,6 +127,44 @@ export default function RequestPage() {
     }
   }
 
+  const handleDeletionRequestSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!selectedHotelId) {
+      toast.error('Please select a hotel')
+      return
+    }
+
+    if (!deletionReason.trim() || deletionReason.length < 10) {
+      toast.error('Please provide a detailed reason (minimum 10 characters)')
+      return
+    }
+
+    setDeletionLoading(true)
+
+    try {
+      const selectedHotel = ownedHotels.find(h => h.id === selectedHotelId)
+      await hotelDeletionRequestApi.createHotelDeletionRequest(selectedHotelId, {
+        reason: deletionReason,
+      })
+      
+      toast.success(`Deletion request for "${selectedHotel?.name}" submitted successfully! Waiting for admin approval.`)
+      
+      // Reset form
+      setSelectedHotelId("")
+      setDeletionReason("")
+      
+      // Reload hotels list
+      const hotels = await hotelsApi.getOwned()
+      setOwnedHotels(hotels.filter(h => h.is_active))
+    } catch (error: any) {
+      console.error('Hotel deletion request error:', error)
+      toast.error(error.response?.data?.message || "Failed to submit deletion request. Please try again.")
+    } finally {
+      setDeletionLoading(false)
+    }
+  }
+
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-creamy-yellow to-creamy-white">
@@ -115,15 +189,21 @@ export default function RequestPage() {
             <Card className="bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border border-terracotta-rose/30 shadow-2xl">
               <CardContent className="p-6">
                 <Tabs defaultValue="topup" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 mb-8">
+                  <TabsList className={`grid w-full ${isHotelOwner ? 'grid-cols-3' : 'grid-cols-2'} mb-8`}>
                     <TabsTrigger value="topup" className="text-vintage-base">
                       <Wallet className="h-4 w-4 mr-2" />
                       Topup Balance
                     </TabsTrigger>
                     <TabsTrigger value="hotel" className="text-vintage-base">
-                      <Hotel className="h-4 w-4 mr-2" />
+                      <HotelIcon className="h-4 w-4 mr-2" />
                       Hotel Request
                     </TabsTrigger>
+                    {isHotelOwner && (
+                      <TabsTrigger value="deletion" className="text-vintage-base">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Hotel
+                      </TabsTrigger>
+                    )}
                   </TabsList>
 
                   {/* Topup Balance Tab */}
@@ -244,7 +324,7 @@ export default function RequestPage() {
                         {/* Hotel Name */}
                         <div className="space-y-2">
                           <label className="text-creamy-yellow font-varela text-vintage-base font-medium flex items-center">
-                            <Hotel className="h-4 w-4 mr-1 text-creamy-yellow" />
+                            <HotelIcon className="h-4 w-4 mr-1 text-creamy-yellow" />
                             Hotel Name
                           </label>
                           <Input
@@ -378,7 +458,7 @@ export default function RequestPage() {
                             </span>
                           ) : (
                             <span className="flex items-center justify-center">
-                              <Hotel className="h-4 w-4 mr-2" />
+                              <HotelIcon className="h-4 w-4 mr-2" />
                               Submit Hotel Request
                             </span>
                           )}
@@ -386,6 +466,138 @@ export default function RequestPage() {
                       </form>
                     </div>
                   </TabsContent>
+
+                  {/* Hotel Deletion Request Tab (Hotel Owners Only) */}
+                  {isHotelOwner && (
+                    <TabsContent value="deletion">
+                      <div className="space-y-6">
+                        <div className="text-center py-4">
+                          <h2 className="text-vintage-2xl font-libre font-bold text-creamy-yellow mb-2">
+                            Request Hotel Deletion
+                          </h2>
+                          <p className="text-vintage-base text-creamy-yellow/70 font-varela">
+                            Submit a request to deactivate one of your hotels
+                          </p>
+                        </div>
+
+                        {hotelsLoading ? (
+                          <div className="text-center py-8">
+                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-terracotta-rose mx-auto mb-4"></div>
+                            <p className="text-creamy-yellow/60 font-varela">Loading your hotels...</p>
+                          </div>
+                        ) : ownedHotels.length === 0 ? (
+                          <div className="text-center py-8">
+                            <AlertCircle className="h-16 w-16 text-terracotta-rose/60 mx-auto mb-4" />
+                            <h3 className="text-vintage-lg text-creamy-yellow mb-2 font-libre">No Active Hotels</h3>
+                            <p className="text-creamy-yellow/60 font-varela">
+                              You don't have any active hotels to delete.
+                            </p>
+                          </div>
+                        ) : (
+                          <form onSubmit={handleDeletionRequestSubmit} className="space-y-6">
+                            {/* Hotel Selection */}
+                            <div className="space-y-2">
+                              <label className="text-creamy-yellow font-varela text-vintage-base font-medium flex items-center">
+                                <HotelIcon className="h-4 w-4 mr-1 text-creamy-yellow" />
+                                Select Hotel to Delete
+                              </label>
+                              <select
+                                value={selectedHotelId}
+                                onChange={(e) => setSelectedHotelId(e.target.value)}
+                                required
+                                className="w-full bg-dark-brown/20 border border-terracotta-rose/30 text-vintage-base text-creamy-yellow font-varela rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-terracotta-rose/50 focus:border-terracotta-rose"
+                              >
+                                <option value="">-- Select a hotel --</option>
+                                {ownedHotels.map((hotel) => (
+                                  <option key={hotel.id} value={hotel.id} className="bg-dark-brown text-creamy-yellow">
+                                    {hotel.name} - {hotel.city}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {/* Selected Hotel Info */}
+                            {selectedHotelId && (
+                              <div className="p-4 bg-terracotta-rose/10 border border-terracotta-rose/30 rounded-lg">
+                                {(() => {
+                                  const selectedHotel = ownedHotels.find(h => h.id === selectedHotelId)
+                                  return selectedHotel ? (
+                                    <div>
+                                      <h4 className="text-vintage-lg font-libre font-semibold text-creamy-yellow mb-2">
+                                        {selectedHotel.name}
+                                      </h4>
+                                      <p className="text-vintage-sm text-creamy-yellow/80 font-varela mb-1">
+                                        📍 {selectedHotel.address}, {selectedHotel.city}
+                                      </p>
+                                      <p className="text-vintage-sm text-creamy-yellow/80 font-varela">
+                                        ⭐ Rating: {selectedHotel.avg_rating}/5 ({selectedHotel.total_reviews} reviews)
+                                      </p>
+                                    </div>
+                                  ) : null
+                                })()}
+                              </div>
+                            )}
+
+                            {/* Deletion Reason */}
+                            <div className="space-y-2">
+                              <label className="text-creamy-yellow font-varela text-vintage-base font-medium flex items-center">
+                                <AlertCircle className="h-4 w-4 mr-1 text-terracotta-rose" />
+                                Reason for Deletion
+                              </label>
+                              <textarea
+                                value={deletionReason}
+                                onChange={(e) => setDeletionReason(e.target.value)}
+                                placeholder="Please provide a detailed reason for deleting this hotel (minimum 10 characters)..."
+                                required
+                                rows={5}
+                                minLength={10}
+                                className="w-full bg-dark-brown/20 border border-terracotta-rose/30 text-vintage-base text-creamy-yellow placeholder:text-creamy-yellow/40 focus:border-terracotta-rose font-varela rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-terracotta-rose/50"
+                              />
+                              <p className="text-creamy-yellow/50 font-varela text-vintage-sm">
+                                Minimum 10 characters required. This will be reviewed by an admin.
+                              </p>
+                            </div>
+
+                            {/* Warning Message */}
+                            <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-lg">
+                              <div className="flex items-start gap-3">
+                                <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                                <div>
+                                  <h4 className="text-vintage-base font-varela font-semibold text-red-300 mb-1">
+                                    Important Notice
+                                  </h4>
+                                  <p className="text-vintage-sm text-red-200/80 font-varela">
+                                    Submitting this request will notify admins to review your hotel deletion request. 
+                                    If approved, your hotel will be deactivated and will no longer appear in search results. 
+                                    This action requires admin approval and cannot be undone without contacting support.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Submit Button */}
+                            <Button
+                              type="submit"
+                              disabled={deletionLoading || !selectedHotelId || !deletionReason.trim()}
+                              className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white font-varela font-semibold hover:shadow-lg hover:shadow-red-500/30 transition-all duration-300 text-vintage-base tracking-wider disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {deletionLoading ? (
+                                <span className="flex items-center justify-center">
+                                  <span className="animate-spin mr-2">⏳</span>
+                                  Submitting...
+                                </span>
+                              ) : (
+                                <span className="flex items-center justify-center">
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Submit Deletion Request
+                                </span>
+                              )}
+                            </Button>
+                          </form>
+                        )}
+                      </div>
+                    </TabsContent>
+                  )}
                 </Tabs>
               </CardContent>
             </Card>

@@ -13,11 +13,14 @@ import { HotelAmenity } from '../entities/hotel-amenity.entity';
 import { Room } from '../entities/room.entity';
 import { RoomAvailability } from '../entities/room-availability.entity';
 import { HotelRequest, HotelRequestStatus } from '../entities/hotel-request.entity';
+import { HotelDeletionRequest, HotelDeletionRequestStatus } from '../entities/hotel-deletion-request.entity';
 import { CreateHotelDto } from '../dto/hotel/create-hotel.dto';
 import { UpdateHotelDto } from '../dto/hotel/update-hotel.dto';
 import { SearchHotelDto } from '../dto/hotel/search-hotel.dto';
 import { CreateHotelRequestDto } from '../dto/hotel/create-hotel-request.dto';
 import { ReviewHotelRequestDto } from '../dto/hotel/review-hotel-request.dto';
+import { CreateHotelDeletionRequestDto } from '../dto/hotel/create-hotel-deletion-request.dto';
+import { ReviewHotelDeletionRequestDto } from '../dto/hotel/review-hotel-deletion-request.dto';
 import { GeocodingService } from './geocoding.service';
 import { HotelDataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
 import { In } from 'typeorm';
@@ -45,6 +48,9 @@ export class HotelService {
 
     @InjectRepository(HotelRequest)
     private hotelRequestRepository: Repository<HotelRequest>,
+
+    @InjectRepository(HotelDeletionRequest)
+    private hotelDeletionRequestRepository: Repository<HotelDeletionRequest>,
 
     @InjectRepository(User)
     private userRepository: Repository<User>,
@@ -772,6 +778,258 @@ export class HotelService {
       return updatedRequest;
     } catch (error) {
       this.logger.error('Failed to review hotel request', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a hotel deletion request (hotel owner only)
+   */
+  async createHotelDeletionRequest(
+    hotelId: string,
+    createDto: CreateHotelDeletionRequestDto,
+    ownerId: string,
+  ): Promise<HotelDeletionRequest> {
+    try {
+      // Find hotel and verify ownership
+      const hotel = await this.hotelRepository.findOne({
+        where: { id: hotelId },
+      });
+
+      if (!hotel) {
+        throw new NotFoundException('Hotel not found');
+      }
+
+      if (hotel.owner_id !== ownerId) {
+        throw new ForbiddenException('You do not own this hotel');
+      }
+
+      if (!hotel.is_active) {
+        throw new BadRequestException('Hotel is already inactive');
+      }
+
+      // Check if there's already a pending deletion request for this hotel
+      const existingRequest = await this.hotelDeletionRequestRepository.findOne({
+        where: {
+          hotel_id: hotelId,
+          status: HotelDeletionRequestStatus.PENDING,
+        },
+      });
+
+      if (existingRequest) {
+        throw new ConflictException(
+          'A pending deletion request already exists for this hotel',
+        );
+      }
+
+      // Create deletion request
+      const deletionRequest = this.hotelDeletionRequestRepository.create({
+        hotel_id: hotelId,
+        reason: createDto.reason,
+        requested_by_user_id: ownerId,
+        status: HotelDeletionRequestStatus.PENDING,
+      });
+
+      const savedRequest = await this.hotelDeletionRequestRepository.save(deletionRequest);
+
+      // TODO: Send notification to admins when notification method is implemented
+      // await this.notificationEventService.notifyAdminsNewHotelDeletionRequest(
+      //   savedRequest.id,
+      //   hotel.name,
+      //   ownerId,
+      // );
+
+      this.logger.log(
+        `Hotel deletion request created: ${savedRequest.id} for hotel: ${hotelId}`,
+      );
+
+      return savedRequest;
+    } catch (error) {
+      this.logger.error('Failed to create hotel deletion request', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all hotel deletion requests (admin only)
+   */
+  async getAllHotelDeletionRequests(
+    status?: HotelDeletionRequestStatus,
+  ): Promise<HotelDeletionRequest[]> {
+    try {
+      const queryBuilder = this.hotelDeletionRequestRepository
+        .createQueryBuilder('request')
+        .leftJoinAndSelect('request.hotel', 'hotel')
+        .leftJoinAndSelect('request.requested_by', 'requester')
+        .leftJoinAndSelect('request.reviewed_by', 'reviewer')
+        .orderBy('request.created_at', 'DESC');
+
+      if (status) {
+        queryBuilder.where('request.status = :status', { status });
+      }
+
+      const requests = await queryBuilder.getMany();
+
+      // Sanitize user data
+      requests.forEach((request) => {
+        if (request.requested_by) {
+          delete (request.requested_by as any).password_hash;
+          delete (request.requested_by as any).refresh_token;
+          delete (request.requested_by as any).activation_token;
+        }
+        if (request.reviewed_by) {
+          delete (request.reviewed_by as any).password_hash;
+          delete (request.reviewed_by as any).refresh_token;
+          delete (request.reviewed_by as any).activation_token;
+        }
+      });
+
+      return requests;
+    } catch (error) {
+      this.logger.error('Failed to get hotel deletion requests', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get hotel deletion requests by hotel owner
+   */
+  async getHotelDeletionRequestsByOwner(
+    ownerId: string,
+  ): Promise<HotelDeletionRequest[]> {
+    try {
+      const requests = await this.hotelDeletionRequestRepository.find({
+        where: { requested_by_user_id: ownerId },
+        relations: ['hotel', 'requested_by', 'reviewed_by'],
+        order: { created_at: 'DESC' },
+      });
+
+      // Sanitize user data
+      requests.forEach((request) => {
+        if (request.requested_by) {
+          delete (request.requested_by as any).password_hash;
+          delete (request.requested_by as any).refresh_token;
+          delete (request.requested_by as any).activation_token;
+        }
+        if (request.reviewed_by) {
+          delete (request.reviewed_by as any).password_hash;
+          delete (request.reviewed_by as any).refresh_token;
+          delete (request.reviewed_by as any).activation_token;
+        }
+      });
+
+      return requests;
+    } catch (error) {
+      this.logger.error('Failed to get hotel deletion requests by owner', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a single hotel deletion request by ID
+   */
+  async getHotelDeletionRequestById(
+    requestId: string,
+  ): Promise<HotelDeletionRequest> {
+    try {
+      const request = await this.hotelDeletionRequestRepository.findOne({
+        where: { id: requestId },
+        relations: ['hotel', 'requested_by', 'reviewed_by'],
+      });
+
+      if (!request) {
+        throw new NotFoundException('Hotel deletion request not found');
+      }
+
+      // Sanitize user data
+      if (request.requested_by) {
+        delete (request.requested_by as any).password_hash;
+        delete (request.requested_by as any).refresh_token;
+        delete (request.requested_by as any).activation_token;
+      }
+      if (request.reviewed_by) {
+        delete (request.reviewed_by as any).password_hash;
+        delete (request.reviewed_by as any).refresh_token;
+        delete (request.reviewed_by as any).activation_token;
+      }
+
+      return request;
+    } catch (error) {
+      this.logger.error('Failed to get hotel deletion request by ID', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Review a hotel deletion request (admin only)
+   */
+  async reviewHotelDeletionRequest(
+    requestId: string,
+    reviewDto: ReviewHotelDeletionRequestDto,
+    adminId: string,
+  ): Promise<HotelDeletionRequest> {
+    try {
+      const request = await this.hotelDeletionRequestRepository.findOne({
+        where: { id: requestId },
+        relations: ['hotel', 'requested_by'],
+      });
+
+      if (!request) {
+        throw new NotFoundException('Hotel deletion request not found');
+      }
+
+      if (request.status !== HotelDeletionRequestStatus.PENDING) {
+        throw new BadRequestException(
+          'Only pending deletion requests can be reviewed',
+        );
+      }
+
+      // Update request status
+      request.status = reviewDto.status;
+      request.reviewed_by_user_id = adminId;
+      request.admin_notes = reviewDto.admin_notes || null;
+
+      // If approved, deactivate the hotel
+      if (reviewDto.status === HotelDeletionRequestStatus.APPROVED) {
+        const hotel = await this.hotelRepository.findOne({
+          where: { id: request.hotel_id },
+        });
+
+        if (hotel) {
+          hotel.is_active = false;
+          await this.hotelRepository.save(hotel);
+
+          // Sync with Elasticsearch - remove from index when deactivated
+          try {
+            await this.hotelDataSyncService.syncHotel(hotel.id);
+            this.logger.log(`Hotel ${hotel.id} sync updated in Elasticsearch index`);
+          } catch (syncError) {
+            this.logger.warn(
+              `Failed to sync hotel deactivation to Elasticsearch: ${syncError.message}`,
+            );
+          }
+
+          this.logger.log(`Hotel ${hotel.id} has been deactivated`);
+        }
+      }
+
+      const savedRequest = await this.hotelDeletionRequestRepository.save(request);
+
+      // TODO: Send notification to hotel owner when notification method is implemented
+      // await this.notificationEventService.notifyHotelDeletionRequestReviewed(
+      //   savedRequest.id,
+      //   request.requested_by_user_id,
+      //   reviewDto.status,
+      //   request.hotel.name,
+      // );
+
+      this.logger.log(
+        `Hotel deletion request ${requestId} reviewed with status: ${reviewDto.status}`,
+      );
+
+      return savedRequest;
+    } catch (error) {
+      this.logger.error('Failed to review hotel deletion request', error);
       throw error;
     }
   }
