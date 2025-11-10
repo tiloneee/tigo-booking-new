@@ -27,6 +27,9 @@ import { HotelService } from '../services/hotel.service';
 import { CreateHotelDto } from '../dto/hotel/create-hotel.dto';
 import { UpdateHotelDto } from '../dto/hotel/update-hotel.dto';
 import { SearchHotelDto } from '../dto/hotel/search-hotel.dto';
+import { CreateHotelRequestDto } from '../dto/hotel/create-hotel-request.dto';
+import { ReviewHotelRequestDto } from '../dto/hotel/review-hotel-request.dto';
+import { HotelRequestStatus } from '../entities/hotel-request.entity';
 import { HotelSearchService } from '../../search/services/hotel-search.service';
 
 @ApiTags('Hotels')
@@ -297,6 +300,153 @@ export class HotelController {
     };
 
     return this.hotelSearchService.searchHotels(searchQuery);
+  }
+
+  // ==================== HOTEL REQUEST ENDPOINTS ====================
+
+  // Create hotel request (authenticated users)
+  @Post('requests')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Submit a hotel request',
+    description:
+      'Submit a request to add a new hotel to the platform. Requires authentication.',
+  })
+  @ApiBody({ type: CreateHotelRequestDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Hotel request submitted successfully',
+    schema: {
+      example: {
+        id: 'uuid-string',
+        name: 'Grand Saigon Hotel',
+        description: 'A luxurious 5-star hotel...',
+        address: '123 Nguyen Hue Boulevard',
+        city: 'Ho Chi Minh City',
+        state: 'Ho Chi Minh',
+        zip_code: '70000',
+        country: 'Vietnam',
+        phone_number: '+84283829999',
+        status: 'pending',
+        requested_by_user_id: 'uuid-string',
+        created_at: '2024-01-15T10:30:00Z',
+        updated_at: '2024-01-15T10:30:00Z',
+      },
+    },
+  })
+  @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  createHotelRequest(
+    @Body() createHotelRequestDto: CreateHotelRequestDto,
+    @Request() req,
+  ) {
+    return this.hotelService.createHotelRequest(
+      createHotelRequestDto,
+      req.user.userId,
+    );
+  }
+
+  // Get all hotel requests (Admin only)
+  @Get('requests')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get all hotel requests (Admin only)',
+    description: 'Retrieve all hotel requests. Admin access only.',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: HotelRequestStatus,
+    description: 'Filter by request status',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Hotel requests retrieved successfully',
+    schema: {
+      type: 'array',
+      items: { type: 'object' },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - admin access required',
+  })
+  getAllHotelRequests(@Query('status') status?: HotelRequestStatus) {
+    return this.hotelService.getAllHotelRequests(status);
+  }
+
+  // Get own hotel requests (authenticated users)
+  @Get('requests/mine')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get own hotel requests',
+    description: 'Retrieve all hotel requests submitted by the authenticated user.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'User hotel requests retrieved successfully',
+    schema: {
+      type: 'array',
+      items: { type: 'object' },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  getMyHotelRequests(@Request() req) {
+    return this.hotelService.getHotelRequestsByUser(req.user.userId);
+  }
+
+  // Get hotel request by ID (Admin only)
+  @Get('requests/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get hotel request details (Admin only)',
+    description: 'Get detailed information about a specific hotel request.',
+  })
+  @ApiParam({ name: 'id', description: 'Hotel request UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Hotel request details retrieved successfully',
+  })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+  @ApiResponse({ status: 404, description: 'Hotel request not found' })
+  getHotelRequestById(@Param('id') id: string) {
+    return this.hotelService.getHotelRequestById(id);
+  }
+
+  // Review hotel request (Admin only)
+  @Patch('requests/:id/review')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('Admin')
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Review hotel request (Admin only)',
+    description:
+      'Approve or reject a hotel request. If approved, a new hotel will be created automatically.',
+  })
+  @ApiParam({ name: 'id', description: 'Hotel request UUID' })
+  @ApiBody({ type: ReviewHotelRequestDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Hotel request reviewed successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Bad request - validation failed' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden - admin access required' })
+  @ApiResponse({ status: 404, description: 'Hotel request not found' })
+  reviewHotelRequest(
+    @Param('id') id: string,
+    @Body() reviewDto: ReviewHotelRequestDto,
+    @Request() req,
+  ) {
+    return this.hotelService.reviewHotelRequest(id, reviewDto, req.user.userId);
   }
 
   // Get hotel details for public (Public)

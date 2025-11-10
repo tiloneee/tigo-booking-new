@@ -6,10 +6,11 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { User, Mail, Phone, Calendar, MapPin, CreditCard, Clock, CheckCircle, XCircle, X, Eye, EyeOff, Edit3, Save, X as XIcon, ChevronLeft, ChevronRight, Bell, ArrowUpDown, DollarSign, Receipt, Wallet, RefreshCw } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, CreditCard, Clock, CheckCircle, XCircle, X, Eye, EyeOff, Edit3, Save, X as XIcon, ChevronLeft, ChevronRight, Bell, ArrowUpDown, DollarSign, Receipt, Wallet, RefreshCw, Hotel, FileText } from "lucide-react"
 import { authApi } from "@/lib/api"
 import { bookingsApi } from "@/lib/api/dashboard"
 import { balanceApi } from "@/lib/api/balance"
+import { hotelRequestApi, type HotelRequest } from "@/lib/api/hotel-requests"
 import Header from "@/components/header"
 import type { User as ApiUser } from "@/lib/api"
 import type { Booking as DashboardBooking } from "@/types/dashboard"
@@ -28,7 +29,7 @@ type UserProfile = ApiUser
 type Booking = DashboardBooking
 
 type SortOption = 'date-desc' | 'date-asc' | 'price-desc' | 'price-asc' | 'status'
-type TabType = 'bookings' | 'transactions'
+type TabType = 'bookings' | 'transactions' | 'hotel-requests'
 
 export default function ProfilePage() {
   const { user, accessToken, isLoading } = useAuth()
@@ -36,6 +37,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [bookings, setBookings] = useState<Booking[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [hotelRequests, setHotelRequests] = useState<HotelRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
@@ -90,6 +92,10 @@ export default function ProfilePage() {
         // Fetch user transactions (replaces topup requests)
         const transactionsData = await balanceApi.getMyTransactions()
         setTransactions(transactionsData)
+
+        // Fetch user hotel requests
+        const hotelRequestsData = await hotelRequestApi.getMyHotelRequests()
+        setHotelRequests(hotelRequestsData)
 
         // Mark as fetched
         hasFetchedData.current = true
@@ -169,6 +175,19 @@ export default function ProfilePage() {
     }
   }
 
+  const getHotelRequestStatusBadgeColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return 'bg-yellow-900/60 text-yellow-300 border-yellow-400/70'
+      case 'approved':
+        return 'bg-green-900/60 text-green-300 border-green-400/70'
+      case 'rejected':
+        return 'bg-red-900/60 text-red-300 border-red-400/70'
+      default:
+        return 'bg-gray-900/50 text-gray-300 border-gray-400/70'
+    }
+  }
+
 
   // Sort bookings
   const sortedBookings = [...bookings].sort((a, b) => {
@@ -206,8 +225,26 @@ export default function ProfilePage() {
     }
   })
 
+  // Sort hotel requests
+  const sortedHotelRequests = [...hotelRequests].sort((a, b) => {
+    switch (sortBy) {
+      case 'date-desc':
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      case 'date-asc':
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+      case 'status':
+        return a.status.localeCompare(b.status)
+      default:
+        return 0
+    }
+  })
+
   // Get current items based on active tab
-  const currentItems = activeTab === 'bookings' ? sortedBookings : sortedTransactions
+  const currentItems = activeTab === 'bookings' 
+    ? sortedBookings 
+    : activeTab === 'transactions' 
+    ? sortedTransactions 
+    : sortedHotelRequests
   const indexOfLastItem = currentPage * itemsPerPage
   const indexOfFirstItem = indexOfLastItem - itemsPerPage
   const paginatedItems = currentItems.slice(indexOfFirstItem, indexOfLastItem)
@@ -661,6 +698,22 @@ export default function ProfilePage() {
                     </Badge>
                   )}
                 </button>
+                <button
+                  onClick={() => handleTabChange('hotel-requests')}
+                  className={`flex items-center gap-2 px-6 py-3 font-varela text-vintage-lg font-medium transition-all duration-300 ${
+                    activeTab === 'hotel-requests'
+                      ? 'text-terracotta-rose border-b-2 border-terracotta-rose'
+                      : 'text-creamy-yellow/60 hover:text-creamy-yellow'
+                  }`}
+                >
+                  <Hotel className="h-5 w-5" />
+                  Hotel Requests
+                  {hotelRequests.length > 0 && (
+                    <Badge className="bg-terracotta-rose/70 text-dark-brown border-terracotta-rose/30 ml-2">
+                      {hotelRequests.length}
+                    </Badge>
+                  )}
+                </button>
               </div>
 
               {/* Sort and Filter Controls */}
@@ -677,8 +730,12 @@ export default function ProfilePage() {
                   >
                     <option value="date-desc">Newest First</option>
                     <option value="date-asc">Oldest First</option>
-                    <option value="price-desc">Price: High to Low</option>
-                    <option value="price-asc">Price: Low to High</option>
+                    {activeTab !== 'hotel-requests' && (
+                      <>
+                        <option value="price-desc">Price: High to Low</option>
+                        <option value="price-asc">Price: Low to High</option>
+                      </>
+                    )}
                     <option value="status">Status</option>
                   </select>
                 </div>
@@ -694,11 +751,17 @@ export default function ProfilePage() {
                         <p className="text-vintage-lg text-creamy-yellow/60 font-cormorant mb-2">No bookings yet</p>
                         <p className="text-vintage-sm text-creamy-yellow/40">Start exploring our luxury hotels!</p>
                       </>
-                    ) : (
+                    ) : activeTab === 'transactions' ? (
                       <>
                         <Receipt className="h-16 w-16 text-terracotta-rose/50 mx-auto mb-4" />
                         <p className="text-vintage-lg text-creamy-yellow/60 font-cormorant mb-2">No transactions yet</p>
                         <p className="text-vintage-sm text-creamy-yellow/40">Your transaction history will appear here!</p>
+                      </>
+                    ) : (
+                      <>
+                        <Hotel className="h-16 w-16 text-terracotta-rose/50 mx-auto mb-4" />
+                        <p className="text-vintage-lg text-creamy-yellow/60 font-cormorant mb-2">No hotel requests yet</p>
+                        <p className="text-vintage-sm text-creamy-yellow/40">Submit a hotel request to expand our collection!</p>
                       </>
                     )}
                   </div>
@@ -843,6 +906,78 @@ export default function ProfilePage() {
                         )}
                       </div>
                     ))}
+
+                    {/* Hotel Requests Content */}
+                    {activeTab === 'hotel-requests' && (paginatedItems as HotelRequest[]).map((request) => (
+                      <div key={request.id} className="bg-gradient-to-br from-creamy-yellow/90 to-creamy-white border border-terracotta-rose/20 rounded-lg p-4 hover:bg-creamy-yellow/80 transition-colors duration-300">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-12 h-12 bg-gradient-to-br ${
+                              request.status === 'approved' 
+                                ? 'from-green-500 to-green-600' 
+                                : request.status === 'rejected'
+                                ? 'from-red-500 to-red-600'
+                                : 'from-yellow-500 to-yellow-600'
+                            } rounded-full flex items-center justify-center flex-shrink-0`}>
+                              <Hotel className="h-6 w-6 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="text-vintage-xl font-libre font-semibold text-deep-brown mb-1">
+                                {request.name}
+                              </h4>
+                              <div className="flex items-center text-vintage-sm text-ash-brown mb-2">
+                                <MapPin className="h-4 w-4 mr-1 text-terracotta-rose" />
+                                {request.address}, {request.city}, {request.state} {request.zip_code}
+                              </div>
+                              <p className="text-vintage-sm text-ash-brown/80 font-varela">
+                                {formatDate(request.created_at)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-2">
+                            <Badge className={`${getHotelRequestStatusBadgeColor(request.status)} font-varela uppercase tracking-wider px-3 py-1`}>
+                              {request.status.toUpperCase()}
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-3 p-3 bg-terracotta-rose/10 rounded-lg border border-terracotta-rose/20">
+                          <p className="text-vintage-sm text-terracotta-rose font-varela font-semibold mb-1">Description:</p>
+                          <p className="text-vintage-base text-deep-brown/80 font-varela line-clamp-2">
+                            {request.description}
+                          </p>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-2 gap-3 text-vintage-sm">
+                          <div>
+                            <p className="text-ash-brown/90 font-varela mb-1">Country</p>
+                            <p className="text-deep-brown font-semibold">{request.country}</p>
+                          </div>
+                          <div>
+                            <p className="text-ash-brown/90 font-varela mb-1">Phone</p>
+                            <p className="text-deep-brown font-semibold">{request.phone_number}</p>
+                          </div>
+                        </div>
+
+                        {request.admin_notes && (
+                          <div className="mt-3 p-3 bg-terracotta-orange/20 rounded-lg border border-terracotta-orange/30">
+                            <p className="text-vintage-sm text-terracotta-orange font-varela font-semibold mb-1">Admin Notes:</p>
+                            <p className="text-vintage-base text-deep-brown/80 font-varela">
+                              {request.admin_notes}
+                            </p>
+                          </div>
+                        )}
+
+                        {request.created_hotel_id && (
+                          <div className="mt-3 flex items-center gap-2 p-2 bg-green-500/10 rounded-lg border border-green-500/20">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-vintage-sm text-green-700 font-varela">
+                              Hotel created successfully! ID: {request.created_hotel_id}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 
 
@@ -851,7 +986,13 @@ export default function ProfilePage() {
                   {totalPages > 1 && (
                     <div className="flex items-center justify-between mt-6 pt-4 border-t border-terracotta-rose/20">
                       <div className="text-vintage-sm text-ash-brown/80 font-varela">
-                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, currentItems.length)} of {currentItems.length} {activeTab === 'bookings' ? 'bookings' : 'transactions'}
+                        Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, currentItems.length)} of {currentItems.length} {
+                          activeTab === 'bookings' 
+                            ? 'bookings' 
+                            : activeTab === 'transactions'
+                            ? 'transactions'
+                            : 'hotel requests'
+                        }
                       </div>
                       <div className="flex items-center gap-2">
                         <Button

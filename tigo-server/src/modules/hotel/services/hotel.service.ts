@@ -12,12 +12,19 @@ import { Hotel } from '../entities/hotel.entity';
 import { HotelAmenity } from '../entities/hotel-amenity.entity';
 import { Room } from '../entities/room.entity';
 import { RoomAvailability } from '../entities/room-availability.entity';
+import { HotelRequest, HotelRequestStatus } from '../entities/hotel-request.entity';
 import { CreateHotelDto } from '../dto/hotel/create-hotel.dto';
 import { UpdateHotelDto } from '../dto/hotel/update-hotel.dto';
 import { SearchHotelDto } from '../dto/hotel/search-hotel.dto';
+import { CreateHotelRequestDto } from '../dto/hotel/create-hotel-request.dto';
+import { ReviewHotelRequestDto } from '../dto/hotel/review-hotel-request.dto';
 import { GeocodingService } from './geocoding.service';
 import { HotelDataSyncService } from '../../search/services/data-sync/hotel.data-sync.service';
 import { In } from 'typeorm';
+import { User } from 'src/modules/user/entities/user.entity';
+import { UserService } from 'src/modules/user/services/user.service';
+import { NotificationEventService } from '../../notification/services/notification-event.service';
+
 
 @Injectable()
 export class HotelService {
@@ -36,9 +43,17 @@ export class HotelService {
     @InjectRepository(RoomAvailability)
     private roomAvailabilityRepository: Repository<RoomAvailability>,
 
+    @InjectRepository(HotelRequest)
+    private hotelRequestRepository: Repository<HotelRequest>,
+
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+
     private geocodingService: GeocodingService,
 
     private hotelDataSyncService: HotelDataSyncService,
+    private userService: UserService,
+    private notificationEventService: NotificationEventService,
   ) {}
 
   /**
@@ -496,6 +511,256 @@ export class HotelService {
       }
       this.logger.error(`Failed to find hotel for public: ${id}`, error);
       throw new BadRequestException('Failed to retrieve hotel details');
+    }
+  }
+
+  // ==================== HOTEL REQUEST METHODS ====================
+
+  /**
+   * Create a hotel request
+   */
+  async createHotelRequest(
+    createHotelRequestDto: CreateHotelRequestDto,
+    userId: string,
+  ): Promise<HotelRequest> {
+    try {
+      const hotelRequest = this.hotelRequestRepository.create({
+        ...createHotelRequestDto,
+        requested_by_user_id: userId,
+        status: HotelRequestStatus.PENDING,
+      });
+
+      const savedRequest = await this.hotelRequestRepository.save(hotelRequest);
+      
+      this.logger.log(
+        `Hotel request created: ${savedRequest.id} by user ${userId}`,
+      );
+
+      // Get the requesting user
+      const requestingUser = await this.userService.findOne(userId);
+      const requesterName = `${requestingUser.first_name} ${requestingUser.last_name}`.trim() || requestingUser.email;
+
+      // Send notifications to all admins
+      const admins = await this.userService.findAllAdmins();
+      for (const admin of admins) {
+        await this.notificationEventService.triggerHotelRequestNotification(
+          admin.id,
+          'New Hotel Request',
+          `${requesterName} has submitted a new hotel request for "${createHotelRequestDto.name}"`,
+          {
+            request_id: savedRequest.id,
+            hotel_name: createHotelRequestDto.name,
+            requester_name: requesterName,
+            requester_id: userId,
+          },
+        );
+      }
+      
+      return savedRequest;
+    } catch (error) {
+      this.logger.error('Failed to create hotel request', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all hotel requests (admin only)
+   */
+  async getAllHotelRequests(
+    status?: HotelRequestStatus,
+  ): Promise<HotelRequest[]> {
+    try {
+      const queryBuilder = this.hotelRequestRepository
+        .createQueryBuilder('request')
+        .leftJoinAndSelect('request.requested_by', 'requester')
+        .leftJoinAndSelect('request.reviewed_by', 'reviewer')
+        .orderBy('request.created_at', 'DESC');
+
+      if (status) {
+        queryBuilder.where('request.status = :status', { status });
+      }
+
+      const requests = await queryBuilder.getMany();
+      
+      // Sanitize user data
+      requests.forEach((request) => {
+        if (request.requested_by) {
+          delete (request.requested_by as any).password_hash;
+          delete (request.requested_by as any).refresh_token;
+          delete (request.requested_by as any).activation_token;
+        }
+        if (request.reviewed_by) {
+          delete (request.reviewed_by as any).password_hash;
+          delete (request.reviewed_by as any).refresh_token;
+          delete (request.reviewed_by as any).activation_token;
+        }
+      });
+
+      return requests;
+    } catch (error) {
+      this.logger.error('Failed to get hotel requests', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get hotel requests by user
+   */
+  async getHotelRequestsByUser(userId: string): Promise<HotelRequest[]> {
+    try {
+      const requests = await this.hotelRequestRepository.find({
+        where: { requested_by_user_id: userId },
+        relations: ['reviewed_by'],
+        order: { created_at: 'DESC' },
+      });
+
+      // Sanitize reviewer data
+      requests.forEach((request) => {
+        if (request.reviewed_by) {
+          delete (request.reviewed_by as any).password_hash;
+          delete (request.reviewed_by as any).refresh_token;
+          delete (request.reviewed_by as any).activation_token;
+        }
+      });
+
+      return requests;
+    } catch (error) {
+      this.logger.error('Failed to get user hotel requests', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a single hotel request by ID
+   */
+  async getHotelRequestById(requestId: string): Promise<HotelRequest> {
+    try {
+      const request = await this.hotelRequestRepository.findOne({
+        where: { id: requestId },
+        relations: ['requested_by', 'reviewed_by'],
+      });
+
+      if (!request) {
+        throw new NotFoundException('Hotel request not found');
+      }
+
+      // Sanitize user data
+      if (request.requested_by) {
+        delete (request.requested_by as any).password_hash;
+        delete (request.requested_by as any).refresh_token;
+        delete (request.requested_by as any).activation_token;
+      }
+      if (request.reviewed_by) {
+        delete (request.reviewed_by as any).password_hash;
+        delete (request.reviewed_by as any).refresh_token;
+        delete (request.reviewed_by as any).activation_token;
+      }
+
+      return request;
+    } catch (error) {
+      this.logger.error('Failed to get hotel request', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Review (approve or reject) a hotel request
+   */
+  async reviewHotelRequest(
+    requestId: string,
+    reviewDto: ReviewHotelRequestDto,
+    adminId: string,
+  ): Promise<HotelRequest> {
+    try {
+      const request = await this.hotelRequestRepository.findOne({
+        where: { id: requestId },
+      });
+
+      if (!request) {
+        throw new NotFoundException('Hotel request not found');
+      }
+
+      if (request.status !== HotelRequestStatus.PENDING) {
+        throw new BadRequestException(
+          'Hotel request has already been reviewed',
+        );
+      }
+
+      const requestUser = await this.userRepository.findOne({
+        where: { id: request.requested_by_user_id },
+      });
+
+      if (!requestUser) {
+        throw new NotFoundException('Requesting user not found');
+      }
+
+      // If approved, create the hotel
+      let createdHotel: Hotel | null = null;
+      if (reviewDto.status === HotelRequestStatus.APPROVED) {
+        const createHotelDto: CreateHotelDto = {
+          name: request.name,
+          description: request.description,
+          address: request.address,
+          city: request.city,
+          state: request.state,
+          zip_code: request.zip_code,
+          country: request.country,
+          phone_number: request.phone_number,
+        };
+
+        
+        createdHotel = await this.create(createHotelDto, requestUser.id);
+        request.created_hotel_id = createdHotel.id;
+        await this.userService.assignRole(requestUser.id, 'HotelOwner');
+
+        // Send approval notification to the requesting user
+        await this.notificationEventService.triggerHotelNotification(
+          requestUser.id,
+          'HOTEL_APPROVED',
+          'Hotel Request Approved',
+          `Congratulations! Your hotel request for "${request.name}" has been approved and your hotel is now created.`,
+          {
+            hotel_id: createdHotel.id,
+            request_id: requestId,
+            hotel_name: request.name,
+          },
+        );
+      } else if (reviewDto.status === HotelRequestStatus.REJECTED) {
+        // Send rejection notification to the requesting user
+        const rejectionMessage = reviewDto.admin_notes 
+          ? `Your hotel request for "${request.name}" has been rejected. Reason: ${reviewDto.admin_notes}`
+          : `Your hotel request for "${request.name}" has been rejected.`;
+        
+        await this.notificationEventService.triggerHotelNotification(
+          requestUser.id,
+          'HOTEL_REJECTED',
+          'Hotel Request Rejected',
+          rejectionMessage,
+          {
+            request_id: requestId,
+            hotel_name: request.name,
+            admin_notes: reviewDto.admin_notes,
+          },
+        );
+      }
+
+      // Update the request
+      request.status = reviewDto.status;
+      request.reviewed_by_user_id = adminId;
+      if (reviewDto.admin_notes) {
+        request.admin_notes = reviewDto.admin_notes;
+      }
+
+      const updatedRequest = await this.hotelRequestRepository.save(request);
+
+      this.logger.log(
+        `Hotel request ${requestId} ${reviewDto.status} by admin ${adminId}`,
+      );
+
+      return updatedRequest;
+    } catch (error) {
+      this.logger.error('Failed to review hotel request', error);
+      throw error;
     }
   }
 

@@ -8,6 +8,7 @@ import { Room } from './entities/room.entity';
 import { RoomAvailability } from './entities/room-availability.entity';
 import { HotelBooking } from './entities/hotel-booking.entity';
 import { HotelReview } from './entities/hotel-review.entity';
+import { HotelRequest } from './entities/hotel-request.entity';
 import { User } from '../user/entities/user.entity';
 
 // Modules
@@ -22,6 +23,7 @@ import { GeocodingService } from './services/geocoding.service';
 import { BookingService } from './services/booking.service';
 import { AmenityService } from './services/amenity.service';
 import { ReviewService } from './services/review.service';
+import { UserService } from '../user/services/user.service';
 
 // Controllers
 import { HotelController } from './controllers/hotel.controller';
@@ -41,6 +43,7 @@ import {
 
 // Guards
 import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
+import { Role } from '../user/entities/role.entity';
 
 @Module({
   imports: [
@@ -51,7 +54,9 @@ import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
       RoomAvailability,
       HotelBooking,
       HotelReview,
+      HotelRequest,
       User,
+      Role
     ]),
     SearchModule,
     NotificationModule,
@@ -75,6 +80,7 @@ import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
     AmenityService,
     ReviewService,
     HotelOwnershipGuard,
+    UserService,
   ],
   exports: [
     HotelService,
@@ -83,6 +89,7 @@ import { HotelOwnershipGuard } from './guards/hotel-ownership.guard';
     BookingService,
     AmenityService,
     ReviewService,
+    UserService,
     // Export repositories for use in other modules
     TypeOrmModule,
   ],

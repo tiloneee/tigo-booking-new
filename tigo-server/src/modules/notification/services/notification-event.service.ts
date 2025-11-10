@@ -64,6 +64,9 @@ export class NotificationEventService implements OnModuleInit {
       case 'HOTEL_REJECTED':
         notificationType = NotificationType.HOTEL_REJECTED;
         break;
+      case 'HOTEL_REQUEST_CREATED':
+        notificationType = NotificationType.HOTEL_REQUEST_CREATED;
+        break;
       case 'SYSTEM_ANNOUNCEMENT':
         notificationType = NotificationType.SYSTEM_ANNOUNCEMENT;
         break;
@@ -133,6 +136,18 @@ export class NotificationEventService implements OnModuleInit {
       metadata,
       related_entity_type: 'hotel',
       related_entity_id: metadata.hotel_id,
+    });
+  }
+
+  async triggerHotelRequestNotification(userId: string, title: string, message: string, metadata: any) {
+    await this.redisService.publishMessage('notification:events', {
+      type: 'HOTEL_REQUEST_CREATED',
+      user_id: userId,
+      title,
+      message,
+      metadata,
+      related_entity_type: 'hotel_request',
+      related_entity_id: metadata.request_id,
     });
   }
 

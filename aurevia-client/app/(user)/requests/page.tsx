@@ -8,10 +8,11 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Wallet, Hotel, Upload, MapPin, Image as ImageIcon, Star, DollarSign, RefreshCw } from "lucide-react"
+import { Wallet, Hotel, MapPin, Star, RefreshCw, DollarSign } from "lucide-react"
 import { toast } from "sonner"
 import { balanceApi } from "@/lib/api/balance"
 import { useBalanceWebSocket } from "@/lib/hooks/use-balance-websocket"
+import { hotelRequestApi } from "@/lib/api/hotel-requests"
 
 export default function RequestPage() {
   const { user, refreshUser } = useAuth()
@@ -23,9 +24,12 @@ export default function RequestPage() {
   // Hotel request form state
   const [hotelName, setHotelName] = useState("")
   const [hotelAddress, setHotelAddress] = useState("")
+  const [hotelCity, setHotelCity] = useState("")
+  const [hotelState, setHotelState] = useState("")
+  const [hotelZipCode, setHotelZipCode] = useState("")
+  const [hotelCountry, setHotelCountry] = useState("")
+  const [hotelPhoneNumber, setHotelPhoneNumber] = useState("")
   const [hotelDescription, setHotelDescription] = useState("")
-  const [hotelPrice, setHotelPrice] = useState("")
-  const [hotelImages, setHotelImages] = useState<FileList | null>(null)
   const [hotelLoading, setHotelLoading] = useState(false)
   const { currentBalance, isConnected, refreshBalance } = useBalanceWebSocket()
 
@@ -57,17 +61,31 @@ export default function RequestPage() {
     setHotelLoading(true)
 
     try {
-      // TODO: Implement actual hotel request API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      await hotelRequestApi.createHotelRequest({
+        name: hotelName,
+        description: hotelDescription,
+        address: hotelAddress,
+        city: hotelCity,
+        state: hotelState,
+        zip_code: hotelZipCode,
+        country: hotelCountry,
+        phone_number: hotelPhoneNumber,
+      })
       
-      toast.success(`Hotel request for "${hotelName}" submitted successfully!`)
+      toast.success(`Hotel request for "${hotelName}" submitted successfully! Waiting for admin approval.`)
+      
+      // Reset form
       setHotelName("")
-      setHotelAddress("")
       setHotelDescription("")
-      setHotelPrice("")
-      setHotelImages(null)
-    } catch (error) {
-      toast.error("Failed to submit hotel request. Please try again.")
+      setHotelAddress("")
+      setHotelCity("")
+      setHotelState("")
+      setHotelZipCode("")
+      setHotelCountry("")
+      setHotelPhoneNumber("")
+    } catch (error: any) {
+      console.error('Hotel request error:', error)
+      toast.error(error.response?.data?.message || "Failed to submit hotel request. Please try again.")
     } finally {
       setHotelLoading(false)
     }
@@ -239,22 +257,6 @@ export default function RequestPage() {
                           />
                         </div>
 
-                        {/* Hotel Address */}
-                        <div className="space-y-2">
-                          <label className="text-creamy-yellow font-varela text-vintage-base font-medium flex items-center">
-                            <MapPin className="h-4 w-4 mr-1 text-creamy-yellow" />
-                            Hotel Address
-                          </label>
-                          <Input
-                            type="text"
-                            value={hotelAddress}
-                            onChange={(e) => setHotelAddress(e.target.value)}
-                            placeholder="Enter complete address"
-                            required
-                            className="bg-dark-brown/20 border-terracotta-rose/30 text-vintage-base text-creamy-yellow font-varela placeholder:text-creamy-yellow/40 focus:border-terracotta-rose"
-                          />
-                        </div>
-
                         {/* Hotel Description */}
                         <div className="space-y-2">
                           <label className="text-creamy-yellow font-varela text-vintage-base font-medium flex items-center">
@@ -271,53 +273,95 @@ export default function RequestPage() {
                           />
                         </div>
 
-                        {/* Starting Price */}
+                        {/* Hotel Address */}
                         <div className="space-y-2">
                           <label className="text-creamy-yellow font-varela text-vintage-base font-medium flex items-center">
-                            <DollarSign className="h-4 w-4 mr-1 text-creamy-yellow" />
-                            Starting Price (per night)
+                            <MapPin className="h-4 w-4 mr-1 text-creamy-yellow" />
+                            Street Address
                           </label>
                           <Input
-                            type="number"
-                            step="0.01"
-                            min="1"
-                            value={hotelPrice}
-                            onChange={(e) => setHotelPrice(e.target.value)}
-                            placeholder="Enter starting price"
+                            type="text"
+                            value={hotelAddress}
+                            onChange={(e) => setHotelAddress(e.target.value)}
+                            placeholder="Enter street address"
                             required
                             className="bg-dark-brown/20 border-terracotta-rose/30 text-vintage-base text-creamy-yellow font-varela placeholder:text-creamy-yellow/40 focus:border-terracotta-rose"
                           />
                         </div>
 
-                        {/* Hotel Images */}
-                        <div className="space-y-2">
-                          <label className="text-creamy-yellow font-varela text-vintage-base font-medium flex items-center">
-                            <ImageIcon className="h-4 w-4 mr-1 text-creamy-yellow" />
-                            Hotel Images
-                          </label>
-                          <div className="relative">
-                            <input
-                              type="file"
-                              accept="image/*"
-                              multiple
-                              onChange={(e) => setHotelImages(e.target.files)}
-                              className="hidden"
-                              id="hotel-images"
-                            />
-                            <label
-                              htmlFor="hotel-images"
-                              className="flex items-center justify-center w-full px-4 py-3 bg-dark-brown/20 border-2 border-dashed border-terracotta-rose/30 rounded-md cursor-pointer hover:border-terracotta-rose/60 transition-colors"
-                            >
-                              <Upload className="h-5 w-5 text-terracotta-rose mr-2" />
-                              <span className="text-creamy-yellow/70 font-varela text-vintage-base">
-                                {hotelImages && hotelImages.length > 0
-                                  ? `${hotelImages.length} file(s) selected`
-                                  : "Click to upload images"}
-                              </span>
+                        {/* City, State, Zip Code - Row */}
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-creamy-yellow font-varela text-vintage-sm font-medium">
+                              City
                             </label>
+                            <Input
+                              type="text"
+                              value={hotelCity}
+                              onChange={(e) => setHotelCity(e.target.value)}
+                              placeholder="City"
+                              required
+                              className="bg-dark-brown/20 border-terracotta-rose/30 text-vintage-base text-creamy-yellow font-varela placeholder:text-creamy-yellow/40 focus:border-terracotta-rose"
+                            />
                           </div>
+                          <div className="space-y-2">
+                            <label className="text-creamy-yellow font-varela text-vintage-sm font-medium">
+                              State/Province
+                            </label>
+                            <Input
+                              type="text"
+                              value={hotelState}
+                              onChange={(e) => setHotelState(e.target.value)}
+                              placeholder="State"
+                              required
+                              className="bg-dark-brown/20 border-terracotta-rose/30 text-vintage-base text-creamy-yellow font-varela placeholder:text-creamy-yellow/40 focus:border-terracotta-rose"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-creamy-yellow font-varela text-vintage-sm font-medium">
+                              Zip Code
+                            </label>
+                            <Input
+                              type="text"
+                              value={hotelZipCode}
+                              onChange={(e) => setHotelZipCode(e.target.value)}
+                              placeholder="Zip"
+                              required
+                              className="bg-dark-brown/20 border-terracotta-rose/30 text-vintage-base text-creamy-yellow font-varela placeholder:text-creamy-yellow/40 focus:border-terracotta-rose"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Country */}
+                        <div className="space-y-2">
+                          <label className="text-creamy-yellow font-varela text-vintage-base font-medium">
+                            Country
+                          </label>
+                          <Input
+                            type="text"
+                            value={hotelCountry}
+                            onChange={(e) => setHotelCountry(e.target.value)}
+                            placeholder="Enter country"
+                            required
+                            className="bg-dark-brown/20 border-terracotta-rose/30 text-vintage-base text-creamy-yellow font-varela placeholder:text-creamy-yellow/40 focus:border-terracotta-rose"
+                          />
+                        </div>
+
+                        {/* Phone Number */}
+                        <div className="space-y-2">
+                          <label className="text-creamy-yellow font-varela text-vintage-base font-medium">
+                            Phone Number
+                          </label>
+                          <Input
+                            type="tel"
+                            value={hotelPhoneNumber}
+                            onChange={(e) => setHotelPhoneNumber(e.target.value)}
+                            placeholder="+84283829999"
+                            required
+                            className="bg-dark-brown/20 border-terracotta-rose/30 text-vintage-base text-creamy-yellow font-varela placeholder:text-creamy-yellow/40 focus:border-terracotta-rose"
+                          />
                           <p className="text-creamy-yellow/50 font-varela text-vintage-sm">
-                            Upload high-quality images of the hotel (multiple files allowed)
+                            Use Vietnam format (e.g., +84283829999)
                           </p>
                         </div>
 

@@ -148,4 +148,13 @@ export class UserService {
 
     return user;
   }
+
+  async findAllAdmins(): Promise<User[]> {
+    return this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.roles', 'roles')
+      .where('roles.name = :roleName', { roleName: 'Admin' })
+      .andWhere('user.is_active = :isActive', { isActive: true })
+      .getMany();
+  }
 }

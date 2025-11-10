@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import ProtectedRoute from "@/components/auth/protected-route"
 import Header from "@/components/header"
 import { Card, CardContent } from "@/components/ui/card"
-import { Users, Building2, AlertCircle, Search, X, DollarSign } from "lucide-react"
+import { Users, Building2, AlertCircle, Search, X, DollarSign, Hotel as HotelIcon } from "lucide-react"
 import { usersApi, hotelsApi, balanceRequestsApi } from "@/lib/api/dashboard"
 import { getRoleName, hasRole } from "@/lib/api"
 import type { DashboardUser, Hotel } from "@/types/dashboard"
@@ -14,8 +14,10 @@ import type { Transaction } from "@/lib/api/balance"
 import UsersTab from "@/components/dashboard/users-tab"
 import HotelsTab from "@/components/dashboard/hotels-tab"
 import BalanceRequestsTab from "@/components/dashboard/balance-requests-tab"
+import HotelRequestsTab from "@/components/dashboard/hotel-requests-tab"
+import { hotelRequestApi, type HotelRequest } from "@/lib/api/hotel-requests"
 
-type TabType = 'users' | 'hotels' | 'balance-requests'
+type TabType = 'users' | 'hotels' | 'balance-requests' | 'hotel-requests'
 
 export default function AdminDashboard() {
   const { user, accessToken, isLoading } = useAuth()
@@ -24,6 +26,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<DashboardUser[]>([])
   const [hotels, setHotels] = useState<Hotel[]>([])
   const [balanceRequests, setBalanceRequests] = useState<Transaction[]>([])
+  const [hotelRequests, setHotelRequests] = useState<HotelRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -41,14 +44,16 @@ export default function AdminDashboard() {
 
       // Admin can see all data
       if (isAdmin) {
-        const [usersData, hotelsData, balanceRequestsData] = await Promise.all([
+        const [usersData, hotelsData, balanceRequestsData, hotelRequestsData] = await Promise.all([
           usersApi.getAll().catch(() => []),
           hotelsApi.getAll().catch(() => []),
           balanceRequestsApi.getAllTopups().catch(() => []),
+          hotelRequestApi.getAllHotelRequests().catch(() => []),
         ])
         setUsers(usersData)
         setHotels(hotelsData)
         setBalanceRequests(balanceRequestsData)
+        setHotelRequests(hotelRequestsData)
       } 
       // Hotel owner can only see their own hotels
       else if (isHotelOwner) {
@@ -140,6 +145,24 @@ export default function AdminDashboard() {
     )
   })
 
+  const filteredHotelRequests = hotelRequests.filter(request => {
+    if (!searchQuery.trim()) return true
+    
+    const query = searchQuery.toLowerCase()
+    return (
+      request.name.toLowerCase().includes(query) ||
+      request.description.toLowerCase().includes(query) ||
+      request.address.toLowerCase().includes(query) ||
+      request.city.toLowerCase().includes(query) ||
+      request.state.toLowerCase().includes(query) ||
+      request.country.toLowerCase().includes(query) ||
+      request.phone_number.toLowerCase().includes(query) ||
+      request.status.toLowerCase().includes(query) ||
+      request.requested_by?.username?.toLowerCase().includes(query) ||
+      request.requested_by?.email?.toLowerCase().includes(query)
+    )
+  })
+
   const clearSearch = () => {
     setSearchQuery('')
   }
@@ -194,7 +217,12 @@ export default function AdminDashboard() {
                 </div>
                 <input
                   type="text"
-                  placeholder={`Search ${activeTab === 'users' ? 'users' : activeTab === 'hotels' ? 'hotels' : 'balance requests'}...`}
+                  placeholder={`Search ${
+                    activeTab === 'users' ? 'users' : 
+                    activeTab === 'hotels' ? 'hotels' : 
+                    activeTab === 'balance-requests' ? 'balance requests' :
+                    'hotel requests'
+                  }...`}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-10 py-3 bg-dark-brown/20 border border-terracotta-rose/30 rounded-lg text-deep-brown placeholder-deep-brown/60 focus:outline-none focus:ring-2 focus:ring-terracotta-rose/50 focus:border-terracotta-rose/50 font-varela text-vintage-base"
@@ -214,7 +242,9 @@ export default function AdminDashboard() {
                     ? `Found ${filteredUsers.length} user${filteredUsers.length !== 1 ? 's' : ''}`
                     : activeTab === 'hotels'
                     ? `Found ${filteredHotels.length} hotel${filteredHotels.length !== 1 ? 's' : ''}`
-                    : `Found ${filteredBalanceRequests.length} request${filteredBalanceRequests.length !== 1 ? 's' : ''}`
+                    : activeTab === 'balance-requests'
+                    ? `Found ${filteredBalanceRequests.length} request${filteredBalanceRequests.length !== 1 ? 's' : ''}`
+                    : `Found ${filteredHotelRequests.length} request${filteredHotelRequests.length !== 1 ? 's' : ''}`
                   }
                 </div>
               )}
@@ -271,6 +301,19 @@ export default function AdminDashboard() {
                   Balance Requests
                 </button>
               )}
+              {isAdmin && (
+                <button
+                  onClick={() => handleTabChange('hotel-requests')}
+                  className={`flex items-center gap-2 px-6 py-3 font-varela text-vintage-lg font-medium transition-all duration-300 ${
+                    activeTab === 'hotel-requests'
+                      ? 'text-terracotta-rose border-b-2 border-terracotta-rose'
+                      : 'text-deep-brown/60 hover:text-deep-brown'
+                  }`}
+                >
+                  <HotelIcon className="h-5 w-5" />
+                  Hotel Requests
+                </button>
+              )}
             </div>
 
             {/* Tab Content */}
@@ -278,7 +321,8 @@ export default function AdminDashboard() {
               {searchQuery && (
                 (activeTab === 'users' && filteredUsers.length === 0) ||
                 (activeTab === 'hotels' && filteredHotels.length === 0) ||
-                (activeTab === 'balance-requests' && filteredBalanceRequests.length === 0)
+                (activeTab === 'balance-requests' && filteredBalanceRequests.length === 0) ||
+                (activeTab === 'hotel-requests' && filteredHotelRequests.length === 0)
               ) && (
                 <Card className="bg-gradient-to-br from-dark-brown/90 to-deep-brown backdrop-blur-sm border-terracotta-rose/30">
                   <CardContent className="py-8 text-center">
@@ -287,7 +331,11 @@ export default function AdminDashboard() {
                       No results found
                     </h3>
                     <p className="text-vintage-base text-creamy-yellow/60 font-varela">
-                      Try adjusting your search terms or clear the search to see all {activeTab === 'balance-requests' ? 'balance requests' : activeTab}.
+                      Try adjusting your search terms or clear the search to see all {
+                        activeTab === 'balance-requests' ? 'balance requests' : 
+                        activeTab === 'hotel-requests' ? 'hotel requests' : 
+                        activeTab
+                      }.
                     </p>
                     <button
                       onClick={clearSearch}
@@ -320,6 +368,12 @@ export default function AdminDashboard() {
                   accessToken={accessToken || ''}
                   onRefresh={refreshData}
                   onUpdateRequest={handleUpdateBalanceRequest}
+                />
+              )}
+              {activeTab === 'hotel-requests' && isAdmin && (
+                <HotelRequestsTab
+                  requests={filteredHotelRequests}
+                  onRefresh={refreshData}
                 />
               )}
             </div>
