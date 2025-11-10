@@ -555,6 +555,18 @@ export class HotelService {
           },
         );
       }
+
+      if (requestingUser) {
+        await this.notificationEventService.triggerHotelRequestNotification(
+          requestingUser.id,
+          'Hotel Request Submitted',
+          `Your hotel request for "${createHotelRequestDto.name}" has been submitted and is pending review.`,
+          {
+            request_id: savedRequest.id,
+            hotel_name: createHotelRequestDto.name,
+          },
+        )
+      }
       
       return savedRequest;
     } catch (error) {
