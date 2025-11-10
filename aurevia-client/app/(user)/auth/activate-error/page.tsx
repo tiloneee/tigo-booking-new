@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { XCircle, Plane, AlertCircle, ArrowRight, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
-export default function ActivateErrorPage() {
+function ActivateErrorContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string>('');
@@ -168,5 +168,20 @@ export default function ActivateErrorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ActivateErrorPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-walnut-darkest via-walnut-dark to-walnut-darkest flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-copper-accent/30 border-t-copper-accent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-cream-light font-cormorant text-vintage-lg">Loading...</p>
+        </div>
+      </div>
+    }>
+      <ActivateErrorContent />
+    </Suspense>
   );
 }
