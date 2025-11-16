@@ -11,13 +11,9 @@ import {
 import { Type } from 'class-transformer';
 
 export class CreateReviewDto {
-  @IsOptional()
+  @IsNotEmpty()
   @IsUUID()
-  hotel_id?: string;
-
-  @IsOptional()
-  @IsUUID()
-  booking_id?: string; // Optional booking verification
+  booking_id: string; // Required: Each review must be linked to a booking
 
   @IsNumber()
   @Min(1)

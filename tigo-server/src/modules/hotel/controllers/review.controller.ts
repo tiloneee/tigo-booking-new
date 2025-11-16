@@ -107,11 +107,10 @@ export class HotelReviewController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('Customer', 'Admin')
   createHotelReview(
-    @Param('hotelId') hotelId: string,
     @Body() createReviewDto: CreateReviewDto,
     @Request() req,
   ) {
-    createReviewDto.hotel_id = hotelId;
+    // Note: hotelId is now derived from the booking in the service
     return this.reviewService.create(createReviewDto, req.user.userId);
   }
 

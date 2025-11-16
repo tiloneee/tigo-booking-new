@@ -15,7 +15,7 @@ export interface Review {
   total_votes: number;
   hotel_id: string;
   user_id: string;
-  booking_id: string | null;
+  booking_id: string;
   created_at: string;
   updated_at: string;
   user?: {
@@ -43,8 +43,7 @@ export interface Review {
 }
 
 export interface CreateReviewDto {
-  hotel_id?: string;
-  booking_id?: string;
+  booking_id: string;
   rating: number;
   comment?: string;
   title?: string;

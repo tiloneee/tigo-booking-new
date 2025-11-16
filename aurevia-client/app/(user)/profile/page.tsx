@@ -13,9 +13,11 @@ import { balanceApi } from "@/lib/api/balance"
 import { hotelRequestApi, type HotelRequest } from "@/lib/api/hotel-requests"
 import Header from "@/components/header"
 import ReviewModal from "@/components/reviews/review-modal"
+import { ReviewApiService } from "@/lib/api/reviews"
 import type { User as ApiUser } from "@/lib/api"
 import type { Booking as DashboardBooking } from "@/types/dashboard"
 import type { Transaction } from "@/lib/api/balance"
+import type { Review } from "@/types/review"
 import { access } from "fs"
 import { gu } from "date-fns/locale"
 import { useNotifications } from "@/components/notifications/notification-provider"
@@ -39,6 +41,8 @@ export default function ProfilePage() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [hotelRequests, setHotelRequests] = useState<HotelRequest[]>([])
+  const [userReviews, setUserReviews] = useState<Review[]>([])
+  const [reviewedBookingIds, setReviewedBookingIds] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null)
@@ -99,6 +103,14 @@ export default function ProfilePage() {
         // Fetch user hotel requests
         const hotelRequestsData = await hotelRequestApi.getMyHotelRequests()
         setHotelRequests(hotelRequestsData)
+
+        // Fetch user's reviews
+        const reviewsData = await ReviewApiService.getMyReviews()
+        setUserReviews(reviewsData)
+        
+        // Create a set of booking IDs that have been reviewed
+        const reviewedIds = new Set(reviewsData.map((review: Review) => review.booking_id))
+        setReviewedBookingIds(reviewedIds)
 
         // Mark as fetched
         hasFetchedData.current = true
@@ -267,6 +279,10 @@ export default function ProfilePage() {
     setActiveTab(tab)
     setCurrentPage(1) // Reset to first page when changing tabs
     setSortBy('date-desc') // Reset sort when changing tabs
+  }
+
+  const isBookingReviewed = (bookingId: string): boolean => {
+    return reviewedBookingIds.has(bookingId)
   }
 
 
@@ -815,10 +831,14 @@ export default function ProfilePage() {
 
                       <div className="mt-3 pt-3 border-t border-terracotta-rose/40">
                         <div className="flex items-center justify-between">
+
                           <div className="flex items-center space-x-2">
                             {getStatusIcon(booking.status)}
                             <span className="text-vintage-sm text-ash-brown/80 font-varela">
                               Booked on {formatDate(booking.created_at)}
+                              {isBookingReviewed(booking.id) && (
+                                <span className="ml-2 text-terracotta-rose font-semibold">• Reviewed</span>
+                              )}
                             </span>
                           </div>
                           <div className="flex gap-2">
@@ -830,10 +850,10 @@ export default function ProfilePage() {
                               <Eye className="h-4 w-4 mr-1" />
                               View Details
                             </Button>
-                            {(booking.status === 'Confirmed' || booking.status === 'CheckedOut') && (
+                            {(booking.status === 'Completed' || booking.status === 'Confirmed') && !isBookingReviewed(booking.id) && (
                               <Button
                                 size="sm"
-                                className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-varela font-bold rounded-lg shadow-2xl hover:shadow-yellow-500/40 transition-all duration-300 hover:scale-105"
+                                className="px-8 py-4 bg-gradient-to-br from-terracotta-rose/70 to-terracotta-orange/80 text-deep-brown font-varela font-bold rounded-lg shadow-2xl hover:shadow-terracotta-rose/40 transition-all duration-300 hover:scale-105"
                                 onClick={() => {
                                   setSelectedBookingForReview(booking)
                                   setShowReviewModal(true)
@@ -1202,8 +1222,13 @@ export default function ProfilePage() {
           hotelId={selectedBookingForReview.hotel_id}
           hotelName={selectedBookingForReview.hotel?.name || 'Hotel'}
           bookingId={selectedBookingForReview.id}
-          onSuccess={() => {
+          onSuccess={async () => {
             setSelectedBookingForReview(null)
+            // Refresh reviews to update the reviewed bookings list
+            const reviewsData = await ReviewApiService.getMyReviews()
+            setUserReviews(reviewsData)
+            const reviewedIds = new Set(reviewsData.map((review: Review) => review.booking_id))
+            setReviewedBookingIds(reviewedIds)
             console.log('Review submitted successfully')
           }}
         />

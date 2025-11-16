@@ -22,7 +22,7 @@ interface ReviewModalProps {
   onOpenChange: (open: boolean) => void
   hotelId: string
   hotelName: string
-  bookingId?: string
+  bookingId: string
   onSuccess?: () => void
 }
 
@@ -35,7 +35,6 @@ export default function ReviewModal({
   onSuccess,
 }: ReviewModalProps) {
   const [formData, setFormData] = useState<CreateReviewDto>({
-    hotel_id: hotelId,
     booking_id: bookingId,
     rating: 0,
     comment: "",
@@ -66,7 +65,6 @@ export default function ReviewModal({
       
       // Reset form
       setFormData({
-        hotel_id: hotelId,
         booking_id: bookingId,
         rating: 0,
         comment: "",

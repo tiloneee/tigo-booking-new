@@ -27,8 +27,7 @@ export default function ReviewForm({
   onCancel 
 }: ReviewFormProps) {
   const [formData, setFormData] = useState<CreateReviewDto>({
-    hotel_id: hotelId,
-    booking_id: bookingId,
+    booking_id: bookingId || "",
     rating: 0,
     comment: "",
     title: "",
@@ -59,8 +58,7 @@ export default function ReviewForm({
       
       // Reset form
       setFormData({
-        hotel_id: hotelId,
-        booking_id: bookingId,
+        booking_id: bookingId || "",
         rating: 0,
         comment: "",
         title: "",

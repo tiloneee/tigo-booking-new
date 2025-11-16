@@ -92,76 +92,59 @@ export class ReviewService {
     userId: string,
   ): Promise<HotelReview> {
     return this.dataSource.transaction(async (manager) => {
-      // Validate hotel_id is present
-      if (!createReviewDto.hotel_id) {
-        throw new BadRequestException('Hotel ID is required');
+      // Validate booking_id is present (now required)
+      if (!createReviewDto.booking_id) {
+        throw new BadRequestException('Booking ID is required for creating a review');
       }
 
-      // Check if hotel exists
-      const hotel = await manager.findOne(Hotel, {
-        where: { id: createReviewDto.hotel_id, is_active: true },
-      });
-
-      if (!hotel) {
-        throw new NotFoundException('Hotel not found');
-      }
-
-      // Check if user already reviewed this hotel
+      // Check if this booking has already been reviewed
       const existingReview = await manager.findOne(HotelReview, {
-        where: { hotel_id: createReviewDto.hotel_id, user_id: userId },
+        where: { booking_id: createReviewDto.booking_id },
       });
 
       if (existingReview) {
-        throw new ConflictException('You have already reviewed this hotel');
+        throw new ConflictException('This booking has already been reviewed');
       }
 
-      // Stay verification logic
-      let isVerifiedStay = false;
-      let stayDate: Date | null = null;
-      let bookingId: string | null = createReviewDto.booking_id || null;
+      // Verify the booking exists and belongs to the user
+      const booking = await manager.findOne(HotelBooking, {
+        where: {
+          id: createReviewDto.booking_id,
+          user_id: userId,
+        },
+        relations: ['hotel'],
+      });
 
-      if (createReviewDto.booking_id) {
-        // Verify the booking belongs to the user and hotel
-        const booking = await manager.findOne(HotelBooking, {
-          where: {
-            id: createReviewDto.booking_id,
-            user_id: userId,
-            hotel_id: createReviewDto.hotel_id,
-            status: 'Confirmed', // Only allow reviews for completed stays
-          },
-        });
-
-        if (booking) {
-          isVerifiedStay = true;
-          stayDate = new Date(booking.check_out_date);
-        } else {
-          throw new BadRequestException(
-            'Invalid booking for review verification',
-          );
-        }
-      } else {
-        // Check if user has any completed booking for this hotel
-        const completedBooking = await manager.findOne(HotelBooking, {
-          where: {
-            user_id: userId,
-            hotel_id: createReviewDto.hotel_id,
-            status: 'Confirmed',
-          },
-          order: { check_out_date: 'DESC' },
-        });
-
-        if (completedBooking) {
-          isVerifiedStay = true;
-          stayDate = new Date(completedBooking.check_out_date);
-          bookingId = completedBooking.id;
-        }
+      if (!booking) {
+        throw new NotFoundException('Booking not found or does not belong to you');
       }
+
+      // Check if booking is completed or checked out
+      if (!['Completed', 'CheckedOut', 'Confirmed'].includes(booking.status)) {
+        throw new BadRequestException(
+          'Only completed or checked-out bookings can be reviewed',
+        );
+      }
+
+      // Check if hotel exists and is active
+      const hotel = await manager.findOne(Hotel, {
+        where: { id: booking.hotel_id, is_active: true },
+      });
+
+      if (!hotel) {
+        throw new NotFoundException('Hotel not found or is no longer active');
+      }
+
+      // Set verified stay data from booking
+      const isVerifiedStay = true;
+      const stayDate = new Date(booking.check_out_date);
+      const hotelId = booking.hotel_id;
 
       // Create review
       const reviewData: Partial<HotelReview> = {
-        hotel_id: createReviewDto.hotel_id,
+        hotel_id: hotelId,
         user_id: userId,
-        booking_id: bookingId,
+        booking_id: createReviewDto.booking_id,
         rating: createReviewDto.rating,
         comment: createReviewDto.comment,
         title: createReviewDto.title,
@@ -170,7 +153,7 @@ export class ReviewService {
         service_rating: createReviewDto.service_rating,
         value_rating: createReviewDto.value_rating,
         is_verified_stay: isVerifiedStay,
-        stay_date: stayDate || undefined,
+        stay_date: stayDate,
         is_approved: true, // Auto-approve for now, can be changed to false for moderation
       };
 
@@ -178,10 +161,10 @@ export class ReviewService {
       const savedReview = await manager.save(review);
 
       // Update hotel average rating
-      await this.updateHotelRating(createReviewDto.hotel_id, manager);
+      await this.updateHotelRating(hotelId, manager);
 
       this.logger.log(
-        `Review created: ${savedReview.id} for hotel ${createReviewDto.hotel_id}`,
+        `Review created: ${savedReview.id} for booking ${createReviewDto.booking_id}`,
       );
 
       const reviewWithRelations = await manager.findOne(HotelReview, {
@@ -274,7 +257,7 @@ export class ReviewService {
       await manager.update(HotelReview, id, updateReviewDto);
 
       // Update hotel average rating if rating changed
-      if (updateReviewDto.rating) {
+      if (updateReviewDto.rating !== undefined) {
         await this.updateHotelRating(review.hotel_id, manager);
       }
 

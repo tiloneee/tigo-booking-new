@@ -15,7 +15,7 @@ export class ReviewApiService {
   /**
    * Create a review for a specific hotel (alternative endpoint)
    */
-  static async createHotelReview(hotelId: string, reviewData: Omit<CreateReviewDto, 'hotel_id'>): Promise<Review> {
+  static async createHotelReview(hotelId: string, reviewData: CreateReviewDto): Promise<Review> {
     const response = await axiosInstance.post(`/hotels/${hotelId}/reviews`, reviewData);
     return response.data;
   }

@@ -13,7 +13,7 @@ import { HotelBooking } from './hotel-booking.entity';
 import { User } from '../../user/entities/user.entity';
 
 @Entity('hotel_reviews')
-@Unique(['hotel_id', 'user_id']) // Prevent multiple reviews from same user for same hotel
+@Unique(['booking_id']) // Prevent multiple reviews for the same booking
 export class HotelReview {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -77,12 +77,12 @@ export class HotelReview {
   @Column()
   user_id: string;
 
-  @ManyToOne(() => HotelBooking, { nullable: true })
+  @ManyToOne(() => HotelBooking, { nullable: false })
   @JoinColumn({ name: 'booking_id' })
   booking: HotelBooking;
 
-  @Column({ nullable: true })
-  booking_id: string | null;
+  @Column()
+  booking_id: string;
 
   @CreateDateColumn()
   created_at: Date;
