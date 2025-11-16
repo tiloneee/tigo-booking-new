@@ -6,12 +6,13 @@ import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { User, Mail, Phone, Calendar, MapPin, CreditCard, Clock, CheckCircle, XCircle, X, Eye, EyeOff, Edit3, Save, X as XIcon, ChevronLeft, ChevronRight, Bell, ArrowUpDown, DollarSign, Receipt, Wallet, RefreshCw, Hotel, FileText } from "lucide-react"
+import { User, Mail, Phone, Calendar, MapPin, CreditCard, Clock, CheckCircle, XCircle, X, Eye, EyeOff, Edit3, Save, X as XIcon, ChevronLeft, ChevronRight, Bell, ArrowUpDown, DollarSign, Receipt, Wallet, RefreshCw, Hotel, FileText, Star } from "lucide-react"
 import { authApi } from "@/lib/api"
 import { bookingsApi } from "@/lib/api/dashboard"
 import { balanceApi } from "@/lib/api/balance"
 import { hotelRequestApi, type HotelRequest } from "@/lib/api/hotel-requests"
 import Header from "@/components/header"
+import ReviewModal from "@/components/reviews/review-modal"
 import type { User as ApiUser } from "@/lib/api"
 import type { Booking as DashboardBooking } from "@/types/dashboard"
 import type { Transaction } from "@/lib/api/balance"
@@ -50,6 +51,8 @@ export default function ProfilePage() {
   })
   const [editLoading, setEditLoading] = useState(false)
   const [cancellingBookingId, setCancellingBookingId] = useState<string | null>(null)
+  const [showReviewModal, setShowReviewModal] = useState(false)
+  const [selectedBookingForReview, setSelectedBookingForReview] = useState<Booking | null>(null)
   const hasFetchedData = useRef(false) // Track if we've already fetched data
   
   // WebSocket for real-time balance
@@ -827,6 +830,19 @@ export default function ProfilePage() {
                               <Eye className="h-4 w-4 mr-1" />
                               View Details
                             </Button>
+                            {(booking.status === 'Confirmed' || booking.status === 'CheckedOut') && (
+                              <Button
+                                size="sm"
+                                className="px-8 py-4 bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-varela font-bold rounded-lg shadow-2xl hover:shadow-yellow-500/40 transition-all duration-300 hover:scale-105"
+                                onClick={() => {
+                                  setSelectedBookingForReview(booking)
+                                  setShowReviewModal(true)
+                                }}
+                              >
+                                <Star className="h-4 w-4 mr-1" />
+                                Write Review
+                              </Button>
+                            )}
                             {(booking.status === 'Pending' || booking.status === 'Confirmed') && (
                               <Button
                                 size="sm"
@@ -1176,6 +1192,21 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Review Modal */}
+      {selectedBookingForReview && (
+        <ReviewModal
+          open={showReviewModal}
+          onOpenChange={setShowReviewModal}
+          hotelId={selectedBookingForReview.hotel_id}
+          hotelName={selectedBookingForReview.hotel?.name || 'Hotel'}
+          bookingId={selectedBookingForReview.id}
+          onSuccess={() => {
+            setSelectedBookingForReview(null)
+            console.log('Review submitted successfully')
+          }}
+        />
       )}
     </div>
   )

@@ -176,11 +176,16 @@ export class HotelController {
     @Query('sort_by') sortBy?: string,
     @Query('sort_order') sortOrder?: 'ASC' | 'DESC',
   ) {
+    // Normalize sort_order to uppercase
+    const normalizedSortOrder = sortOrder 
+      ? (sortOrder.toUpperCase() as 'ASC' | 'DESC')
+      : 'ASC';
+    
     const searchDto = {
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 12,
       sort_by: (sortBy as 'name' | 'rating') || 'name',
-      sort_order: sortOrder || 'ASC',
+      sort_order: normalizedSortOrder,
     };
 
     const result = await this.hotelService.findAllActive(searchDto);

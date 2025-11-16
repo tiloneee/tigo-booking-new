@@ -369,7 +369,7 @@ function HotelsPageContent() {
         <div className="text-center mb-12">
           <div className="mb-6">
             <div className="w-16 h-px bg-gradient-to-r from-transparent via-terracotta-rose to-transparent mx-auto mb-3"></div>
-            <p className="text-terracotta-rose font-great-vibes text-vintage-xl">Luxury Accommodations</p>
+            <p className="text-terracotta-rose font-varela text-vintage-xl">Luxury Accommodations</p>
             <div className="w-16 h-px bg-gradient-to-r from-transparent via-terracotta-rose to-transparent mx-auto mt-3"></div>
           </div>
 

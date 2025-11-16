@@ -8,6 +8,7 @@ import Header from "@/components/header"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import ReviewModal from "@/components/reviews/review-modal"
 import {
   Calendar,
   MapPin,
@@ -22,7 +23,8 @@ import {
   ArrowLeft,
   Building2,
   Users,
-  Home
+  Home,
+  Star
 } from "lucide-react"
 import type { Booking } from "@/types/dashboard"
 import { hasRole } from "@/lib/api"
@@ -37,10 +39,13 @@ export default function BookingDetailsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
+  const [showReviewModal, setShowReviewModal] = useState(false)
 
   const isHotelOwner = hasRole(user, 'HotelOwner')
   const isAdmin = hasRole(user, 'Admin')
   const canManageBooking = isHotelOwner || isAdmin
+  const isCustomer = hasRole(user, 'Customer')
+  const canReview = isCustomer && (booking?.status === 'Completed' || booking?.status === 'CheckedOut')
 
   useEffect(() => {
     const fetchBooking = async () => {
@@ -435,13 +440,13 @@ export default function BookingDetailsPage() {
               </Card>
 
               {/* Actions */}
-              {canManageBooking && (booking.status === 'Pending' || booking.status === 'Confirmed') && (
+              {(canManageBooking && (booking.status === 'Pending' || booking.status === 'Confirmed')) || canReview ? (
                 <Card className="bg-gradient-to-br from-dark-brown/80 to-deep-brown backdrop-blur-sm border-terracotta-rose/20 p-6">
                   <h3 className="text-vintage-xl font-libre font-semibold text-creamy-yellow mb-4">
                     Actions
                   </h3>
                   <div className="space-y-3">
-                    {booking.status === 'Pending' && (
+                    {canManageBooking && booking.status === 'Pending' && (
                       <Button
                         onClick={handleConfirmBooking}
                         disabled={actionLoading}
@@ -460,30 +465,56 @@ export default function BookingDetailsPage() {
                         )}
                       </Button>
                     )}
-                    <Button
-                      onClick={handleCancelBooking}
-                      disabled={actionLoading}
-                      className="w-full px-8 py-4 text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-libre font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
-                    >
-                      {actionLoading ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin mr-2"></div>
-                          Processing...
-                        </>
-                      ) : (
-                        <>
-                          <XCircle className="h-4 w-4 mr-2" />
-                          Cancel Booking
-                        </>
-                      )}
-                    </Button>
+                    {canManageBooking && (booking.status === 'Pending' || booking.status === 'Confirmed') && (
+                      <Button
+                        onClick={handleCancelBooking}
+                        disabled={actionLoading}
+                        className="w-full px-8 py-4 text-red-400 border-red-400 bg-gradient-to-r from-red-400/10 to-red-400/30 font-libre font-bold rounded-lg hover:shadow-red-400/30 hover:bg-red-400/10 transition-all duration-300 hover:scale-100 disabled:opacity-50"
+                      >
+                        {actionLoading ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-red-400/30 border-t-red-400 rounded-full animate-spin mr-2"></div>
+                            Processing...
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="h-4 w-4 mr-2" />
+                            Cancel Booking
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    {canReview && (
+                      <Button
+                        onClick={() => setShowReviewModal(true)}
+                        className="w-full px-8 py-4 bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-creamy-white font-libre font-bold rounded-lg shadow-2xl hover:shadow-terracotta-rose/40 transition-all duration-300 hover:scale-105"
+                      >
+                        <Star className="h-4 w-4 mr-2" />
+                        Write a Review
+                      </Button>
+                    )}
                   </div>
                 </Card>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {booking && (
+        <ReviewModal
+          open={showReviewModal}
+          onOpenChange={setShowReviewModal}
+          hotelId={booking.hotel_id}
+          hotelName={booking.hotel?.name || 'Hotel'}
+          bookingId={booking.id}
+          onSuccess={() => {
+            // Optionally refresh booking data
+            console.log('Review submitted successfully')
+          }}
+        />
+      )}
     </div>
   )
 }

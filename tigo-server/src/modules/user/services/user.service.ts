@@ -42,7 +42,7 @@ export class UserService {
 
     if (!role) {
       throw new Error(`Role '${roleName}' not found`);
-    }
+    } 
 
     // Remove role from createUserDto before spreading to avoid conflicts
     const { role: _, ...userDataWithoutRole } = createUserDto;

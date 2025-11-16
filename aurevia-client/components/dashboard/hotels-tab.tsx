@@ -22,14 +22,18 @@ import {
   CheckCircle,
   XCircle,
   AlertTriangle,
-  IdCard
+  IdCard,
+  MessageSquare
 } from "lucide-react"
 import type { Hotel, Room, Booking, RoomAvailability } from "@/types/dashboard"
 import { roomsApi, bookingsApi, availabilityApi } from "@/lib/api/dashboard"
+import { ReviewApiService } from "@/lib/api/reviews"
+import type { Review } from "@/types/review"
 import { EditHotelModal } from "./edit-hotel-modal"
 import { AddRoomModal } from "./add-room-modal"
 import { EditRoomModal } from "./edit-room-modal"
 import { ManageAvailabilityModal } from "./manage-availability-modal"
+import ReviewList from "@/components/reviews/review-list"
 
 interface HotelsTabProps {
   hotels: Hotel[]
@@ -38,12 +42,13 @@ interface HotelsTabProps {
   onRefresh: () => void
 }
 
-type HotelSubTab = 'rooms' | 'bookings'
+type HotelSubTab = 'rooms' | 'bookings' | 'reviews'
 
 export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: HotelsTabProps) {
   const [expandedHotels, setExpandedHotels] = useState<Set<string>>(new Set())
   const [hotelRooms, setHotelRooms] = useState<Record<string, Room[]>>({})
   const [hotelBookings, setHotelBookings] = useState<Record<string, Booking[]>>({})
+  const [hotelReviews, setHotelReviews] = useState<Record<string, Review[]>>({})
   const [expandedRooms, setExpandedRooms] = useState<Set<string>>(new Set())
   const [roomAvailability, setRoomAvailability] = useState<Record<string, RoomAvailability[]>>({})
   const [loading, setLoading] = useState<Record<string, boolean>>({})
@@ -152,12 +157,14 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
   const loadHotelData = async (hotelId: string) => {
     setLoading((prev) => ({ ...prev, [hotelId]: true }))
     try {
-      const [rooms, bookings] = await Promise.all([
+      const [rooms, bookings, reviews] = await Promise.all([
         roomsApi.getByHotel(hotelId).catch(() => []),
         bookingsApi.getByHotel(hotelId).catch(() => []),
+        ReviewApiService.getHotelReviews(hotelId, true).catch(() => [])
       ])
       setHotelRooms((prev) => ({ ...prev, [hotelId]: rooms }))
       setHotelBookings((prev) => ({ ...prev, [hotelId]: bookings }))
+      setHotelReviews((prev) => ({ ...prev, [hotelId]: reviews }))
       console.log('🔍 Bookings:', bookings)
       console.log('🛏️ Rooms:', rooms)
 
@@ -359,6 +366,16 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                         >
                           <Calendar className="h-4 w-4" />
                           Bookings ({hotelBookings[hotel.id]?.length || 0})
+                        </button>
+                        <button
+                          onClick={() => setHotelSubTab(hotel.id, 'reviews')}
+                          className={`flex items-center gap-2 px-4 py-2 font-varela text-vintage-base font-medium transition-all duration-300 ${getHotelSubTab(hotel.id) === 'reviews'
+                              ? 'text-terracotta-rose border-b-2 border-terracotta-rose'
+                              : 'text-creamy-white/60 hover:text-creamy-white'
+                            }`}
+                        >
+                          <Star className="h-4 w-4" />
+                          Reviews ({hotelReviews[hotel.id]?.length || 0})
                         </button>
                       </div>
 
@@ -607,6 +624,30 @@ export default function HotelsTab({ hotels, accessToken, isAdmin, onRefresh }: H
                                   </CardContent>
                                 </Card>
                               ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Reviews Tab */}
+                      {getHotelSubTab(hotel.id) === 'reviews' && (
+                        <div className="space-y-4">
+                          {loading[hotel.id] ? (
+                            <div className="flex justify-center py-8">
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-terracotta-rose" />
+                            </div>
+                          ) : (
+                            <div className="space-y-4">
+                              {hotelReviews[hotel.id]?.length === 0 ? (
+                                <div className="text-center py-8 text-creamy-white/60">
+                                  <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                                  <p className="font-varela">No reviews yet for this hotel</p>
+                                </div>
+                              ) : (
+                                <ReviewList 
+                                  reviews={hotelReviews[hotel.id] || []} 
+                                />
+                              )}
                             </div>
                           )}
                         </div>

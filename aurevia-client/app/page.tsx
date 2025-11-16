@@ -8,6 +8,7 @@ import Testimonials from "@/components/quick-rating"
 import Footer from "@/components/footer"
 import LoginPage from "@/components/login-page"
 import QuickRating from "@/components/quick-rating"
+import FeaturedHotels from "@/components/featured-hotels"
 
 export default function Home() {
   return (
@@ -15,8 +16,8 @@ export default function Home() {
       <Header />
       <Hero />
       <PlatformFeatures />
-      <BookingShowcase />
-      <About />
+      <FeaturedHotels />
+      <Services />
       <QuickRating />
       <Footer />
     </div>

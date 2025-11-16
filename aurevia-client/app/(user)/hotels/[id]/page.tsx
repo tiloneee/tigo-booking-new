@@ -5,7 +5,9 @@ import { useParams, useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Hotel, Room } from '@/types/hotel';
+import { Review, ReviewStatistics } from '@/types/review';
 import { HotelApiService } from '@/lib/api/hotels';
+import { ReviewApiService } from '@/lib/api/reviews';
 import { 
   ArrowLeft, 
   Star, 
@@ -23,6 +25,8 @@ import {
   ChevronRight
 } from 'lucide-react';
 import Header from '@/components/header';
+import ReviewList from '@/components/reviews/review-list';
+import ReviewStatisticsDisplay from '@/components/reviews/review-statistics-display';
 
 function HotelDetailContent() {
   const params = useParams();
@@ -31,6 +35,8 @@ function HotelDetailContent() {
   
   const [hotel, setHotel] = useState<Hotel | null>(null);
   const [rooms, setRooms] = useState<Room[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewStats, setReviewStats] = useState<ReviewStatistics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -67,6 +73,20 @@ function HotelDetailContent() {
         const hotelData = await HotelApiService.getHotelById(hotelId);
         console.log('✅ Hotel data received:', hotelData);
         setHotel(hotelData);
+
+        // Fetch reviews and statistics in parallel
+        try {
+          const [reviewsData, statsData] = await Promise.all([
+            ReviewApiService.getHotelReviews(hotelId),
+            ReviewApiService.getHotelReviewStatistics(hotelId)
+          ]);
+          setReviews(reviewsData);
+          setReviewStats(statsData);
+        } catch (reviewError) {
+          console.warn('⚠️ Reviews not available:', reviewError);
+          setReviews([]);
+          setReviewStats(null);
+        }
 
         // Only fetch rooms if dates are provided from URL params on initial load
         const initialCheckIn = searchParams.get('check_in_date');
@@ -316,6 +336,35 @@ function HotelDetailContent() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Reviews Section */}
+            <div className="space-y-6">
+              {reviewStats && reviewStats.total_reviews > 0 && (
+                <ReviewStatisticsDisplay statistics={reviewStats} />
+              )}
+              
+              {reviews.length > 0 ? (
+                <div className="bg-creamy-white p-6 rounded-xl">
+                  <h3 className="text-vintage-2xl font-libre font-bold text-deep-brown mb-6">
+                    Guest Reviews ({reviews.length})
+                  </h3>
+                  <ReviewList reviews={reviews} />
+                </div>
+              ) : reviewStats === null ? (
+                <Card className="bg-soft-beige/40 border-terracotta-rose/20">
+                  <CardContent className="p-8 text-center">
+                    <p className="text-ash-brown font-varela">Loading reviews...</p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="bg-soft-beige/40 border-terracotta-rose/20">
+                  <CardContent className="p-8 text-center">
+                    <p className="text-ash-brown font-varela text-lg">No reviews yet for this hotel.</p>
+                    <p className="text-ash-brown/60 font-varela text-sm mt-2">Be the first to share your experience!</p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
 
           {/* Sidebar - Date Selection & Available Rooms */}

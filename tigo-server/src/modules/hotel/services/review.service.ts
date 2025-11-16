@@ -127,7 +127,7 @@ export class ReviewService {
             id: createReviewDto.booking_id,
             user_id: userId,
             hotel_id: createReviewDto.hotel_id,
-            status: 'Completed', // Only allow reviews for completed stays
+            status: 'Confirmed', // Only allow reviews for completed stays
           },
         });
 
@@ -145,7 +145,7 @@ export class ReviewService {
           where: {
             user_id: userId,
             hotel_id: createReviewDto.hotel_id,
-            status: 'Completed',
+            status: 'Confirmed',
           },
           order: { check_out_date: 'DESC' },
         });
@@ -211,13 +211,23 @@ export class ReviewService {
 
     const reviews = await this.reviewRepository.find({
       where: whereCondition,
-      relations: ['user'],
+      relations: ['user', 'booking', 'booking.room'],
       order: { created_at: 'DESC' },
       select: {
         user: {
           id: true,
+          email: true,
           first_name: true,
           last_name: true,
+        },
+        booking: {
+          id: true,
+          check_in_date: true,
+          check_out_date: true,
+          room: {
+            id: true,
+            room_type: true,
+          },
         },
       },
     });
@@ -345,10 +355,14 @@ export class ReviewService {
   }
 
   async getReviewStatistics(hotelId: string): Promise<{
-    totalReviews: number;
-    averageRating: number;
-    ratingDistribution: { [rating: number]: number };
-    verifiedStaysPercentage: number;
+    total_reviews: number;
+    average_rating: number;
+    rating_distribution: { 1: number; 2: number; 3: number; 4: number; 5: number };
+    average_cleanliness: number | null;
+    average_location: number | null;
+    average_service: number | null;
+    average_value: number | null;
+    verified_stays_count: number;
   }> {
     const reviews = await this.reviewRepository.find({
       where: { hotel_id: hotelId, is_approved: true },
@@ -358,10 +372,14 @@ export class ReviewService {
 
     if (totalReviews === 0) {
       return {
-        totalReviews: 0,
-        averageRating: 0,
-        ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
-        verifiedStaysPercentage: 0,
+        total_reviews: 0,
+        average_rating: 0,
+        rating_distribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        average_cleanliness: null,
+        average_location: null,
+        average_service: null,
+        average_value: null,
+        verified_stays_count: 0,
       };
     }
 
@@ -370,21 +388,49 @@ export class ReviewService {
 
     const ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
     let verifiedStaysCount = 0;
+    let cleanlinessSum = 0;
+    let cleanlinessCount = 0;
+    let locationSum = 0;
+    let locationCount = 0;
+    let serviceSum = 0;
+    let serviceCount = 0;
+    let valueSum = 0;
+    let valueCount = 0;
 
     reviews.forEach((review) => {
       ratingDistribution[review.rating]++;
       if (review.is_verified_stay) {
         verifiedStaysCount++;
       }
+      
+      // Calculate category averages
+      if (review.cleanliness_rating) {
+        cleanlinessSum += review.cleanliness_rating;
+        cleanlinessCount++;
+      }
+      if (review.location_rating) {
+        locationSum += review.location_rating;
+        locationCount++;
+      }
+      if (review.service_rating) {
+        serviceSum += review.service_rating;
+        serviceCount++;
+      }
+      if (review.value_rating) {
+        valueSum += review.value_rating;
+        valueCount++;
+      }
     });
 
-    const verifiedStaysPercentage = (verifiedStaysCount / totalReviews) * 100;
-
     return {
-      totalReviews,
-      averageRating: Math.round(averageRating * 100) / 100,
-      ratingDistribution,
-      verifiedStaysPercentage: Math.round(verifiedStaysPercentage * 100) / 100,
+      total_reviews: totalReviews,
+      average_rating: Math.round(averageRating * 100) / 100,
+      rating_distribution: ratingDistribution,
+      average_cleanliness: cleanlinessCount > 0 ? Math.round((cleanlinessSum / cleanlinessCount) * 100) / 100 : null,
+      average_location: locationCount > 0 ? Math.round((locationSum / locationCount) * 100) / 100 : null,
+      average_service: serviceCount > 0 ? Math.round((serviceSum / serviceCount) * 100) / 100 : null,
+      average_value: valueCount > 0 ? Math.round((valueSum / valueCount) * 100) / 100 : null,
+      verified_stays_count: verifiedStaysCount,
     };
   }
 

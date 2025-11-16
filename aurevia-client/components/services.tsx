@@ -1,36 +1,36 @@
 import { Card, CardContent } from "@/components/ui/card"
-import { Plane, Hotel, MapPin, Utensils, Camera, Shield } from "lucide-react"
+import { Hotel, Shield, Calendar, Search, Star, Headphones } from "lucide-react"
 
 const services = [
   {
-    icon: Plane,
-    title: "Private Aviation",
-    description: "Exclusive charter flights with personalized service and luxury amenities.",
-  },
-  {
     icon: Hotel,
     title: "Luxury Accommodations",
-    description: "Handpicked hotels, villas, and resorts that define elegance and comfort.",
+    description: "Handpicked hotels and resorts that define elegance and comfort for your perfect stay.",
   },
   {
-    icon: MapPin,
-    title: "Bespoke Itineraries",
-    description: "Tailor-made travel plans crafted to your unique preferences and desires.",
+    icon: Search,
+    title: "Easy Hotel Search",
+    description: "Find your ideal hotel with our powerful search and filtering system.",
   },
   {
-    icon: Utensils,
-    title: "Culinary Experiences",
-    description: "Exclusive dining experiences with world-renowned chefs and local delicacies.",
+    icon: Calendar,
+    title: "Instant Booking",
+    description: "Book your perfect room instantly with our seamless reservation system.",
   },
   {
-    icon: Camera,
-    title: "Cultural Immersion",
-    description: "Authentic local experiences that connect you with the heart of each destination.",
+    icon: Star,
+    title: "Verified Reviews",
+    description: "Make informed decisions with authentic reviews from real guests.",
+  },
+  {
+    icon: Headphones,
+    title: "24/7 Support",
+    description: "Round-the-clock customer service to assist with all your booking needs.",
   },
   {
     icon: Shield,
-    title: "Concierge Support",
-    description: "24/7 dedicated support ensuring every detail of your journey is perfect.",
+    title: "Secure Payment",
+    description: "Your transactions are protected with our secure payment system.",
   },
 ]
 
@@ -47,10 +47,10 @@ export default function Services() {
           </div>
 
           <h2 className="text-vintage-4xl md:text-vintage-5xl font-libre font-bold text-deep-brown mb-6 tracking-wide">
-            Our Distinguished Services
+            Our Hotel Booking Services
           </h2>
           <p className="text-vintage-xl text-ash-brown max-w-2xl mx-auto font-varela leading-relaxed">
-            Every aspect of your journey is meticulously planned and executed with the finest attention to detail
+            Experience seamless hotel booking with our comprehensive platform designed for your comfort
           </p>
         </div>
 
