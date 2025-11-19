@@ -26,12 +26,15 @@ interface BookingsManagementTabProps {
 export default function BookingsManagementTab({ bookings, accessToken, onRefresh }: BookingsManagementTabProps) {
   const [filterStatus, setFilterStatus] = useState<string>('all')
   const [searchQuery, setSearchQuery] = useState('')
+  const [localBookings, setLocalBookings] = useState<Booking[]>(bookings)
 
   const handleConfirmBooking = async (bookingId: string) => {
     try {
       await bookingsApi.updateStatus(bookingId, 'Confirmed')
       toast.success('Booking confirmed successfully')
-      onRefresh()
+      setLocalBookings(prev => 
+        prev.map(b => b.id === bookingId ? { ...b, status: 'Confirmed' as const } : b)
+      )
     } catch (error) {
       console.error('Failed to confirm booking:', error)
       toast.error('Failed to confirm booking')
@@ -42,10 +45,25 @@ export default function BookingsManagementTab({ bookings, accessToken, onRefresh
     try {
       await bookingsApi.updateStatus(bookingId, 'Cancelled', 'Cancelled by hotel management')
       toast.success('Booking cancelled successfully')
-      onRefresh()
+      setLocalBookings(prev => 
+        prev.map(b => b.id === bookingId ? { ...b, status: 'Cancelled' as const } : b)
+      )
     } catch (error) {
       console.error('Failed to cancel booking:', error)
       toast.error('Failed to cancel booking')
+    }
+  }
+
+  const handleCompleteBooking = async (bookingId: string) => {
+    try {
+      await bookingsApi.updateStatus(bookingId, 'Completed')
+      toast.success('Booking marked as completed')
+      setLocalBookings(prev => 
+        prev.map(b => b.id === bookingId ? { ...b, status: 'Completed' as const } : b)
+      )
+    } catch (error) {
+      console.error('Failed to complete booking:', error)
+      toast.error('Failed to complete booking')
     }
   }
 
@@ -64,7 +82,7 @@ export default function BookingsManagementTab({ bookings, accessToken, onRefresh
     }
   }
 
-  const filteredBookings = bookings.filter((booking) => {
+  const filteredBookings = localBookings.filter((booking) => {
     const matchesStatus = filterStatus === 'all' || booking.status === filterStatus
     const matchesSearch = searchQuery === '' || 
       booking.guest_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -74,11 +92,11 @@ export default function BookingsManagementTab({ bookings, accessToken, onRefresh
   })
 
   const statusCounts = {
-    all: bookings.length,
-    Pending: bookings.filter(b => b.status === 'Pending').length,
-    Confirmed: bookings.filter(b => b.status === 'Confirmed').length,
-    Cancelled: bookings.filter(b => b.status === 'Cancelled').length,
-    Completed: bookings.filter(b => b.status === 'Completed').length
+    all: localBookings.length,
+    Pending: localBookings.filter(b => b.status === 'Pending').length,
+    Confirmed: localBookings.filter(b => b.status === 'Confirmed').length,
+    Cancelled: localBookings.filter(b => b.status === 'Cancelled').length,
+    Completed: localBookings.filter(b => b.status === 'Completed').length
   }
 
   return (
@@ -108,15 +126,15 @@ export default function BookingsManagementTab({ bookings, accessToken, onRefresh
           <Button
             key={status}
             onClick={() => setFilterStatus(status)}
-            variant={filterStatus === status ? 'default' : 'outline'}
+            variant={filterStatus === status ? 'default' : 'default'}
             className={`${
               filterStatus === status
-                ? 'bg-gradient-to-r from-terracotta-rose/70 to-terracotta-orange/80 text-white border-terracotta-rose/30'
-                : 'bg-dark-brown/40 text-creamy-yellow/80 border-terracotta-rose/30 hover:bg-terracotta-rose/20'
+                ? 'bg-gradient-to-r from-terracotta-rose/70 to-terracotta-orange/80 text-dark-brown font-bold border-terracotta-rose/30'
+                : 'bg-terracotta-rose/30 text-deep-brown/50 border-terracotta-rose/30 hover:bg-terracotta-rose/20'
             } font-varela whitespace-nowrap`}
           >
             {status === 'all' ? 'All' : status}
-            <span className="ml-2 px-2 py-0.5 bg-creamy-yellow/20 rounded-full text-vintage-xs">
+            <span className="ml-2 px-2 py-0.5 bg-terracotta-orange/80 rounded-full text-vintage-xs">
               {statusCounts[status]}
             </span>
           </Button>
@@ -244,6 +262,17 @@ export default function BookingsManagementTab({ bookings, accessToken, onRefresh
                     </Button>
                   </div>
                 )}
+                {booking.status === 'Confirmed' && (
+                  <div className="flex gap-2 pt-2 border-t border-terracotta-rose/30">
+                    <Button
+                      onClick={() => handleCompleteBooking(booking.id)}
+                      className="flex-1 bg-terracotta-rose text-dark-brown font-bold border-terracotta-rose/70 hover:bg-terracotta-rose/40 font-varela"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Mark as Completed
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
@@ -252,7 +281,7 @@ export default function BookingsManagementTab({ bookings, accessToken, onRefresh
 
       {/* Results Summary */}
       <div className="text-center text-vintage-sm text-creamy-yellow/60 font-varela">
-        Showing {filteredBookings.length} of {bookings.length} bookings
+        Showing {filteredBookings.length} of {localBookings.length} bookings
       </div>
     </div>
   )

@@ -1,5 +1,4 @@
 "use client"
-
 import { useAuth } from "@/lib/auth-context"
 import { useEffect, useState, useCallback } from "react"
 import { useRouter, useParams } from "next/navigation"
@@ -73,6 +72,7 @@ export default function HotelManagementPage() {
         bookingsApi.getByHotel(hotelId).catch(() => []),
         ReviewApiService.getHotelReviews(hotelId, true).catch(() => [])
       ])
+
 
       setRooms(roomsData)
       setBookings(bookingsData)

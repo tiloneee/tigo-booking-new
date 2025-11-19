@@ -1,312 +1,831 @@
-# Tigo-Booking Database Diagram
+# Tigo Booking System - Database Architecture Diagram
 
-This document provides a textual representation of the tigo-booking database schema, defined using DBML (Database Markup Language). You can copy and paste the DBML code into a tool like dbdiagram.io to visualize the relationships and structure.
-
-This schema is designed to support a comprehensive booking platform similar to Agoda or Booking.com, covering hotels, restaurants, and transportation services, with robust user management and advanced features.
+## Overview
+This document provides a comprehensive database schema for the Tigo Booking System, a full-featured hotel booking platform with real-time chat, notifications, and transaction management.
 
 ---
 
-## Core User Management & Authentication
+## 📊 Visual Database Diagram (DBML)
+
+Copy and paste this DBML code into [dbdiagram.io](https://dbdiagram.io) to visualize the database structure.
 
 ```dbml
+// =====================================
+// TIGO BOOKING SYSTEM - DATABASE SCHEMA
+// =====================================
+
+// ==================
+// 1. USER MANAGEMENT
+// ==================
+
 Table users {
-  id uuid [pk]
-  first_name varchar(100)
-  last_name varchar(100)
+  id uuid [pk, default: `uuid_generate_v4()`]
+  first_name varchar(100) [not null]
+  last_name varchar(100) [not null]
   email varchar(255) [unique, not null]
   password_hash text [not null]
-  phone_number varchar(25) [unique, null]
-  refresh_token text [null, note: 'Stores the refresh token for authentication sessions']
-  is_active boolean [default: true, note: 'Account activation status']
+  phone_number varchar(25) [null]
+  refresh_token text [null, note: 'JWT refresh token for authentication']
+  is_active boolean [default: false, note: 'Email verification status']
+  activation_token text [null]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    email [unique]
+    phone_number [unique]
+  }
 }
 
 Table roles {
-  id uuid [pk]
-  name varchar(50) [unique, not null, note: 'e.g., Admin, Customer, HotelOwner, RestaurantOwner, TransportOwner']
-  description text [null]
+  id uuid [pk, default: `uuid_generate_v4()`]
+  name varchar(50) [unique, not null, note: 'Admin, Customer, HotelOwner']
+  description text
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
 }
 
-// Junction table for many-to-many relationship between users and roles
 Table user_roles {
-  user_id uuid [ref: > users.id, pk]
-  role_id uuid [ref: > roles.id, pk]
-  created_at timestamp [default: `now()`]
+  user_id uuid [pk, ref: > users.id]
+  role_id uuid [pk, ref: > roles.id]
+  
+  Indexes {
+    (user_id, role_id) [pk]
+  }
 }
 
-// Optional: For more granular permissions (e.g., 'can_manage_bookings', 'can_edit_properties')
 Table permissions {
-  id uuid [pk]
+  id uuid [pk, default: `uuid_generate_v4()`]
   name varchar(100) [unique, not null]
-  description text [null]
+  description text
 }
 
 Table role_permissions {
-  role_id uuid [ref: > roles.id, pk]
-  permission_id uuid [ref: > permissions.id, pk]
+  role_id uuid [pk, ref: > roles.id]
+  permission_id uuid [pk, ref: > permissions.id]
+  
+  Indexes {
+    (role_id, permission_id) [pk]
+  }
 }
-```
 
----
+// ==================
+// 2. HOTEL MANAGEMENT
+// ==================
 
-## Hotel Management & Bookings
-
-```dbml
 Table hotels {
-  id uuid [pk]
-  owner_id uuid [ref: > users.id, not null, note: 'User who owns this hotel']
-  name varchar(255) [not null]
-  description text [null]
-  address_line1 varchar(255) [not null]
-  address_line2 varchar(255) [null]
+  id uuid [pk, default: `uuid_generate_v4()`]
+  owner_id uuid [not null, ref: > users.id]
+  name varchar(200) [not null]
+  description text [not null]
+  address varchar(500) [not null]
   city varchar(100) [not null]
-  state_province varchar(100) [null]
-  zip_code varchar(20) [null]
+  state varchar(100) [not null]
+  zip_code varchar(20) [not null]
   country varchar(100) [not null]
-  latitude decimal(9,6) [null, note: 'For geospatial search']
-  longitude decimal(9,6) [null, note: 'For geospatial search']
-  avg_rating decimal(3,2) [default: 0.00, note: 'Computed average from hotel_reviews']
+  phone_number varchar(20) [not null]
+  latitude numeric(10,8) [null]
+  longitude numeric(11,8) [null]
+  avg_rating numeric(3,2) [default: 0]
+  total_reviews integer [default: 0]
+  is_active boolean [default: true]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    owner_id
+    city
+    is_active
+  }
 }
+
+Table hotel_requests {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  name varchar(200) [not null]
+  description text [not null]
+  address varchar(500) [not null]
+  city varchar(100) [not null]
+  state varchar(100) [not null]
+  zip_code varchar(20) [not null]
+  country varchar(100) [not null]
+  phone_number varchar(20) [not null]
+  status hotel_requests_status_enum [default: 'pending', note: 'pending, approved, rejected']
+  requested_by_user_id uuid [not null, ref: > users.id]
+  reviewed_by_user_id uuid [null, ref: > users.id]
+  admin_notes text [null]
+  created_hotel_id uuid [null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    status
+    requested_by_user_id
+  }
+}
+
+Table hotel_deletion_requests {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  hotel_id uuid [not null, ref: > hotels.id]
+  reason text [not null]
+  status hotel_deletion_requests_status_enum [default: 'pending', note: 'pending, approved, rejected']
+  requested_by_user_id uuid [null, ref: > users.id]
+  reviewed_by_user_id uuid [null, ref: > users.id]
+  admin_notes text [null]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    hotel_id
+    status
+  }
+}
+
+// ==================
+// 3. AMENITIES
+// ==================
 
 Table hotel_amenities {
-  id uuid [pk]
-  name varchar(100) [unique, not null, note: 'e.g., Wi-Fi, Pool, Parking, Gym']
-  description text [null]
+  id uuid [pk, default: `uuid_generate_v4()`]
+  name varchar(100) [not null]
+  description text
+  category varchar(100) [note: 'WiFi, Pool, Gym, etc.']
+  icon varchar(50)
+  is_active boolean [default: true]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
 }
 
-Table hotel_has_amenities { // Junction table for many-to-many
-  hotel_id uuid [ref: > hotels.id, pk]
-  amenity_id uuid [ref: > hotel_amenities.id, pk]
+Table hotel_has_amenities {
+  hotel_id uuid [pk, ref: > hotels.id]
+  amenity_id uuid [pk, ref: > hotel_amenities.id]
+  
+  Indexes {
+    (hotel_id, amenity_id) [pk]
+  }
 }
+
+Table hotel_amenity_mappings {
+  hotel_id uuid [pk, ref: > hotels.id]
+  amenity_id uuid [pk, ref: > hotel_amenities.id]
+  
+  Indexes {
+    (hotel_id, amenity_id) [pk]
+  }
+}
+
+// ==================
+// 4. ROOMS & AVAILABILITY
+// ==================
 
 Table rooms {
-  id uuid [pk]
-  hotel_id uuid [ref: > hotels.id, not null]
-  room_number varchar(50) [not null, note: 'Unique within a hotel']
-  type varchar(50) [not null, note: 'e.g., Standard, Deluxe, Suite']
-  description text [null]
+  id uuid [pk, default: `uuid_generate_v4()`]
+  hotel_id uuid [not null, ref: > hotels.id]
+  room_number varchar(20) [not null]
+  room_type varchar(100) [not null, note: 'Deluxe, Suite, Standard, etc.']
+  description text
   max_occupancy integer [not null]
-  bed_configuration varchar(100) [null, note: 'e.g., 1 King, 2 Queens']
+  bed_configuration varchar(200) [note: '1 King, 2 Queens, etc.']
+  size_sqm numeric(10,2)
+  is_active boolean [default: true]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    hotel_id
+    room_number
+    is_active
+  }
 }
 
-// For dynamic pricing and availability per room per date
 Table room_availability {
-  room_id uuid [ref: > rooms.id, pk]
-  date date [pk]
-  price_per_night decimal(10,2) [not null]
-  available_units integer [not null, note: 'Number of units of this room type available on this date']
-  status varchar(20) [default: 'Available', note: 'Available, Booked, Maintenance']
+  id uuid [pk, default: `uuid_generate_v4()`]
+  room_id uuid [not null, ref: > rooms.id]
+  date date [not null]
+  price_per_night numeric(10,2) [not null]
+  available_units integer [not null]
+  total_units integer [default: 0]
+  status room_availability_status_enum [default: 'Available', note: 'Available, Booked, Maintenance, Blocked']
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    (room_id, date) [unique]
+    status
+  }
 }
+
+// ==================
+// 5. BOOKINGS
+// ==================
 
 Table hotel_bookings {
-  id uuid [pk]
-  user_id uuid [ref: > users.id, not null, note: 'User who made the booking']
-  room_id uuid [ref: > rooms.id, not null]
-  hotel_id uuid [ref: > hotels.id, not null] // Denormalized for easier querying
+  id uuid [pk, default: `uuid_generate_v4()`]
+  user_id uuid [not null, ref: > users.id]
+  room_id uuid [not null, ref: > rooms.id]
+  hotel_id uuid [not null, ref: > hotels.id]
   check_in_date date [not null]
   check_out_date date [not null]
   number_of_guests integer [not null]
-  total_price decimal(10,2) [not null]
-  booking_status varchar(20) [default: 'Pending', note: 'Pending, Confirmed, Cancelled, Completed, NoShow']
-  payment_status varchar(20) [default: 'Pending', note: 'Pending, Paid, Refunded, Failed']
-  cancellation_reason text [null]
-  special_requests text [null]
-  booked_at timestamp [default: `now()`, note: 'When the booking was made']
+  units_requested integer [default: 1]
+  total_price numeric(10,2) [not null]
+  paid_amount numeric(10,2) [default: 0]
+  guest_name varchar(200)
+  guest_phone varchar(20)
+  guest_email varchar(100)
+  special_requests text
+  status hotel_bookings_status_enum [default: 'Pending', note: 'Pending, Confirmed, Cancelled, Completed, CheckedIn, CheckedOut, NoShow']
+  payment_status hotel_bookings_payment_status_enum [default: 'Pending', note: 'Pending, Paid, Refunded, PartialRefund, Failed']
+  cancellation_reason text
+  admin_notes text
+  cancelled_at timestamp
+  confirmed_at timestamp
+  created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    user_id
+    hotel_id
+    room_id
+    status
+    (check_in_date, check_out_date)
+  }
 }
+
+// ==================
+// 6. REVIEWS
+// ==================
 
 Table hotel_reviews {
-  id uuid [pk]
-  hotel_id uuid [ref: > hotels.id, not null]
-  user_id uuid [ref: > users.id, not null]
-  rating integer [not null, note: '1-5 scale']
-  comment text [null]
+  id uuid [pk, default: `uuid_generate_v4()`]
+  hotel_id uuid [not null, ref: > hotels.id]
+  user_id uuid [not null, ref: > users.id]
+  booking_id uuid [not null, ref: > hotel_bookings.id]
+  rating integer [not null, note: '1-5 stars']
+  comment text
+  title varchar(200)
+  cleanliness_rating integer [note: '1-5 stars']
+  location_rating integer [note: '1-5 stars']
+  service_rating integer [note: '1-5 stars']
+  value_rating integer [note: '1-5 stars']
+  is_verified_stay boolean [default: false]
+  stay_date timestamp
+  is_approved boolean [default: true]
+  moderation_notes text
+  helpful_votes integer [default: 0]
+  total_votes integer [default: 0]
   created_at timestamp [default: `now()`]
   updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    hotel_id
+    user_id
+    booking_id
+    rating
+  }
+}
+
+// ==================
+// 7. TRANSACTIONS & PAYMENTS
+// ==================
+
+Table transactions {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > users.id]
+  type transactions_type_enum [not null, note: 'topup, booking_payment, refund, admin_adjustment']
+  status transactions_status_enum [default: 'pending', note: 'pending, success, failed, cancelled']
+  amount numeric(10,2) [not null]
+  description text
+  admin_notes text
+  processed_by uuid [null, ref: > users.id]
+  reference_id uuid [null, note: 'Reference to booking or other entity']
+  reference_type varchar [null, note: 'booking, topup, etc.']
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    user_id
+    type
+    status
+    reference_id
+  }
+}
+
+Table balance_snapshots {
+  id uuid [pk, default: `gen_random_uuid()`]
+  user_id uuid [not null, ref: > users.id]
+  current_balance numeric(10,2) [default: 0, not null]
+  created_at timestamp [default: `now()`]
+  last_updated timestamp [default: `now()`]
+  
+  Indexes {
+    user_id [unique]
+  }
+}
+
+// ==================
+// 8. REAL-TIME CHAT
+// ==================
+
+Table chat_rooms {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  participant1_id uuid [not null, ref: > users.id]
+  participant2_id uuid [not null, ref: > users.id]
+  hotel_id uuid [null, ref: > hotels.id]
+  booking_id uuid [null, ref: > hotel_bookings.id]
+  last_message_content text
+  last_message_at timestamp
+  is_active boolean [default: true]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    participant1_id
+    participant2_id
+    hotel_id
+    booking_id
+  }
+}
+
+Table chat_messages {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  chat_room_id uuid [not null, ref: > chat_rooms.id]
+  sender_id uuid [not null, ref: > users.id]
+  content text [not null]
+  type chat_messages_type_enum [default: 'text', note: 'text, file, image']
+  status chat_messages_status_enum [default: 'sent', note: 'sent, delivered, read']
+  file_url text
+  file_name text
+  file_size integer
+  metadata jsonb
+  is_edited boolean [default: false]
+  edited_at timestamp
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    chat_room_id
+    sender_id
+    created_at
+  }
+}
+
+// ==================
+// 9. NOTIFICATIONS
+// ==================
+
+Table notifications {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  user_id uuid [not null, ref: > users.id]
+  type notifications_type_enum [not null, note: 'CHAT_MESSAGE, NEW_BOOKING, BOOKING_CONFIRMATION, etc.']
+  title varchar [not null]
+  message text [not null]
+  status notifications_status_enum [default: 'UNREAD', note: 'UNREAD, READ, ARCHIVED']
+  metadata jsonb
+  related_entity_type varchar [note: 'booking, hotel, chat, etc.']
+  related_entity_id varchar [note: 'UUID of related entity']
+  is_push_sent boolean [default: false]
+  is_email_sent boolean [default: false]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    user_id
+    type
+    status
+    created_at
+  }
+}
+
+Table notification_templates {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  type notification_templates_type_enum [not null]
+  title_template varchar [not null]
+  message_template text [not null]
+  email_template text
+  is_active boolean [default: true]
+  default_settings jsonb
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    type [unique]
+  }
+}
+
+Table notification_preferences {
+  id uuid [pk, default: `uuid_generate_v4()`]
+  user_id uuid [not null, ref: > users.id]
+  type notification_preferences_type_enum [not null]
+  in_app_enabled boolean [default: true]
+  email_enabled boolean [default: true]
+  push_enabled boolean [default: false]
+  created_at timestamp [default: `now()`]
+  updated_at timestamp [default: `now()`]
+  
+  Indexes {
+    user_id
+    type
+  }
+}
+
+// ==================
+// ENUMS DEFINITION
+// ==================
+
+Enum hotel_requests_status_enum {
+  pending
+  approved
+  rejected
+}
+
+Enum hotel_deletion_requests_status_enum {
+  pending
+  approved
+  rejected
+}
+
+Enum room_availability_status_enum {
+  Available
+  Booked
+  Maintenance
+  Blocked
+}
+
+Enum hotel_bookings_status_enum {
+  Pending
+  Confirmed
+  Cancelled
+  Completed
+  CheckedIn
+  CheckedOut
+  NoShow
+}
+
+Enum hotel_bookings_payment_status_enum {
+  Pending
+  Paid
+  Refunded
+  PartialRefund
+  Failed
+}
+
+Enum transactions_type_enum {
+  topup
+  booking_payment
+  refund
+  admin_adjustment
+}
+
+Enum transactions_status_enum {
+  pending
+  success
+  failed
+  cancelled
+}
+
+Enum chat_messages_type_enum {
+  text
+  file
+  image
+}
+
+Enum chat_messages_status_enum {
+  sent
+  delivered
+  read
+}
+
+Enum notifications_type_enum {
+  CHAT_MESSAGE
+  NEW_BOOKING
+  BOOKING_CREATED
+  BOOKING_CONFIRMATION
+  BOOKING_CANCELLED
+  BOOKING_REMINDER
+  REVIEW_RECEIVED
+  HOTEL_APPROVED
+  HOTEL_REJECTED
+  HOTEL_REQUEST_CREATED
+  SYSTEM_ANNOUNCEMENT
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  TOPUP_REQUEST
+  TOPUP_APPROVED
+  TOPUP_REJECTED
+}
+
+Enum notifications_status_enum {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+Enum notification_templates_type_enum {
+  CHAT_MESSAGE
+  NEW_BOOKING
+  BOOKING_CREATED
+  BOOKING_CONFIRMATION
+  BOOKING_CANCELLED
+  BOOKING_REMINDER
+  REVIEW_RECEIVED
+  HOTEL_APPROVED
+  HOTEL_REJECTED
+  HOTEL_REQUEST_CREATED
+  SYSTEM_ANNOUNCEMENT
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  TOPUP_REQUEST
+  TOPUP_APPROVED
+  TOPUP_REJECTED
+}
+
+Enum notification_preferences_type_enum {
+  CHAT_MESSAGE
+  NEW_BOOKING
+  BOOKING_CREATED
+  BOOKING_CONFIRMATION
+  BOOKING_CANCELLED
+  BOOKING_REMINDER
+  REVIEW_RECEIVED
+  HOTEL_APPROVED
+  HOTEL_REJECTED
+  HOTEL_REQUEST_CREATED
+  SYSTEM_ANNOUNCEMENT
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  TOPUP_REQUEST
+  TOPUP_APPROVED
+  TOPUP_REJECTED
 }
 ```
 
 ---
 
-## Restaurant Management & Reservations
+## 📋 Table Descriptions
 
-```dbml
-Table restaurants {
-  id uuid [pk]
-  owner_id uuid [ref: > users.id, not null, note: 'User who owns this restaurant']
-  name varchar(255) [not null]
-  description text [null]
-  cuisine_type varchar(100) [null]
-  address_line1 varchar(255) [not null]
-  address_line2 varchar(255) [null]
-  city varchar(100) [not null]
-  state_province varchar(100) [null]
-  zip_code varchar(20) [null]
-  country varchar(100) [not null]
-  phone_number varchar(25) [unique, null]
-  avg_rating decimal(2,1) [default: 0.0, note: 'Computed average from restaurant_reviews']
-  opening_hours jsonb [null, note: 'e.g., {"Mon": "9AM-5PM", "Tue": "9AM-5PM"}']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp [default: `now()`]
-}
+### 1. User Management Module
 
-Table restaurant_reservations {
-  id uuid [pk]
-  restaurant_id uuid [ref: > restaurants.id, not null]
-  user_id uuid [ref: > users.id, not null, note: 'User who made the reservation']
-  reservation_start_time timestamp [not null]
-  reservation_end_time timestamp [null]
-  number_of_guests integer [not null]
-  reservation_status varchar(20) [default: 'Pending', note: 'Pending, Confirmed, Cancelled, Seated, Completed, NoShow']
-  special_requests text [null]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp [default: `now()`]
-}
+#### **users**
+- Core user accounts table
+- Stores authentication credentials (email, password_hash)
+- Supports JWT refresh token authentication
+- Email activation workflow with activation_token
 
-Table restaurant_reviews {
-  id uuid [pk]
-  restaurant_id uuid [ref: > restaurants.id, not null]
-  user_id uuid [ref: > users.id, not null]
-  rating integer [not null, note: '1-5 scale']
-  comment text [null]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp [default: `now()`]
-}
+#### **roles**
+- Defines system roles: Admin, Customer, HotelOwner
+- Supports role-based access control (RBAC)
+
+#### **user_roles**
+- Many-to-many relationship between users and roles
+- Single user can have multiple roles
+
+#### **permissions**
+- Granular permission system for fine-grained access control
+
+#### **role_permissions**
+- Maps permissions to roles
+
+---
+
+### 2. Hotel Management Module
+
+#### **hotels**
+- Main hotel entity
+- Stores location data (address, city, state, coordinates)
+- Aggregated rating and review count
+- Owner relationship for hotel management
+
+#### **hotel_requests**
+- Hotel creation request workflow
+- Requires admin approval before hotel activation
+- Tracks request status and admin review
+
+#### **hotel_deletion_requests**
+- Soft delete workflow for hotels
+- Requires admin approval
+- Maintains audit trail
+
+---
+
+### 3. Amenities Module
+
+#### **hotel_amenities**
+- Master list of available amenities
+- Categorized amenities (WiFi, Pool, Gym, etc.)
+- Icon support for UI display
+
+#### **hotel_has_amenities / hotel_amenity_mappings**
+- Many-to-many relationship between hotels and amenities
+- Allows hotels to have multiple amenities
+
+---
+
+### 4. Room & Availability Module
+
+#### **rooms**
+- Individual room inventory for hotels
+- Room types, capacity, and configuration
+- Size and bed configuration metadata
+
+#### **room_availability**
+- Daily availability calendar
+- Dynamic pricing per night
+- Multi-unit support (multiple identical rooms)
+- Status tracking (Available, Booked, Maintenance, Blocked)
+
+---
+
+### 5. Booking Module
+
+#### **hotel_bookings**
+- Central booking entity
+- Supports multi-night stays
+- Guest information capture
+- Dual status system:
+  - Booking status (Pending → Confirmed → Completed)
+  - Payment status (Pending → Paid)
+- Cancellation tracking with reasons
+
+---
+
+### 6. Review & Rating Module
+
+#### **hotel_reviews**
+- Multi-criteria rating system:
+  - Overall rating (1-5 stars)
+  - Cleanliness, Location, Service, Value ratings
+- Verified stay validation via booking_id
+- Helpfulness voting system
+- Moderation support
+
+---
+
+### 7. Transaction & Payment Module
+
+#### **transactions**
+- Comprehensive transaction log
+- Types: topup, booking_payment, refund, admin_adjustment
+- Reference tracking to related entities
+- Admin processing workflow
+
+#### **balance_snapshots**
+- Real-time user balance tracking
+- Single record per user with current balance
+- Updated via transaction processing
+
+---
+
+### 8. Real-Time Chat Module
+
+#### **chat_rooms**
+- Private 1-to-1 chat rooms
+- Links to hotel and booking context
+- Tracks last message for UI display
+
+#### **chat_messages**
+- Message content with type support (text, file, image)
+- Delivery tracking (sent, delivered, read)
+- File attachment support
+- Edit tracking
+
+---
+
+### 9. Notification System
+
+#### **notifications**
+- User notification inbox
+- Rich metadata support (JSON)
+- Multi-channel tracking (in-app, email, push)
+- Related entity linking for context
+
+#### **notification_templates**
+- Template-based notification system
+- Supports email and in-app formats
+- Variable substitution support
+
+#### **notification_preferences**
+- User-configurable notification settings
+- Per-type granular control
+- Multi-channel preferences
+
+---
+
+## 🔗 Key Relationships
+
+### Primary Relationships
+
+1. **User → Hotels** (1:Many)
+   - HotelOwner creates and manages multiple hotels
+
+2. **Hotel → Rooms** (1:Many)
+   - Each hotel contains multiple rooms
+
+3. **Room → Availability** (1:Many)
+   - Each room has daily availability records
+
+4. **User → Bookings** (1:Many)
+   - Users can make multiple bookings
+
+5. **Booking → Review** (1:1)
+   - Each booking can have one review
+
+6. **User ↔ User → ChatRoom** (Many:Many)
+   - Users communicate via chat rooms
+
+7. **ChatRoom → Messages** (1:Many)
+   - Each chat room contains multiple messages
+
+8. **User → Transactions** (1:Many)
+   - Users have transaction history
+
+9. **User → Notifications** (1:Many)
+   - Users receive multiple notifications
+
+---
+
+## 📊 Database Statistics
+
+- **Total Tables**: 22
+- **Total Enums**: 10
+- **Total Indexes**: 50+
+- **Foreign Key Constraints**: 32
+
+---
+
+## 🔐 Security Features
+
+1. **Password Hashing**: bcrypt hashed passwords
+2. **JWT Authentication**: Access + Refresh token pattern
+3. **Email Verification**: Activation token workflow
+4. **Role-Based Access**: RBAC with permissions
+5. **Soft Deletes**: Deletion request workflow
+6. **Audit Trails**: Created/Updated timestamps on all tables
+
+---
+
+## 🚀 Performance Optimizations
+
+1. **Strategic Indexing**: 
+   - Composite indexes on frequently queried columns
+   - Unique constraints on business keys
+
+2. **Materialized Data**:
+   - avg_rating and total_reviews on hotels
+   - balance_snapshots for quick balance lookup
+
+3. **Date Range Indexes**:
+   - Optimized for booking date queries
+
+4. **Status Indexes**:
+   - Fast filtering by booking/request status
+
+---
+
+## 🔄 Data Flow Examples
+
+### Booking Flow
+```
+User searches → Room Availability → Creates Booking (Pending) →
+Admin Confirms → Booking (Confirmed) → Transaction (booking_payment) →
+Stay Completes → Booking (Completed) → User leaves Review
+```
+
+### Hotel Creation Flow
+```
+HotelOwner submits → Hotel Request (pending) →
+Admin Reviews → Hotel Request (approved) →
+Hotel Created → Owner manages rooms/availability
+```
+
+### Transaction Flow
+```
+User requests topup → Transaction (pending) →
+Admin approves → Transaction (success) →
+Balance Snapshot updated → User can book
 ```
 
 ---
 
-## Transportation Management & Bookings
+## 📝 Notes
 
-```dbml
-Table transportation_companies {
-  id uuid [pk]
-  owner_id uuid [ref: > users.id, not null, note: 'User who owns this company']
-  name varchar(255) [unique, not null]
-  description text [null]
-  address_line1 varchar(255) [not null]
-  address_line2 varchar(255) [null]
-  city varchar(100) [not null]
-  state_province varchar(100) [null]
-  zip_code varchar(20) [null]
-  country varchar(100) [not null]
-  phone_number varchar(25) [not null]
-  avg_rating decimal(2,1) [default: 0.0, note: 'Computed average from transportation_reviews']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp [default: `now()`]
-}
-
-Table vehicles {
-  id uuid [pk]
-  company_id uuid [ref: > transportation_companies.id, not null]
-  vehicle_plate varchar(255) [unique, not null]
-  type varchar(50) [not null, note: 'e.g., Bus, Car, Van']
-  number_of_seats integer [not null]
-  make varchar(100) [null]
-  model varchar(100) [null]
-  year integer [null]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp [default: `now()`]
-}
-
-Table routes {
-  id uuid [pk]
-  company_id uuid [ref: > transportation_companies.id, not null, note: 'Routes often belong to a company']
-  departure_location_name varchar(255) [not null]
-  departure_latitude decimal(9,6) [null]
-  departure_longitude decimal(9,6) [null]
-  arrival_location_name varchar(255) [not null]
-  arrival_latitude decimal(9,6) [null]
-  arrival_longitude decimal(9,6) [null]
-  distance_km float [null]
-  estimated_duration_minutes integer [null]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp [default: `now()`]
-}
-
-Table trips {
-  id uuid [pk]
-  company_id uuid [ref: > transportation_companies.id, not null] // Denormalized for easier querying
-  vehicle_id uuid [ref: > vehicles.id, not null]
-  route_id uuid [ref: > routes.id, not null]
-  departure_time timestamp [not null]
-  arrival_time timestamp [not null]
-  price_per_seat decimal(10,2) [not null]
-  available_seats integer [not null, note: 'Current available seats for booking']
-  trip_status varchar(20) [default: 'Scheduled', note: 'Scheduled, Departed, Completed, Cancelled']
-  created_at timestamp [default: `now()`]
-  updated_at timestamp [default: `now()`]
-}
-
-Table transportation_bookings {
-  id uuid [pk]
-  user_id uuid [ref: > users.id, not null, note: 'User who made the booking']
-  trip_id uuid [ref: > trips.id, not null]
-  number_of_seats_booked integer [not null]
-  total_price decimal(10,2) [not null]
-  booking_status varchar(20) [default: 'Pending', note: 'Pending, Confirmed, Cancelled, Completed']
-  payment_status varchar(20) [default: 'Pending', note: 'Pending, Paid, Refunded, Failed']
-  booked_at timestamp [default: `now()`]
-  updated_at timestamp [default: `now()`]
-}
-
-Table transportation_reviews {
-  id uuid [pk]
-  company_id uuid [ref: > transportation_companies.id, not null]
-  user_id uuid [ref: > users.id, not null]
-  rating integer [not null, note: '1-5 scale']
-  review text [null]
-  created_at timestamp [default: `now()`]
-  updated_at timestamp [default: `now()`]
-}
-```
+- All tables use UUID primary keys for better distribution and security
+- Timestamps are in UTC without timezone
+- JSONB fields support flexible metadata storage
+- Enum types provide type safety and data integrity
+- ON DELETE CASCADE maintains referential integrity
 
 ---
 
-## Key Relationships and Design Choices
+## 🛠️ Technology Stack
 
-This schema is designed with clarity, scalability, and common booking system features in mind:
+- **Database**: PostgreSQL 17.4
+- **Extensions**: uuid-ossp
+- **ORM**: TypeORM
+- **Backend**: NestJS
+- **Real-time**: Socket.IO (WebSocket)
+- **Search**: Elasticsearch (for hotel search)
+- **Cache**: Redis (for chat and sessions)
 
-- **Users & Authentication:**
-  - `users`: Central table for all user information, including `refresh_token` for persistent sessions.
-  - `roles` & `user_roles`: Implements a flexible many-to-many relationship for user roles (e.g., Admin, Customer, HotelOwner). A user can have multiple roles.
-  - `permissions` & `role_permissions` (Optional): Provides a granular RBAC (Role-Based Access Control) system where permissions are assigned to roles, and users inherit them.
+---
 
-- **Property Ownership:**
-  - `hotels.owner_id`, `restaurants.owner_id`, and `transportation_companies.owner_id` explicitly link these entities to the users table, allowing a user to own multiple types of businesses.
-
-- **Hotel Management:**
-  - `hotels`: Stores general hotel information, including address breakdown and geospatial coordinates (latitude, longitude) for location-based searches. `avg_rating` is a computed field.
-  - `hotel_amenities` & `hotel_has_amenities`: Manages amenities offered by hotels.
-  - `rooms`: Defines the types of rooms available within a hotel.
-  - `room_availability`: Crucial for dynamic pricing and inventory. This table tracks the `price_per_night` and `available_units` for each room (type) on a specific date. This allows prices and availability to fluctuate daily.
-  - `hotel_bookings`: Records individual hotel bookings, linking to the user, room, and hotel. Includes `booking_status` and `payment_status`.
-
-- **Restaurant Management:**
-  - `restaurants`: Stores restaurant details, including cuisine type, address breakdown, `avg_rating`, and `opening_hours` (using JSONB for flexible schedules).
-  - `restaurant_reservations`: Manages restaurant reservations, linking to the user and restaurant. Includes `reservation_start_time`, `number_of_guests`, and `reservation_status`.
-
-- **Transportation Management:**
-  - `transportation_companies`: Details about the transport providers, including address and `avg_rating`.
-  - `vehicles`: Information about vehicles owned by a company, including `number_of_seats`.
-  - `routes`: Defines travel routes with departure/arrival locations, names, and geospatial coordinates.
-  - `trips`: Represents a specific journey on a route using a vehicle at a `departure_time`. `available_seats` is critical for real-time inventory and concurrency management.
-  - `transportation_bookings`: Records transportation bookings, linking to the user and trip.
-
-- **Reviews:**
-  - Separate review tables (`hotel_reviews`, `restaurant_reviews`, `transportation_reviews`) allow users to rate and comment on specific hotels, restaurants, and transportation companies. Ratings in the main tables are aggregated from these reviews.
-
-- **Timestamps & Constraints:**
-  - Most tables include `created_at` and `updated_at` for auditing.
-  - UUID is used for primary keys for distributed system benefits.
-  - NOT NULL constraints ensure data integrity for critical fields.
-  - ON DELETE CASCADE and ON DELETE RESTRICT are used appropriately for foreign key relationships to manage data integrity upon deletion.
+*Generated from database dump on November 19, 2025*

@@ -76,7 +76,7 @@ export default function ReviewsManagementTab({ hotelId, reviews, accessToken, on
             <span className="text-vintage-lg font-libre font-semibold text-deep-brown">
               {averageRating}
             </span>
-            <span className="text-vintage-sm text-creamy-yellow/60 font-varela">
+            <span className="text-vintage-sm text-terracotta-rose/60 font-varela">
               ({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})
             </span>
           </div>
@@ -101,11 +101,11 @@ export default function ReviewsManagementTab({ hotelId, reviews, accessToken, on
           <Button
             key={rating}
             onClick={() => setFilterRating(rating)}
-            variant={filterRating === rating ? 'default' : 'outline'}
+            variant={filterRating === rating ? 'default' : 'default'}
             className={`${
               filterRating === rating
-                ? 'bg-gradient-to-r from-terracotta-rose/70 to-terracotta-orange/80 text-white border-terracotta-rose/30'
-                : 'bg-dark-brown/40 text-creamy-yellow/80 border-terracotta-rose/30 hover:bg-terracotta-rose/20'
+                ? 'bg-gradient-to-r from-terracotta-rose/70 to-terracotta-orange/80 text-dark-brown font-bold border-terracotta-rose/30'
+                : 'bg-terracotta-rose/30 text-deep-brown/50 border-terracotta-rose/30 hover:bg-terracotta-rose/20'
             } font-varela whitespace-nowrap`}
           >
             {rating === 'all' ? (
