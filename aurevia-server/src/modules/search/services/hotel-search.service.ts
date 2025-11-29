@@ -288,9 +288,6 @@ export class HotelSearchService {
 
 
       const result = await this.searchService.search(searchParams);
-      console.log(result, "HOTEL SEARCH RESULT: ");
-      console.log(result.hits.hits, "HOTEL SEARCH HITS Hit: ");
-      console.log(result.hits, "HOTEL SEARCH HITS: ");
 
       let hotels = result.hits.hits.map((hit: any) => {
         const source = hit._source;

@@ -41,7 +41,7 @@ function PaymentContent() {
     cvv: '',
     cardholderName: '',
   });
-  const [paypalStatus, setPaypalStatus] = useState<'idle' | 'processing' | 'completed'>('idle');
+  const [walletStatus, setWalletStatus] = useState<'idle' | 'processing' | 'completed'>('idle');
 
   // Get parameters from URL
   const hotelId = searchParams.get('hotel_id');
@@ -235,11 +235,6 @@ function PaymentContent() {
       }
     }
 
-    if (paymentMethod === 'paypal' && paypalStatus !== 'completed') {
-      setError('Please complete the PayPal authorization.');
-      return;
-    }
-
     setProcessing(true);
     setError(null);
 
@@ -418,7 +413,7 @@ function PaymentContent() {
                   <button
                     onClick={() => {
                       setPaymentMethod('card');
-                      setPaypalStatus('idle');
+                      setWalletStatus('idle');
                     }}
                     className={`p-4 rounded-lg border-2 transition-all duration-300 ${
                       paymentMethod === 'card'
@@ -437,11 +432,11 @@ function PaymentContent() {
 
                   <button
                     onClick={() => {
-                      setPaymentMethod('paypal');
-                      setPaypalStatus('idle');
+                      setPaymentMethod('wallet');
+                      setWalletStatus('idle');
                     }}
                     className={`p-4 rounded-lg border-2 transition-all duration-300 ${
-                      paymentMethod === 'paypal'
+                      paymentMethod === 'wallet'
                         ? 'border-terracotta-rose bg-terracotta-rose/10'
                         : 'border-terracotta-rose/30 hover:border-terracotta-rose/60'
                     }`}
@@ -449,8 +444,8 @@ function PaymentContent() {
                     <div className="flex items-center">
                       <Shield className="w-6 h-6 mr-3 text-terracotta-rose" />
                       <div className="text-left">
-                        <h3 className="font-libre font-semibold text-creamy-yellow">PayPal</h3>
-                        <p className="text-sm text-creamy-yellow/70 font-varela">Pay with your PayPal account</p>
+                        <h3 className="font-libre font-semibold text-creamy-yellow">Wallet</h3>
+                        <p className="text-sm text-creamy-yellow/70 font-varela">Pay with your Wallet</p>
                       </div>
                     </div>
                   </button>
@@ -520,40 +515,40 @@ function PaymentContent() {
                   </div>
                 )}
 
-                {/* PayPal Option */}
-                {paymentMethod === 'paypal' && (
+                {/* Wallet Option */}
+                {paymentMethod === 'Wallet' && (
                   <div className="text-center py-8">
-                    {paypalStatus === 'completed' ? (
+                    {walletStatus === 'completed' ? (
                       <CheckCircle className="w-16 h-16 mx-auto text-green-400 mb-4" />
                     ) : (
                       <Shield className="w-16 h-16 mx-auto text-terracotta-rose mb-4" />
                     )}
-                    <h3 className="font-libre font-semibold text-creamy-yellow text-lg mb-2">PayPal Payment</h3>
+                    <h3 className="font-libre font-semibold text-creamy-yellow text-lg mb-2">Wallet Payment</h3>
                     <p className="text-creamy-yellow/70 font-varela mb-4">
-                      You will be redirected to PayPal to complete your payment securely.
+                      You will be charged from your wallet balance securely.
                     </p>
                     <Button
                       onClick={async () => {
-                        if (paypalStatus === 'processing' || paypalStatus === 'completed' || processing) return;
-                        setPaypalStatus('processing');
+                        if (walletStatus === 'processing' || walletStatus === 'completed' || processing) return;
+                        setWalletStatus('processing');
                         await new Promise(resolve => setTimeout(resolve, 2000));
-                        setPaypalStatus('completed');
+                        setWalletStatus('completed');
                       }}
-                      disabled={paypalStatus === 'processing' || paypalStatus === 'completed' || processing}
+                      disabled={walletStatus === 'processing' || walletStatus === 'completed' || processing}
                       className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-800/60 disabled:cursor-not-allowed text-white font-libre font-bold"
                     >
-                      {paypalStatus === 'processing' ? (
+                      {walletStatus === 'processing' ? (
                         <span className="flex items-center justify-center">
                           <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                           Processing...
                         </span>
-                      ) : paypalStatus === 'completed' ? (
+                      ) : walletStatus === 'completed' ? (
                         <span className="flex items-center justify-center">
                           <CheckCircle className="w-4 h-4 mr-2" />
                           Payment Complete
                         </span>
                       ) : (
-                        'Pay with PayPal'
+                        'Pay with Wallet'
                       )}
                     </Button>
                   </div>
@@ -646,7 +641,7 @@ function PaymentContent() {
                   disabled={
                     processing ||
                     (paymentMethod === 'card' && (!cardDetails.cardNumber.replace(/\s/g, '') || !cardDetails.expiryDate || !cardDetails.cvv || !cardDetails.cardholderName)) ||
-                    (paymentMethod === 'paypal' && paypalStatus !== 'completed')
+                    (paymentMethod === 'Wallet' && walletStatus !== 'completed')
                   }
                   className="w-full bg-gradient-to-r from-terracotta-rose to-terracotta-orange text-dark-brown font-libre font-bold hover:shadow-lg hover:shadow-terracotta-rose/30 transition-all duration-300"
                 >

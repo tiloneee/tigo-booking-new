@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from './../src/app.module';
+import { AppModule } from '../src/app.module';
 import { SearchService } from '../src/modules/search/services/search.service';
 import { IndexManagementService } from '../src/modules/search/services/index-management.service';
 import { HotelSearchService } from '../src/modules/search/services/hotel-search.service';

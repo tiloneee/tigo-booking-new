@@ -31,8 +31,7 @@ export class ReviewController {
 
   // Get user's own reviews (Customer)
   @Get('mine')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('Customer', 'Admin')
+  @UseGuards(JwtAuthGuard)
   getMyReviews(@Request() req) {
     return this.reviewService.findByUser(req.user.userId);
   }

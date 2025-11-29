@@ -1,4 +1,4 @@
-# 🏨 Tigo Booking Platform
+# 🏨 Aurevia Booking Platform
 
 A comprehensive hotel booking platform inspired by Agoda and Booking.com. Built with NestJS and Next.js, featuring real-time chat, advanced search with Elasticsearch, wallet-based payments, and a complete admin dashboard for hotel and booking management.
 
